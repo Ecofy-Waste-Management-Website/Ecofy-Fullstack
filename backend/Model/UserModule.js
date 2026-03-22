@@ -4,24 +4,48 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema(
     {
-        name :{
+        clerkId :{
+            type:String,
+            required:true,
+            unique:true,
+        },
+
+        role :{
+            type:String,
+            enum:['Customer','Staff','Admin'],
+            default:'Customer'
+            
+        },
+
+        firstName:{
             type:String,
             required:true,
         },
 
-        gmail :{
+        lastName:{
+            type:String,
+        },
+
+        email:{
             type:String,
             required:true,
+            unique:true,
         },
 
-        age :{
-            type:Number,
-            required:true,
+        preferences:{
+            emailNotification: { type: Boolean, default: true },
+            theme: { type: String, enum: ['light', 'dark'], default: 'light' },
         },
-    }
+
+        status:{
+            type:String,
+            enum:['Activate','Suspended','Banned'],
+            default:'Active',
+        }
+
+    },
+
+    {timestamps : true }
 )
 
-module.exports = mongoose.model(
-    "UserModel" , 
-    userSchema
-)
+module.exports = mongoose.model( "UserModel" , userSchema )
