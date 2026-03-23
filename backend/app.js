@@ -1,16 +1,21 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-
+const cors = require('cors');
+const userRouter = require("./Route/UserRoute")
 const app = express();
 
 //Middleware 
-app.use("/",(req, res , next) => {
-  res.send('its working');
-})
+app.use(cors());
+app.use(express.json());
+app.use("/users",userRouter);
 
-mongoose.connect("mongodb+srv://admin:3N19UCsBAoynTdFt@cluster0.samnfgm.mongodb.net/")
+
+mongoose.connect(process.env.MONGO_URI)
 .then(()=> console.log("connected to MongoDB"))
-.then(()=> {
-  app.listen(5000);
-})
 .catch((err)=> console.log((err)));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT , () =>{
+  console.log(`Server is running ! ${PORT}`);
+});
