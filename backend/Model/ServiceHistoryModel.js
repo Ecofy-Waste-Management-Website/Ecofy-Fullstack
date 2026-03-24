@@ -7,6 +7,11 @@ const serviceHistorySchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    email: {
+      type: String,
+      required: true,
+      index: true,
+    },
     serviceName: {
       type: String,
       required: true,

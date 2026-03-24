@@ -6,7 +6,7 @@ const cors = require('cors');
 const userRouter = require("./Route/UserRoute")
 const serviceHistoryRouter = require("./Route/ServiceHistoryRoute");
 const paymentHistoryRouter = require("./Route/PaymentHistoryRoute");
-const notificationRouter = require("./Route/NotificationRoute");
+const notificationRouter = require("./Route/NotificationRoute.js");
 const app = express();
 
 //Middleware 
