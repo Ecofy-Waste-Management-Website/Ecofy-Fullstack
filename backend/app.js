@@ -1,14 +1,18 @@
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const userRouter = require("./Route/UserRoute")
+const serviceRequestRouter = require("./Route/ServiceRequestRoute");
 const app = express();
 
 //Middleware 
 app.use(cors());
 app.use(express.json());
 app.use("/users",userRouter);
+app.use("/bookings", serviceRequestRouter);
 
 
 mongoose.connect(process.env.MONGO_URI)
