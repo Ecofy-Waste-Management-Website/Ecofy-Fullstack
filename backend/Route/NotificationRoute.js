@@ -9,7 +9,6 @@ const {
 
 router.get("/:clerkId", getNotifications);
 router.patch("/:id/read", markAsRead);
-router.patch("/:clerkId/read-all", markAllAsRead);
 router.post("/", createNotification);
 
 module.exports = router;
