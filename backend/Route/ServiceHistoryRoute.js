@@ -5,4 +5,4 @@ const { getServiceHistory, createServiceHistory } = require("../Controllers/Serv
 router.get("/:clerkId", getServiceHistory);
 router.post("/", createServiceHistory);
 
-module.exports = router;s
+module.exports = router;
