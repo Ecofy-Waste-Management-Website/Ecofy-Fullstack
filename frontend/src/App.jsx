@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './Components/Top-Header-Section/navbar/navbar'
 import Logo from './Components/Top-Header-Section/Logo/logo'
@@ -7,6 +8,11 @@ import Footer from './Components/Footer/footer'
 import ServiceHistory from './Components/Screens/ServiceHistory'
 import PaymentHistory from './Components/Screens/PaymentHistory'
 import Notifications from './Components/Screens/Notifications'
+
+
+import Navbar from '../src/Components/Top-Header-Section/navbar/navbar'
+import Footer from '../src/Components/Footer/footer'
+import Hero from '../src/Components/Hero-Section/Hero'
 
 
 
@@ -22,6 +28,7 @@ export default function App() {
   // }, []);
 
   return (
+
     <BrowserRouter>
   
       <Signup/>
@@ -34,5 +41,12 @@ export default function App() {
       </Routes>
       <Footer/>
     </BrowserRouter>
+
+  <div>
+    <Navbar/>
+    <Hero/>
+    <Footer/>
+  </div>
+
   )
 }
