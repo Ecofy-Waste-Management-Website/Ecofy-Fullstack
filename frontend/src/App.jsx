@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './Components/Top-Header-Section/navbar/navbar'
-import Signup from './Components/Top-Header-Section/Signup/signup'
 import ServiceHistory from './Components/Screens/ServiceHistory'
 import PaymentHistory from './Components/Screens/PaymentHistory'
 import Notifications from './Components/Screens/Notifications'
