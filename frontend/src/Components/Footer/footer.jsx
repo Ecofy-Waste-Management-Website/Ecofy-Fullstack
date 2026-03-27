@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 pb-10">
 
         {/* Brand Column */}
-        <div classname="sm:col-span-2 md:col-span-1">
+        <div className="sm:col-span-2 md:col-span-1">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-2xl">🌿</span>
             <span className="text-xl font-bold text-gray-900">Ecofy</span>
