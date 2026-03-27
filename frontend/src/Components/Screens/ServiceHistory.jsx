@@ -20,13 +20,15 @@ function ServiceHistory() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log("isLoaded:", isLoaded);
+    console.log("user:", user);
     if (!isLoaded || !user) return;
 
     const fetchServiceHistory = async () => {
       try {
         setLoading(true);
         const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/service-history/${encodeURIComponent(user.primaryEmailAddress.emailAddress)}`
+         `${import.meta.env.VITE_API_URL}/service-history/${user.id}`
         );
         if (!res.ok) throw new Error('Failed to fetch service history');
         const data = await res.json();

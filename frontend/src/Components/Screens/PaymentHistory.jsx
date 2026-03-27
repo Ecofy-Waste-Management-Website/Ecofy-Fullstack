@@ -20,13 +20,15 @@ function PaymentHistory() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log("isLoaded:", isLoaded);
+    console.log("user:", user);
     if (!isLoaded || !user) return;
 
     const fetchPayments = async () => {
       try {
         setLoading(true);
         const res = await fetch(
-          `${process.env.REACT_APP_API_URL}/payment-history/${user.id}`
+           `${import.meta.env.VITE_API_URL}/service-history/${user.id}`
         );
         if (!res.ok) throw new Error('Failed to fetch payment history');
         const data = await res.json();

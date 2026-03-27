@@ -3,8 +3,8 @@ const ServiceHistory = require("../Model/ServiceHistoryModel");
 // GET /service-history/:clerkId
 const getServiceHistory = async (req, res) => {
   try {
-    const { email } = req.params;
-    const records = await ServiceHistory.find({ email })
+    const { clerkId } = req.params;
+    const records = await ServiceHistory.find({ clerkId})
       .sort({ scheduledDate: -1 })
       .select("-__v");
 

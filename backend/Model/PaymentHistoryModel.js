@@ -7,6 +7,11 @@ const paymentHistorySchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    email: {
+      type: String,
+      required: true,
+      index: true,
+    },
     amount: {
       type: Number,
       required: true,

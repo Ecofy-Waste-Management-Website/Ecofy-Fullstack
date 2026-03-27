@@ -12,14 +12,14 @@ import Notifications from './Components/Screens/Notifications'
 
 
 export default function App() {
-  const [message, setMessage] = useState("");
+  // const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    fetch("http://localhost:5000/api/hello")
-      .then(res => res.json())
-      .then(data => setMessage(data.message))
-      .catch(err => console.error(err));
-  }, []);
+  // useEffect(() => {
+  //   fetch("http://localhost:5000/api/hello")
+  //     .then(res => res.json())
+  //     .then(data => setMessage(data.message))
+  //     .catch(err => console.error(err));
+  // }, []);
 
   return (
     <BrowserRouter>
