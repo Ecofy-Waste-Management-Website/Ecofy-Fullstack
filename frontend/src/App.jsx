@@ -7,10 +7,7 @@ import PaymentHistory from './Components/Screens/PaymentHistory'
 import Notifications from './Components/Screens/Notifications'
 import Footer from '../src/Components/Footer/footer'
 import Hero from '../src/Components/Hero-Section/Hero'
-
-
-
-
+import Dashboard from './Components/Screens/Dashboard'
 export default function App() {
   // const [message, setMessage] = useState("");
 
@@ -20,19 +17,17 @@ export default function App() {
   //     .then(data => setMessage(data.message))
   //     .catch(err => console.error(err));
   // }, []);
-
   return (
-
     <BrowserRouter>
       <Navbar/>
       <Routes>
+        <Route path="/" element={<Hero />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/service-history" element={<ServiceHistory />} />
           <Route path="/payment-history" element={<PaymentHistory />} />
           <Route path="/notifications" element={<Notifications />} />
       </Routes>
       <Footer/>
     </BrowserRouter>
-
-
   )
 }
