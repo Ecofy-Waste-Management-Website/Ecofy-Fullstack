@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "cors": "^2.8.6",
-    "react-router-dom": "^7.13.1"
-  }
-}
