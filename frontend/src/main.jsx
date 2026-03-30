@@ -1,18 +1,17 @@
 import React from 'react'
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App";
-import { ClerkProvider } from '@clerk/react'
-import { BrowserRouter } from 'react-router-dom';
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import { ClerkProvider } from '@clerk/clerk-react'
+import { BrowserRouter } from 'react-router-dom'
 
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
       <BrowserRouter>
-          <App />
+        <App />
       </BrowserRouter>
     </ClerkProvider>
-  </StrictMode>
-);
-
+  </React.StrictMode>,
+)

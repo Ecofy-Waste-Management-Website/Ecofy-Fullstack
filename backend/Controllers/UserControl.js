@@ -2,6 +2,7 @@ const User = require("../Model/UserModule");
 
 const jwt = require("jsonwebtoken");
 
+//User creation Function 
 const createUser = async (req, res) => {
   try {
     const { clerkId , role, firstName, lastName, email } = req.body;
@@ -26,7 +27,7 @@ const createUser = async (req, res) => {
     });
 
     await newUser.save();
-    res.status(201).json({ message: "User created Successfully!", user: newUser });
+    res.status(201).json({ message: "New User created Successfully!", user: newUser });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "debug : Internal server Error" });
