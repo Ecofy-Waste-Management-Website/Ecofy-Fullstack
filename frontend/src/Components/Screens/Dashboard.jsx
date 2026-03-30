@@ -1,5 +1,5 @@
 import React from 'react';
-import { useUser } from '@clerk/react';
+import { useUser } from "@clerk/clerk-react";
 
 export default function Dashboard() {
   const { user } = useUser();
