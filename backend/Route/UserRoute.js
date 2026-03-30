@@ -14,8 +14,6 @@ const {
 } = require("../Controllers/UserControl");
 
 router.post("/signup", createUser);
-
-
 // router.post('/check-admin',checkAdmin);
 // router.post("/login", login);
 // router.get("/", getAllUsers);

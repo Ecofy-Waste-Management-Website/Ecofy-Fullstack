@@ -1,5 +1,5 @@
 import React from 'react'
-import { useUser } from '@clerk/react';
+import { useUser } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
 
 export default function RoleRedirect() {
