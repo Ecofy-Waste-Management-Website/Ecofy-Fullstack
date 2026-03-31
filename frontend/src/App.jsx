@@ -9,8 +9,21 @@ import Footer from './Components/Footer/footer'
 import Hero from './Components/Hero-Section/Hero'
 import AdminDashboard from './Components/Admin/adminDashboard'
 
+
+
+
 export default function App() {
+  // const [message, setMessage] = useState("");
+
+  // useEffect(() => {
+  //   fetch("http://localhost:5000/api/hello")
+  //     .then(res => res.json())
+  //     .then(data => setMessage(data.message))
+  //     .catch(err => console.error(err));
+  // }, []);
+
   return (
+
     <>
       <Routes>
         <Route path="/" element={<><Navbar/><Hero /><Footer/></>} />
