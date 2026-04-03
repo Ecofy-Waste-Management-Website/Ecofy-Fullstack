@@ -1,29 +1,21 @@
 import React, { useEffect, useState } from "react";
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Navbar from './Components/Main/Top-Header-Section/navbar/navbar'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
-import ServiceHistory from './Components/Screens/ServiceHistory'
-import PaymentHistory from './Components/Screens/PaymentHistory'
-import Notifications from './Components/Screens/Notifications'
-import Footer from './Components/Main/Footer/footer'
-import Hero from './Components/Main/Hero-Section/Hero'
-import Dashboard from './Components/Screens/Dashboard'
-import Footer from './Components/Footer/footer'
-import Hero from './Components/Hero-Section/Hero'
-import AdminDashboard from './Components/Admin/adminDashboard'
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
-import Navbar from './Components/Top-Header-Section/navbar/navbar';
-import ServiceHistory from './Components/Screens/ServiceHistory';
-import PaymentHistory from './Components/Screens/PaymentHistory';
-import Notifications from './Components/Screens/Notifications';
-import Dashboard from './Components/Screens/Dashboard'; 
-import Footer from './Components/Footer/footer';
-import Hero from './Components/Hero-Section/Hero';
-import AdminDashboard from './Components/Admin/adminDashboard';
+// Components
+import Navbar from "./Components/Main/Top-Header-Section/navbar/navbar";
+import Footer from "./Components/Main/Footer/footer";
+import Hero from "./Components/Main/Hero-Section/Hero";
 
+// Screens
+import Dashboard from "./Components/Screens/Dashboard";
+import ServiceHistory from "./Components/Screens/ServiceHistory";
+import PaymentHistory from "./Components/Screens/PaymentHistory";
+import Notifications from "./Components/Screens/Notifications";
+
+// Admin
+import AdminDashboard from "./Components/Admin/adminDashboard";
 
 
 
