@@ -32,23 +32,38 @@ export default function App() {
         {/* We use our placeholder dashboard here, or user's original Dashboard conditionally */}
         <Route path="/dashboard" element={
           <>
-            <SignedIn>
-              <Navbar/>
-              <Dashboard/>
-              <Footer/>
-            </SignedIn>
-            <SignedOut>
-              <RedirectToSignIn />
-            </SignedOut>
+            <SignedIn><Navbar/><Dashboard/><Footer/></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
           </>
         } />
         
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/service-history" element={<> <SignedIn><Navbar/><ServiceHistory /><Footer/></SignedIn>
-    <SignedOut><RedirectToSignIn /></SignedOut></>} />
-        <Route path="/payment-history" element={<> <SignedIn><Navbar/><PaymentHistory /><Footer/></SignedIn>
-    <SignedOut><RedirectToSignIn /></SignedOut></>} />
-        <Route path="/notifications" element={<><Navbar/><Notifications /><Footer/></>} />
+        <Route path="/admin" element={
+          <>
+            <SignedIn><AdminDashboard /></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
+
+        <Route path="/service-history" element={
+          <> 
+            <SignedIn><Navbar/><ServiceHistory /><Footer/></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
+
+        <Route path="/payment-history" element={
+          <> 
+            <SignedIn><Navbar/><PaymentHistory /><Footer/></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
+
+        <Route path="/notifications" element={
+          <>
+            <SignedIn><Navbar/><Notifications /><Footer/></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
       </Routes>
     </>
   );
