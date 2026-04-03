@@ -47,4 +47,5 @@ const serviceHistorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+serviceHistorySchema.index({ clerkId: 1, scheduledDate: -1 });
 module.exports = mongoose.model("ServiceHistory", serviceHistorySchema);

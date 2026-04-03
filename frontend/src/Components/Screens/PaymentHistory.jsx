@@ -13,6 +13,7 @@ const STATUS_STYLES = {
   Refunded: { backgroundColor: '#ffffff', color: '#00671A' },
 };
 
+
 function PaymentHistory() {
   const { user, isLoaded } = useUser();
   const [payments, setPayments] = useState([]);
@@ -28,7 +29,7 @@ function PaymentHistory() {
       try {
         setLoading(true);
         const res = await fetch(
-           `${import.meta.env.VITE_API_URL}/service-history/${user.id}`
+           `${import.meta.env.VITE_API_URL}/payment-history/${user.id}`
         );
         if (!res.ok) throw new Error('Failed to fetch payment history');
         const data = await res.json();
