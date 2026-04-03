@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useUser } from '@clerk/react';
+import { useUser } from "@clerk/clerk-react";
 
 const fontLink = document.createElement('link');
 fontLink.href = 'https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700&display=swap';
@@ -12,6 +12,7 @@ const STATUS_STYLES = {
   Failed:   { backgroundColor: '#ff4444', color: '#ffffff' },
   Refunded: { backgroundColor: '#ffffff', color: '#00671A' },
 };
+
 
 function PaymentHistory() {
   const { user, isLoaded } = useUser();
@@ -28,7 +29,7 @@ function PaymentHistory() {
       try {
         setLoading(true);
         const res = await fetch(
-           `${import.meta.env.VITE_API_URL}/service-history/${user.id}`
+           `${import.meta.env.VITE_API_URL}/payment-history/${user.id}`
         );
         if (!res.ok) throw new Error('Failed to fetch payment history');
         const data = await res.json();

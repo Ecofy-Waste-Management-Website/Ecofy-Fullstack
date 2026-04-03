@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useUser } from '@clerk/react';
+import { useUser } from "@clerk/clerk-react";
 
 const fontLink = document.createElement('link');
 fontLink.href = 'https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700&display=swap';
@@ -12,6 +12,8 @@ const STATUS_STYLES = {
   'In Progress': { backgroundColor: '#ffffff', color: '#00671A' },
   Cancelled:   { backgroundColor: '#ff4444', color: '#ffffff' },
 };
+
+
 
 function ServiceHistory() {
   const { user, isLoaded } = useUser();
