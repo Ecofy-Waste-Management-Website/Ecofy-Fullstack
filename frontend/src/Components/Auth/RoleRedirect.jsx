@@ -1,32 +1,40 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react';
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export default function RoleRedirect() {
   const { isLoaded, user } = useUser();
+  const navigate = useNavigate();
 
-  if (!isLoaded) {
-    return <p>Loading...</p>;
-  }
+  useEffect(() => {
+    if (!isLoaded) return; // Wait for user data to load
 
-  // If no user is logged in, perhaps they shouldn't be here, but just in case:
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
+    if (!user) {
+      navigate('/', { replace: true });
+      return;
+    }
 
-  // Retrieve primary email safely
-  const email = user.primaryEmailAddress?.emailAddress?.toLowerCase();
+    // Retrieve primary email safely
+    const email = user.primaryEmailAddress?.emailAddress?.toLowerCase();
 
-  // Define role-based emails
-  const adminEmails = ['banukadeseram12@gmail.com'];
-  const staffEmails = ['staff@example.com']; // Placeholder for staff email
+    console.log('User email:', email); // Debug log
 
-  if (adminEmails.includes(email)) {
-    return <Navigate to="/admin-dashboard" replace />;
-  } else if (staffEmails.includes(email)) {
-    return <Navigate to="/staff-dashboard" replace />;
-  } else {
-    // Default fallback is the user dashboard
-    return <Navigate to="/dashboard" replace />;
-  }
+    // Define role-based emails
+    const adminEmails = ['banukadeseram12@gmail.com'];
+    const staffEmails = ['staff@example.com']; // Placeholder for staff email
+
+    if (adminEmails.includes(email)) {
+      console.log('Redirecting to admin dashboard');
+      navigate('/admin-dashboard', { replace: true });
+    } else if (staffEmails.includes(email)) {
+      console.log('Redirecting to staff dashboard');
+      navigate('/staff-dashboard', { replace: true });
+    } else {
+      console.log('Redirecting to user dashboard');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isLoaded, user, navigate]);
+
+  // Show loading while user data is being fetched
+  return <div className="flex items-center justify-center h-screen"><p>Redirecting...</p></div>;
 }
