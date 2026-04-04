@@ -5,7 +5,7 @@ import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
 import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
-import Dashboard from './Components/Screens/Dashboard';
+import DashboardRouter from './Components/Screens/DashboardRouter';
 import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
 import AdminDashboard from './Components/Admin/adminDashboard';
@@ -19,7 +19,7 @@ export default function App() {
 
         <Route path="/dashboard" element={
           <>
-            <SignedIn><Navbar /><Dashboard /><Footer /></SignedIn>
+            <SignedIn><DashboardRouter /></SignedIn>
             <SignedOut><RedirectToSignIn /></SignedOut>
           </>
         } />
