@@ -1,10 +1,7 @@
-import jwt from 'jsonwebtoken';
-import User from '../Model/User.js';
+const jwt = require('jsonwebtoken');
+const User = require('../Model/User.js');
 
-/**
- * Middleware to check if the incoming request has a valid JWT token
- */
-export const isAuthenticated = async (req, res, next) => {
+const isAuthenticated = async (req, res, next) => {
   try {
     let token;
 
@@ -36,13 +33,12 @@ export const isAuthenticated = async (req, res, next) => {
   }
 };
 
-/**
- * Middleware to strictly check if the authenticated user is an Admin
- */
-export const isAdmin = (req, res, next) => {
+const isAdmin = (req, res, next) => {
   if (req.user && req.user.role === 'Admin') {
     next();
   } else {
     res.status(403).json({ message: 'Forbidden. Strictly admin access only.' });
   }
 };
+
+module.exports = { isAuthenticated, isAdmin };

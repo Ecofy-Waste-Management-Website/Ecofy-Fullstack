@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import './adminDashboard.css';
+import { createStaffAccount } from "../../services/api/adminService";
 
 const stats = [
   { label: "Total Revenue", value: "LKR 2,345,000", icon: "$" },
@@ -54,6 +55,31 @@ const escalations = [
 ];
 
 export default function AdminDashboard() {
+  const [formData, setFormData] = useState({ firstName: "", lastName: "", email: "", password: "" });
+  const [status, setStatus] = useState({ type: "", message: "" });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleCreateStaff = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setStatus({ type: "", message: "" });
+    try {
+      // In a real application, obtain the actual JWT from your Auth Context / Storage
+      const token = localStorage.getItem('token') || 'your-admin-jwt-token';
+      const response = await createStaffAccount(formData, token);
+      setStatus({ type: "success", message: response.message || "Staff created successfully!" });
+      setFormData({ firstName: "", lastName: "", email: "", password: "" });
+    } catch (error) {
+      setStatus({ type: "error", message: error.message || "Failed to create staff account" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="dashboard-shell">
       <aside className="sidebar">
@@ -197,6 +223,31 @@ export default function AdminDashboard() {
                 <p>{item.summary}</p>
               </div>
             ))}
+          </article>
+
+          {/* New Tailwind CSS styled Staff Creation Panel */}
+          <article className="panel staff-panel flex flex-col gap-4 max-w-md bg-white p-6 rounded-lg shadow-md mt-4 col-span-full border border-gray-200">
+            <div className="panel-head mb-2 border-b pb-2">
+              <h3 className="text-xl font-bold text-gray-800">Create Staff Account</h3>
+            </div>
+            
+            {status.message && (
+              <div className={`p-3 rounded-md text-sm font-medium ${status.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                {status.message}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateStaff} className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} required placeholder="First Name" className="w-1/2 border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last Name" className="w-1/2 border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+              </div>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="Email Address" className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+              <input type="password" name="password" value={formData.password} onChange={handleChange} required placeholder="Temporary Password" className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+              <button type="submit" disabled={isLoading} className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors disabled:bg-blue-400">
+                {isLoading ? 'Processing...' : 'Create Staff Member'}
+              </button>
+            </form>
           </article>
         </section>
         <footer className="page-footer">&copy; 2026 Ecofy Waste Management</footer>
