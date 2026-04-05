@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
+import { useUser } from "@clerk/clerk-react";
 import './adminDashboard.css';
+import SLAAnalytics from "./SLAAnalytics";
 
 const stats = [
   { label: "Total Revenue", value: "LKR 2,345,000", icon: "$" },
@@ -54,49 +56,33 @@ const escalations = [
 ];
 
 export default function AdminDashboard() {
-  return (
-    <div className="dashboard-shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark">E</div>
-          <h1>Ecofy</h1>
-        </div>
-        <nav className="menu">
-          <button className="menu-item active">Dashboard</button>
-          <button className="menu-item">User Management</button>
-          <button className="menu-item submenu">Customers</button>
-          <button className="menu-item submenu">Staff</button>
-          <button className="menu-item">Service Requests</button>
-          <button className="menu-item">Staff Assignment</button>
-          <button className="menu-item">SLA Analytics</button>
-          <button className="menu-item">Payments</button>
-          <button className="menu-item">Content/Blog</button>
-          <button className="menu-item">Settings</button>
-        </nav>
-        <div className="admin-card">
-          <div className="avatar">MN</div>
-          <div>
-            <p className="admin-role">Admin:</p>
-            <p className="admin-name">M.N. Mohamed</p>
-            <button className="logout-btn">Logout</button>
-          </div>
-        </div>
-      </aside>
+  const [activeTab, setActiveTab] = useState("Dashboard");
+  const { user } = useUser();
 
-      <main className="main-content">
-        <header className="topbar">
-          <h2>Ecofy Admin Dashboard</h2>
-          <div className="topbar-right">
-            <input
-              type="text"
-              className="search"
-              placeholder="Search for requests or users"
-            />
-            <div className="bell">7</div>
-            <div className="profile">M.N. Mohamed</div>
-          </div>
-        </header>
+  const adminName = user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Admin";
+  const adminInitials = adminName.split(" ").map(n => n[0] || "").join("").toUpperCase();
 
+  const menuItems = [
+    { label: "Dashboard", hasSubmenu: false },
+    { label: "User Management", hasSubmenu: false },
+    { label: "Customers", hasSubmenu: true },
+    { label: "Staff", hasSubmenu: true },
+    { label: "Service Requests", hasSubmenu: false },
+    { label: "Staff Assignment", hasSubmenu: false },
+    { label: "SLA Analytics", hasSubmenu: false },
+    { label: "Payments", hasSubmenu: false },
+    { label: "Content/Blog", hasSubmenu: false },
+    { label: "Settings", hasSubmenu: false },
+  ];
+
+  const renderMainContent = () => {
+    if (activeTab === "SLA Analytics") {
+      return <SLAAnalytics />;
+    }
+
+    // Default: Dashboard view
+    return (
+      <>
         <section className="stats-grid">
           {stats.map((stat) => (
             <article key={stat.label} className="stat-card">
@@ -199,6 +185,54 @@ export default function AdminDashboard() {
             ))}
           </article>
         </section>
+      </>
+    );
+  };
+
+  return (
+    <div className="dashboard-shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-mark">E</div>
+          <h1>Ecofy</h1>
+        </div>
+        <nav className="menu">
+          {menuItems.map((item) => (
+            <button
+              key={item.label}
+              className={`menu-item${item.hasSubmenu ? " submenu" : ""}${activeTab === item.label ? " active" : ""}`}
+              onClick={() => setActiveTab(item.label)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+        <div className="admin-card">
+          <div className="avatar">{adminInitials}</div>
+          <div>
+            <p className="admin-role">Admin:</p>
+            <p className="admin-name">{adminName}</p>
+            <button className="logout-btn">Logout</button>
+          </div>
+        </div>
+      </aside>
+
+      <main className="main-content">
+        <header className="topbar">
+          <h2>{activeTab === "SLA Analytics" ? "SLA & Performance Analytics" : "Ecofy Admin Dashboard"}</h2>
+          <div className="topbar-right">
+            <input
+              type="text"
+              className="search"
+              placeholder="Search for requests or users"
+            />
+            <div className="bell">7</div>
+            <div className="profile">{adminName}</div>
+          </div>
+        </header>
+
+        {renderMainContent()}
+
         <footer className="page-footer">&copy; 2026 Ecofy Waste Management</footer>
       </main>
     </div>

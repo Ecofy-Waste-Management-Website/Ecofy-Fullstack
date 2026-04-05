@@ -12,6 +12,7 @@ const paymentHistoryRouter = require("./Route/PaymentHistoryRoute");
 const notificationRouter = require("./Route/NotificationRoute.js");
 
 const serviceRequestRouter = require("./Route/ServiceRequestRoute");
+const slaAnalyticsRouter = require("./Route/slaAnalyticsRoute");
 const app = express();
 
 //Middleware 
@@ -25,6 +26,7 @@ app.use("/payment-history", paymentHistoryRouter);
 app.use("/notifications", notificationRouter);
 
 app.use("/bookings", serviceRequestRouter);
+app.use("/sla-analytics", slaAnalyticsRouter);
 
 
 
