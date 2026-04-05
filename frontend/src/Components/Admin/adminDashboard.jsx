@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import './adminDashboard.css';
 import SLAAnalytics from "./SLAAnalytics";
+import ServiceRequests from "./ServiceRequests";
 
 const stats = [
   { label: "Total Revenue", value: "LKR 2,345,000", icon: "$" },
@@ -78,6 +79,10 @@ export default function AdminDashboard() {
   const renderMainContent = () => {
     if (activeTab === "SLA Analytics") {
       return <SLAAnalytics />;
+    }
+
+    if (activeTab === "Service Requests") {
+    return <ServiceRequests />;
     }
 
     // Default: Dashboard view
@@ -219,7 +224,7 @@ export default function AdminDashboard() {
 
       <main className="main-content">
         <header className="topbar">
-          <h2>{activeTab === "SLA Analytics" ? "SLA & Performance Analytics" : "Ecofy Admin Dashboard"}</h2>
+          <h2>{activeTab === "SLA Analytics" ? "SLA & Performance Analytics" : activeTab === "Service Requests" ? "Service Requests": "Ecofy Admin Dashboard"}</h2>
           <div className="topbar-right">
             <input
               type="text"
