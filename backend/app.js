@@ -13,6 +13,7 @@ const notificationRouter = require("./Route/NotificationRoute.js");
 
 const serviceRequestRouter = require("./Route/ServiceRequestRoute");
 const adminRoutes = require("./Route/adminRoutes");
+const slaAnalyticsRouter = require("./Route/slaAnalyticsRoute");
 const app = express();
 
 //Middleware 
@@ -27,6 +28,7 @@ app.use("/notifications", notificationRouter);
 
 app.use("/bookings", serviceRequestRouter);
 app.use("/admin", adminRoutes);
+app.use("/sla-analytics", slaAnalyticsRouter);
 
 
 

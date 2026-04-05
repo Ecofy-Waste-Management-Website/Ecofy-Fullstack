@@ -86,5 +86,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         </Routes>
       </BrowserRouter>
     </ClerkProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 )
