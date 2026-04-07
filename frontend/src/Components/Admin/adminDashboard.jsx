@@ -3,6 +3,8 @@ import { useUser } from "@clerk/clerk-react";
 import './adminDashboard.css';
 import SLAAnalytics from "./SLAAnalytics";
 import ServiceRequests from "./ServiceRequests";
+import ContentBlogManagement from "./contentBlogManagement";
+
 
 const stats = [
   { label: "Total Revenue", value: "LKR 2,345,000", icon: "$" },
@@ -238,8 +240,13 @@ export default function AdminDashboard() {
 
         {renderMainContent()}
 
+        <ContentBlogManagement/>
+
         <footer className="page-footer">&copy; 2026 Ecofy Waste Management</footer>
+      
       </main>
     </div>
+
+    
   );
 }

@@ -24,7 +24,9 @@ export default function App() {
           </>
         } />
 
-        <Route path="/admin" element={
+
+        {/*check the route dosent work */}
+        <Route path="/admin-dashboard" element={
           <>
             <SignedIn><AdminDashboard /></SignedIn>
             <SignedOut><RedirectToSignIn /></SignedOut>
