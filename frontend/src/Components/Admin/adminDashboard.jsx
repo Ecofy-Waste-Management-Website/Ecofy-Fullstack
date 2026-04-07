@@ -84,7 +84,11 @@ export default function AdminDashboard() {
     }
 
     if (activeTab === "Service Requests") {
-    return <ServiceRequests />;
+      return <ServiceRequests />;
+    }
+
+    if (activeTab === "Content/Blog") {
+      return <ContentBlogManagement />;
     }
 
     // Default: Dashboard view
@@ -226,7 +230,15 @@ export default function AdminDashboard() {
 
       <main className="main-content">
         <header className="topbar">
-          <h2>{activeTab === "SLA Analytics" ? "SLA & Performance Analytics" : activeTab === "Service Requests" ? "Service Requests": "Ecofy Admin Dashboard"}</h2>
+          <h2>{
+            activeTab === "SLA Analytics"
+              ? "SLA & Performance Analytics"
+              : activeTab === "Service Requests"
+                ? "Service Requests"
+                : activeTab === "Content/Blog"
+                  ? "Content & Blog Management"
+                  : "Ecofy Admin Dashboard"
+          }</h2>
           <div className="topbar-right">
             <input
               type="text"
@@ -239,8 +251,6 @@ export default function AdminDashboard() {
         </header>
 
         {renderMainContent()}
-
-        <ContentBlogManagement/>
 
         <footer className="page-footer">&copy; 2026 Ecofy Waste Management</footer>
       
