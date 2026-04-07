@@ -1,114 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./ServiceRequests.css";
 
-// ── Sample data ────────────────────────────────────────────────────────────────
+// ── Config ─────────────────────────────────────────────────────────────────────
+const API_BASE = "http://localhost:5000/service-monitoring";
+const WS_URL   = "ws://localhost:5000";
+
 const STAFF_LIST = [
   "Banuka J.", "Priyantha S.", "Amara K.", "Nimal R.",
   "Dilshan P.", "Sachini M.", "Roshan T.", "Chamara W.",
 ];
 
-const INITIAL_REQUESTS = [
-  {
-    id: "#REQ108", customer: "Gunawardena T.", phone: "077-123-4567",
-    location: "Kandy", address: "45 Peradeniya Rd, Kandy",
-    type: "Household", status: "Pending",
-    assignedStaff: null, submittedAt: new Date(Date.now() - 2 * 60000),
-    timeline: [
-      { event: "Request submitted", time: new Date(Date.now() - 2 * 60000) },
-    ],
-    notes: "Large bin overflow near gate.",
-  },
-  {
-    id: "#REQ107", customer: "Perera L.", phone: "071-987-6543",
-    location: "Colombo 03", address: "12 Galle Rd, Colombo 03",
-    type: "Industrial", status: "In-Progress",
-    assignedStaff: "Banuka J.", submittedAt: new Date(Date.now() - 28 * 60000),
-    timeline: [
-      { event: "Request submitted", time: new Date(Date.now() - 28 * 60000) },
-      { event: "Assigned to Banuka J.", time: new Date(Date.now() - 25 * 60000) },
-      { event: "Staff en route", time: new Date(Date.now() - 10 * 60000) },
-    ],
-    notes: "Industrial waste pickup — requires protective gear.",
-  },
-  {
-    id: "#REQ106", customer: "Bandara Y.", phone: "076-456-7890",
-    location: "Nugegoda", address: "88 High Level Rd, Nugegoda",
-    type: "Household", status: "Pending",
-    assignedStaff: null, submittedAt: new Date(Date.now() - 45 * 60000),
-    timeline: [
-      { event: "Request submitted", time: new Date(Date.now() - 45 * 60000) },
-    ],
-    notes: "",
-  },
-  {
-    id: "#REQ105", customer: "Pathirana P.", phone: "070-321-0987",
-    location: "Colombo 07", address: "5 Ward Place, Colombo 07",
-    type: "Recyclable", status: "Completed",
-    assignedStaff: "Priyantha S.", submittedAt: new Date(Date.now() - 3 * 3600000),
-    timeline: [
-      { event: "Request submitted", time: new Date(Date.now() - 3 * 3600000) },
-      { event: "Assigned to Priyantha S.", time: new Date(Date.now() - 2.8 * 3600000) },
-      { event: "Staff en route", time: new Date(Date.now() - 2.5 * 3600000) },
-      { event: "Pickup completed", time: new Date(Date.now() - 2 * 3600000) },
-    ],
-    notes: "Paper and plastics only.",
-  },
-  {
-    id: "#REQ104", customer: "Mohamed A.", phone: "075-654-3210",
-    location: "Dehiwala", address: "22 Galle Rd, Dehiwala",
-    type: "Hazardous", status: "Escalated",
-    assignedStaff: "Amara K.", submittedAt: new Date(Date.now() - 5 * 3600000),
-    timeline: [
-      { event: "Request submitted", time: new Date(Date.now() - 5 * 3600000) },
-      { event: "Assigned to Amara K.", time: new Date(Date.now() - 4.8 * 3600000) },
-      { event: "Escalated — chemical waste detected", time: new Date(Date.now() - 4 * 3600000) },
-    ],
-    notes: "⚠ Chemical waste. Requires special disposal.",
-  },
-  {
-    id: "#REQ103", customer: "Silva R.", phone: "072-111-2222",
-    location: "Rajagiriya", address: "3 Parliament Rd, Rajagiriya",
-    type: "Bulky", status: "Completed",
-    assignedStaff: "Nimal R.", submittedAt: new Date(Date.now() - 8 * 3600000),
-    timeline: [
-      { event: "Request submitted", time: new Date(Date.now() - 8 * 3600000) },
-      { event: "Assigned to Nimal R.", time: new Date(Date.now() - 7.8 * 3600000) },
-      { event: "Pickup completed", time: new Date(Date.now() - 7 * 3600000) },
-    ],
-    notes: "Old sofa and mattress.",
-  },
-  {
-    id: "#REQ102", customer: "Fernando C.", phone: "078-333-4444",
-    location: "Moratuwa", address: "60 Station Rd, Moratuwa",
-    type: "Household", status: "In-Progress",
-    assignedStaff: "Dilshan P.", submittedAt: new Date(Date.now() - 90 * 60000),
-    timeline: [
-      { event: "Request submitted", time: new Date(Date.now() - 90 * 60000) },
-      { event: "Assigned to Dilshan P.", time: new Date(Date.now() - 80 * 60000) },
-      { event: "Staff en route", time: new Date(Date.now() - 60 * 60000) },
-    ],
-    notes: "",
-  },
-  {
-    id: "#REQ101", customer: "Wickrama S.", phone: "077-555-6666",
-    location: "Colombo 05", address: "18 Havelock Rd, Colombo 05",
-    type: "Recyclable", status: "Pending",
-    assignedStaff: null, submittedAt: new Date(Date.now() - 20 * 60000),
-    timeline: [
-      { event: "Request submitted", time: new Date(Date.now() - 20 * 60000) },
-    ],
-    notes: "Glass bottles and cardboard.",
-  },
-];
-
-const STATUS_OPTIONS   = ["All", "Pending", "In-Progress", "Completed", "Escalated"];
-const TYPE_OPTIONS     = ["All", "Household", "Industrial", "Recyclable", "Hazardous", "Bulky"];
+const STATUS_OPTIONS   = ["All", "Pending", "Assigned", "In Progress", "Completed", "Delayed"];
+const TYPE_OPTIONS     = ["All", "Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
 const LOCATION_OPTIONS = ["All", "Colombo 03", "Colombo 05", "Colombo 07",
   "Kandy", "Nugegoda", "Dehiwala", "Rajagiriya", "Moratuwa"];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function timeAgo(date) {
-  const diff = Math.floor((Date.now() - date) / 1000);
+  const diff = Math.floor((Date.now() - new Date(date)) / 1000);
   if (diff < 60)    return `${diff}s ago`;
   if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
@@ -116,30 +25,33 @@ function timeAgo(date) {
 }
 
 function statusClass(s) {
-  return { Pending: "pending", "In-Progress": "inprogress", Completed: "completed", Escalated: "escalated" }[s] || "";
+  return {
+    Pending:      "pending",
+    Assigned:     "assigned",
+    "In Progress":"inprogress",
+    Completed:    "completed",
+    Delayed:      "delayed",
+  }[s] || "";
 }
 
 function typeColor(t) {
   return {
-    Household: "#0b6ca8", Industrial: "#5b35b5",
-    Recyclable: "#1a7c4b", Hazardous: "#c9320f", Bulky: "#856800",
+    Household:       "#0b6ca8",
+    Commercial:      "#5b35b5",
+    Bulk:            "#856800",
+    Garden:          "#1a7c4b",
+    "Drain Cleaning":"#c9320f",
   }[t] || "#444";
 }
 
 // ── KPI Cards ──────────────────────────────────────────────────────────────────
-function KPIGrid({ requests }) {
-  const total      = requests.length;
-  const pending    = requests.filter(r => r.status === "Pending").length;
-  const inProgress = requests.filter(r => r.status === "In-Progress").length;
-  const completed  = requests.filter(r => r.status === "Completed").length;
-  const escalated  = requests.filter(r => r.status === "Escalated").length;
-
+function KPIGrid({ stats }) {
   const cards = [
-    { label: "Total Requests", value: total,      color: "blue",   icon: "📋", sub: "All service requests" },
-    { label: "Pending",        value: pending,    color: "amber",  icon: "⏳", sub: "Awaiting assignment" },
-    { label: "In Progress",    value: inProgress, color: "purple", icon: "🚛", sub: "Currently active" },
-    { label: "Completed",      value: completed,  color: "green",  icon: "✅", sub: "Successfully closed" },
-    { label: "Escalated",      value: escalated,  color: "red",    icon: "🚨", sub: "Requires attention" },
+    { label: "Total Requests", value: stats.total,      color: "blue",   icon: "📋", sub: "All service requests" },
+    { label: "Pending",        value: stats.pending,    color: "amber",  icon: "⏳", sub: "Awaiting assignment" },
+    { label: "In Progress",    value: stats.inProgress, color: "purple", icon: "🚛", sub: "Currently active" },
+    { label: "Completed",      value: stats.completed,  color: "green",  icon: "✅", sub: "Successfully closed" },
+    { label: "Delayed",        value: stats.delayed,    color: "red",    icon: "🚨", sub: "Requires attention" },
   ];
 
   return (
@@ -148,7 +60,7 @@ function KPIGrid({ requests }) {
         <article key={c.label} className="sr-kpi-card">
           <div className="sr-kpi-icon">{c.icon}</div>
           <p className="sr-kpi-label">{c.label}</p>
-          <p className={`sr-kpi-value ${c.color}`}>{c.value}</p>
+          <p className={`sr-kpi-value ${c.color}`}>{c.value ?? "—"}</p>
           <p className="sr-kpi-sub">{c.sub}</p>
         </article>
       ))}
@@ -160,6 +72,7 @@ function KPIGrid({ requests }) {
 function RequestModal({ req, onClose, onStatusChange, onAssign }) {
   const [selStaff,  setSelStaff]  = useState(req.assignedStaff || "");
   const [selStatus, setSelStatus] = useState(req.status);
+  const [saving,    setSaving]    = useState(false);
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -167,10 +80,15 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
     return () => clearInterval(t);
   }, []);
 
-  function handleSave() {
-    if (selStaff  !== req.assignedStaff) onAssign(req.id, selStaff || null);
-    if (selStatus !== req.status)        onStatusChange(req.id, selStatus);
-    onClose();
+  async function handleSave() {
+    setSaving(true);
+    try {
+      if (selStaff  !== (req.assignedStaff || "")) await onAssign(req.id, selStaff || null);
+      if (selStatus !== req.status)                await onStatusChange(req.id, selStatus);
+      onClose();
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -179,7 +97,7 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
 
         <div className="sr-modal-header">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span className="sr-modal-id">{req.id}</span>
+            <span className="sr-modal-id">{req.requestId}</span>
             <span className={`status ${statusClass(req.status)}`}>{req.status}</span>
           </div>
           <button className="sr-modal-close" onClick={onClose}>✕</button>
@@ -191,15 +109,14 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
             <div className="sr-modal-section">
               <h4>Customer Details</h4>
               <p><strong>Name:</strong> {req.customer}</p>
-              <p><strong>Phone:</strong> {req.phone}</p>
+              <p><strong>Email:</strong> {req.email}</p>
               <p><strong>Location:</strong> {req.location}</p>
-              <p><strong>Address:</strong> {req.address}</p>
             </div>
 
             <div className="sr-modal-section">
               <h4>Request Info</h4>
               <p>
-                <strong>Type:</strong>
+                <strong>Service Type:</strong>
                 <span className="sr-type-badge" style={{
                   background: typeColor(req.type) + "1a",
                   color: typeColor(req.type),
@@ -208,7 +125,9 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
                   {req.type}
                 </span>
               </p>
-              <p><strong>Submitted:</strong> {req.submittedAt.toLocaleString()}</p>
+              <p><strong>Waste Category:</strong> {req.wasteCategory}</p>
+              <p><strong>Scheduled:</strong> {new Date(req.scheduledDate).toLocaleDateString()}</p>
+              <p><strong>Submitted:</strong> {new Date(req.submittedAt).toLocaleString()}</p>
               {req.notes && <p><strong>Notes:</strong> {req.notes}</p>}
             </div>
 
@@ -235,8 +154,8 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
                 {STATUS_OPTIONS.slice(1).map(s => <option key={s}>{s}</option>)}
               </select>
 
-              <button className="sr-save-btn" onClick={handleSave}>
-                Save Changes
+              <button className="sr-save-btn" onClick={handleSave} disabled={saving}>
+                {saving ? "Saving…" : "Save Changes"}
               </button>
             </div>
           </div>
@@ -245,7 +164,10 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
           <div className="sr-modal-right">
             <h4 className="sr-timeline-title">Status Timeline</h4>
             <div className="sr-timeline">
-              {req.timeline.map((ev, i) => {
+              {(req.timeline || []).length === 0 && (
+                <p style={{ color: "#8895aa", fontSize: "0.85rem" }}>No timeline events yet.</p>
+              )}
+              {(req.timeline || []).map((ev, i) => {
                 const isLast = i === req.timeline.length - 1;
                 return (
                   <div key={i} className="sr-tl-item">
@@ -254,7 +176,7 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
                     <div>
                       <p className="sr-tl-event">{ev.event}</p>
                       <p className="sr-tl-time">
-                        {timeAgo(ev.time)} · {ev.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {timeAgo(ev.time)} · {new Date(ev.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>
                   </div>
@@ -270,7 +192,10 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function ServiceRequests() {
-  const [requests, setRequests] = useState(INITIAL_REQUESTS);
+  const [requests, setRequests] = useState([]);
+  const [stats,    setStats]    = useState({ total: 0, pending: 0, inProgress: 0, completed: 0, delayed: 0 });
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState(null);
   const [search,   setSearch]   = useState("");
   const [filters,  setFilters]  = useState({ status: "All", type: "All", location: "All" });
   const [selected, setSelected] = useState(null);
@@ -282,52 +207,90 @@ export default function ServiceRequests() {
     return () => clearInterval(t);
   }, []);
 
-  // Simulate real-time: assigned Pending → In-Progress every 45s
-  useEffect(() => {
-    const t = setInterval(() => {
-      setRequests(prev => {
-        const idx = prev.findIndex(r => r.status === "Pending" && r.assignedStaff);
-        if (idx === -1) return prev;
-        const updated = [...prev];
-        const r = { ...updated[idx] };
-        r.status   = "In-Progress";
-        r.timeline = [...r.timeline, { event: "Staff en route", time: new Date() }];
-        updated[idx] = r;
-        return updated;
-      });
-    }, 45000);
-    return () => clearInterval(t);
+  // ── Fetch requests from API ────────────────────────────────────────────────
+  const fetchRequests = useCallback(async () => {
+    try {
+      const params = new URLSearchParams();
+      if (filters.status   !== "All") params.set("status",   filters.status);
+      if (filters.type     !== "All") params.set("type",     filters.type);
+      if (filters.location !== "All") params.set("location", filters.location);
+      if (search)                     params.set("search",   search);
+
+      const res  = await fetch(`${API_BASE}?${params}`);
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message);
+      setRequests(json.data);
+      setError(null);
+    } catch (err) {
+      setError("Failed to load requests. Is the server running?");
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, search]);
+
+  // ── Fetch KPI stats ────────────────────────────────────────────────────────
+  const fetchStats = useCallback(async () => {
+    try {
+      const res  = await fetch(`${API_BASE}/stats`);
+      const json = await res.json();
+      if (json.success) setStats(json.data);
+    } catch { /* stats are non-critical */ }
   }, []);
 
-  const filtered = requests.filter(r => {
-    const q = search.toLowerCase();
-    const matchSearch   = !q
-      || r.id.toLowerCase().includes(q)
-      || r.customer.toLowerCase().includes(q)
-      || r.location.toLowerCase().includes(q);
-    const matchStatus   = filters.status   === "All" || r.status   === filters.status;
-    const matchType     = filters.type     === "All" || r.type     === filters.type;
-    const matchLocation = filters.location === "All" || r.location === filters.location;
-    return matchSearch && matchStatus && matchType && matchLocation;
-  });
+  // Initial load + re-fetch when filters change
+  useEffect(() => {
+    fetchRequests();
+    fetchStats();
+  }, [fetchRequests, fetchStats]);
 
-  function handleStatusChange(id, newStatus) {
-    setRequests(prev => prev.map(r => r.id !== id ? r : {
-      ...r,
-      status:   newStatus,
-      timeline: [...r.timeline, { event: `Status changed to ${newStatus}`, time: new Date() }],
-    }));
+  // ── WebSocket — real-time updates ──────────────────────────────────────────
+  useEffect(() => {
+    const ws = new WebSocket(WS_URL);
+
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+
+        if (msg.type === "REQUEST_UPDATED") {
+          setRequests(prev =>
+            prev.map(r => r.id === msg.data.id ? msg.data : r)
+          );
+          fetchStats(); // refresh KPI counts
+        }
+
+        if (msg.type === "REQUEST_CREATED") {
+          setRequests(prev => [msg.data, ...prev]);
+          fetchStats();
+        }
+
+        if (msg.type === "REQUEST_DELETED") {
+          setRequests(prev => prev.filter(r => r.id !== msg.requestId));
+          fetchStats();
+        }
+      } catch { /* malformed message */ }
+    };
+
+    ws.onerror = () => console.warn("WebSocket unavailable — live updates off");
+
+    return () => ws.close();
+  }, [fetchStats]);
+
+  // ── PATCH helpers ──────────────────────────────────────────────────────────
+  async function handleStatusChange(id, newStatus) {
+    await fetch(`${API_BASE}/${id}/status`, {
+      method:  "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ status: newStatus }),
+    });
+    // WebSocket broadcast will update the UI automatically
   }
 
-  function handleAssign(id, staff) {
-    setRequests(prev => prev.map(r => r.id !== id ? r : {
-      ...r,
-      assignedStaff: staff,
-      timeline: [...r.timeline, {
-        event: staff ? `Assigned to ${staff}` : "Staff unassigned",
-        time: new Date(),
-      }],
-    }));
+  async function handleAssign(id, staff) {
+    await fetch(`${API_BASE}/${id}/assign`, {
+      method:  "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ assignedStaff: staff }),
+    });
   }
 
   const selReq = selected ? requests.find(r => r.id === selected) : null;
@@ -345,15 +308,15 @@ export default function ServiceRequests() {
         </div>
       </div>
 
-      {/* KPI cards — same pattern as SLA KPI grid */}
-      <KPIGrid requests={requests} />
+      {/* KPI cards */}
+      <KPIGrid stats={stats} />
 
-      {/* Filter bar inside a panel — consistent with SLA panels */}
+      {/* Filter bar */}
       <div className="sr-panel" style={{ marginBottom: 16, padding: "12px 16px" }}>
         <div className="sr-filter-bar">
           <input
             className="sr-search"
-            placeholder="🔍  Search by ID, customer, location…"
+            placeholder="🔍  Search by customer, location…"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -370,73 +333,89 @@ export default function ServiceRequests() {
             {LOCATION_OPTIONS.map(o => <option key={o}>{o}</option>)}
           </select>
           <span className="sr-badge" style={{ marginLeft: "auto", whiteSpace: "nowrap" }}>
-            {filtered.length} of {requests.length} requests
+            {requests.length} requests
           </span>
         </div>
       </div>
 
-      {/* Requests table — same panel + table pattern as SLA location table */}
+      {/* Requests table */}
       <div className="sr-panel" style={{ padding: 0, overflow: "hidden" }}>
         <div className="sr-panel-header" style={{ padding: "14px 16px 0" }}>
           <h3>Active Service Requests</h3>
-          <span className="sr-badge">{filtered.length} shown</span>
+          <span className="sr-badge">{requests.length} shown</span>
         </div>
-        <div className="sr-table-wrap" style={{ border: "none", borderRadius: 0, marginTop: 12 }}>
-          <table className="sr-table">
-            <thead>
-              <tr>
-                <th>Request ID</th>
-                <th>Customer</th>
-                <th>Location</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Assigned Staff</th>
-                <th>Submitted</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={8} style={{ textAlign: "center", color: "#6f7b92", padding: "28px 0" }}>
-                    No requests match the selected filters.
-                  </td>
-                </tr>
-              )}
-              {filtered.map(r => (
-                <tr key={r.id}>
-                  <td><strong>{r.id}</strong></td>
-                  <td>{r.customer}</td>
-                  <td>{r.location}</td>
-                  <td>
-                    <span
-                      className="sr-type-badge"
-                      style={{ background: typeColor(r.type) + "1a", color: typeColor(r.type) }}
-                    >
-                      {r.type}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`status ${statusClass(r.status)}`}>{r.status}</span>
-                  </td>
-                  <td>
-                    {r.assignedStaff
-                      ? <span className="sr-staff-name">{r.assignedStaff}</span>
-                      : <span className="sr-unassigned">Unassigned</span>}
-                  </td>
-                  <td style={{ color: "#6f7b92", fontSize: "0.82rem" }}>{timeAgo(r.submittedAt)}</td>
-                  <td>
-                    <button className="sr-view-btn" onClick={() => setSelected(r.id)}>
-                      View Details
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
+        {/* Loading / error states */}
+        {loading && (
+          <p style={{ textAlign: "center", padding: 32, color: "#6f7b92" }}>
+            Loading requests…
+          </p>
+        )}
+        {error && (
+          <p style={{ textAlign: "center", padding: 32, color: "#c9320f" }}>
+            {error}
+          </p>
+        )}
+
+        {!loading && !error && (
+          <div className="sr-table-wrap" style={{ border: "none", borderRadius: 0, marginTop: 12 }}>
+            <table className="sr-table">
+              <thead>
+                <tr>
+                  <th>Request ID</th>
+                  <th>Customer</th>
+                  <th>Location</th>
+                  <th>Service Type</th>
+                  <th>Status</th>
+                  <th>Assigned Staff</th>
+                  <th>Submitted</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {requests.length === 0 && (
+                  <tr>
+                    <td colSpan={8} style={{ textAlign: "center", color: "#6f7b92", padding: "28px 0" }}>
+                      No requests match the selected filters.
+                    </td>
+                  </tr>
+                )}
+                {requests.map(r => (
+                  <tr key={r.id}>
+                    <td><strong>{r.requestId}</strong></td>
+                    <td>{r.customer}</td>
+                    <td>{r.location}</td>
+                    <td>
+                      <span
+                        className="sr-type-badge"
+                        style={{ background: typeColor(r.type) + "1a", color: typeColor(r.type) }}
+                      >
+                        {r.type}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status ${statusClass(r.status)}`}>{r.status}</span>
+                    </td>
+                    <td>
+                      {r.assignedStaff
+                        ? <span className="sr-staff-name">{r.assignedStaff}</span>
+                        : <span className="sr-unassigned">Unassigned</span>}
+                    </td>
+                    <td style={{ color: "#6f7b92", fontSize: "0.82rem" }}>
+                      {timeAgo(r.submittedAt)}
+                    </td>
+                    <td>
+                      <button className="sr-view-btn" onClick={() => setSelected(r.id)}>
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Detail modal */}
       {selReq && (
