@@ -14,7 +14,7 @@ import PaymentHistory from "./Components/Screens/PaymentHistory";
 import Notifications from "./Components/Screens/Notifications";
 import AdminDashboard from "./Components/Admin/adminDashboard";
 import RoleRedirect from "./Components/Auth/RoleRedirect";
-
+import StaffDashboard from "./Components/Staff/staffDashboard";
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -53,12 +53,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           } />
 
           {/* Staff Dashboard */}
-          <Route path="/staff-dashboard" element={
-            <>
-              <SignedIn><Navbar/><Dashboard/><Footer/></SignedIn>
-              <SignedOut><RedirectToSignIn /></SignedOut>
-            </>
-          } />
+         <Route path="/staff-dashboard" element={
+  <>
+    <SignedIn><StaffDashboard /></SignedIn>
+    <SignedOut><RedirectToSignIn /></SignedOut>
+  </>
+} />
 
           {/* Service History */}
           <Route path="/service-history" element={

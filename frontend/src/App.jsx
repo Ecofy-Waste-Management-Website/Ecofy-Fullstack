@@ -9,6 +9,7 @@ import DashboardRouter from './Components/Screens/DashboardRouter';
 import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
 import AdminDashboard from './Components/Admin/adminDashboard';
+import StaffDashboard from './Components/Staff/staffDashboard';
 
 
 export default function App() {
@@ -50,6 +51,12 @@ export default function App() {
         <Route path="/notifications" element={
           <>
             <SignedIn><Navbar /><Notifications /><Footer /></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
+        <Route path="/staff" element={
+          <>
+            <SignedIn><StaffDashboard /></SignedIn>
             <SignedOut><RedirectToSignIn /></SignedOut>
           </>
         } />
