@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import "./ServiceRequests.css";
 
 // ── Config ─────────────────────────────────────────────────────────────────────
-const API_BASE = "http://localhost:5000/service-monitoring";
-const WS_URL   = "ws://localhost:5000";
+const API_BASE = "http://localhost:5001/service-monitoring";
+const WS_URL   = "ws://localhost:5001";
 
 const STAFF_LIST = [
   "Banuka J.", "Priyantha S.", "Amara K.", "Nimal R.",

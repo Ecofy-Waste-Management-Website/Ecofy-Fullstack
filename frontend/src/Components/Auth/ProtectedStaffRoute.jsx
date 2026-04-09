@@ -13,7 +13,7 @@ export default function ProtectedStaffRoute({ children }) {
 
     const checkRole = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/users/${user.id}`);
+        const response = await fetch(`http://localhost:5001/users/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           const role = data.user.role;

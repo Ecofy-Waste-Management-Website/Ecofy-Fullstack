@@ -17,7 +17,7 @@ export default function RoleRedirect() {
     // Fetch the user's role from MongoDB using their Clerk ID
     const fetchRoleAndRedirect = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/users/${user.id}`);
+        const response = await fetch(`http://localhost:5001/users/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           const role = data.user.role;
