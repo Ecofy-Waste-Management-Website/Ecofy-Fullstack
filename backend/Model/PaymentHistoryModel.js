@@ -43,4 +43,5 @@ const paymentHistorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+paymentHistorySchema.index({ clerkId: 1, createdAt: -1 });
 module.exports = mongoose.model("PaymentHistory", paymentHistorySchema);

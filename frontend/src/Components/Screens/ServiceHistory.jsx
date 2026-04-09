@@ -13,6 +13,8 @@ const STATUS_STYLES = {
   Cancelled:   { backgroundColor: '#ff4444', color: '#ffffff' },
 };
 
+
+
 function ServiceHistory() {
   const { user, isLoaded } = useUser();
   const [serviceHistory, setServiceHistory] = useState([]);

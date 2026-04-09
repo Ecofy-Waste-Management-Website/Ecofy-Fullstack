@@ -6,6 +6,8 @@ fontLink.href = 'https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@4
 fontLink.rel = 'stylesheet';
 document.head.appendChild(fontLink);
 
+
+
 function Notifications() {
   const { user, isLoaded } = useUser();
   const [notifications, setNotifications] = useState([]);
@@ -19,7 +21,7 @@ function Notifications() {
       try {
         setLoading(true);
         const res = await fetch(
-          `${process.env.REACT_APP_API_URL}/notifications/${user.id}`
+          `${import.meta.env.VITE_API_URL}/notifications/${user.id}`
         );
         if (!res.ok) throw new Error('Failed to fetch notifications');
         const data = await res.json();
@@ -36,7 +38,7 @@ function Notifications() {
 
   const handleMarkAsRead = async (id) => {
     try {
-      await fetch(`${process.env.REACT_APP_API_URL}/notifications/${id}/read`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/notifications/${id}/read`, {
         method: 'PATCH',
       });
       setNotifications((prev) =>

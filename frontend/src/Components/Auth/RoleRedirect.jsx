@@ -1,32 +1,50 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react';
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export default function RoleRedirect() {
   const { isLoaded, user } = useUser();
+  const navigate = useNavigate();
 
-  if (!isLoaded) {
-    return <p>Loading...</p>;
-  }
+  useEffect(() => {
+    if (!isLoaded) return;
 
-  // If no user is logged in, perhaps they shouldn't be here, but just in case:
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
+    if (!user) {
+      navigate('/', { replace: true });
+      return;
+    }
 
-  // Retrieve primary email safely
-  const email = user.primaryEmailAddress?.emailAddress?.toLowerCase();
+    // Fetch the user's role from MongoDB using their Clerk ID
+    const fetchRoleAndRedirect = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/users/${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          const role = data.user.role;
+          console.log('RoleRedirect: User role =', role);
 
-  // Define role-based emails
-  const adminEmails = ['banukadeseram12@gmail.com'];
-  const staffEmails = ['staff@example.com']; // Placeholder for staff email
+          if (role === 'Admin') {
+            console.log('Redirecting to admin dashboard');
+            navigate('/admin-dashboard', { replace: true });
+          } else if (role === 'Staff') {
+            console.log('Redirecting to staff dashboard');
+            navigate('/staff-dashboard', { replace: true });
+          } else {
+            console.log('Redirecting to user dashboard');
+            navigate('/dashboard', { replace: true });
+          }
+        } else {
+          console.log('RoleRedirect: User not found in DB, defaulting to customer dashboard');
+          navigate('/dashboard', { replace: true });
+        }
+      } catch (err) {
+        console.error('RoleRedirect: Error fetching role:', err);
+        navigate('/dashboard', { replace: true });
+      }
+    };
 
-  if (adminEmails.includes(email)) {
-    return <Navigate to="/admin-dashboard" replace />;
-  } else if (staffEmails.includes(email)) {
-    return <Navigate to="/staff-dashboard" replace />;
-  } else {
-    // Default fallback is the user dashboard
-    return <Navigate to="/dashboard" replace />;
-  }
+    fetchRoleAndRedirect();
+  }, [isLoaded, user, navigate]);
+
+  return <div className="flex items-center justify-center h-screen"><p>Redirecting...</p></div>;
 }
