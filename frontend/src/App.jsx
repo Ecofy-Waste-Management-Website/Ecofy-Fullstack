@@ -1,46 +1,59 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import RoleRedirect from "./Components/Auth/RoleRedirect";
+import { Routes, Route } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
 import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
-import DashboardRouter from './Components/Screens/DashboardRouter';
 import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
 import AdminDashboard from './Components/Admin/adminDashboard';
-
+import ProtectedRoute from './Components/Auth/ProtectedRoute';
+import Dashboard from './Components/Screens/Dashboard'; 
 
 export default function App() {
   return (
     <>
       <Routes>
         
-        {/*the landing page*/}
+        {/* The Landing Page (Public) */}
         <Route path="/" element={
           <>
-          <Navbar />
-          <Hero />
-          <Footer />
-          
-          </>
-          } />
-
-        {/*the landing page*/}
-        <Route path="/dashboard" element={
-          <>
-            <>
-            <SignedIn><DashboardRouter /></SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
+            <Navbar />
+            <Hero />
+            <Footer />
           </>
         } />
 
+        {/* The Login Redirect */}
+        <Route path="/redirect" element={
+          <>
+            <SignedIn><RoleRedirect /></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </> 
+        } />
 
-        {/*check the route dosent work */}
+        {/* Regular Customer Dashboard (Anyone logged in can see this) */}
+        <Route path="/dashboard" element={
+          <>
+            <SignedIn>
+              <Navbar />
+              <Dashboard />
+              <Footer />
+            </SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
+
+        {/* Admin Dashboard (ONLY Admins can see this) */}
         <Route path="/admin-dashboard" element={
           <>
-            <SignedIn><AdminDashboard /></SignedIn>
+            <SignedIn>
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            </SignedIn>
             <SignedOut><RedirectToSignIn /></SignedOut>
           </>
         } />
