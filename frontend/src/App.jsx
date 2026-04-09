@@ -1,9 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import React from "react";
 import ContentBlogManagement from "./Components/Admin/contentBlogManagement";
 
 function App() {
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
@@ -23,7 +26,10 @@ import RoleRedirect from "./Components/Auth/RoleRedirect";
 import ProtectedRoute from './Components/Auth/ProtectedRoute';
 
 export default function App() {
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
   return (
     <>
       <Routes>
@@ -38,6 +44,7 @@ export default function App() {
         } />
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         <nav className="menu">
           <button className="menu-item">Dashboard</button>
           <button className="menu-item">User Management</button>
@@ -51,6 +58,8 @@ export default function App() {
           <button className="menu-item">Settings</button>
         </nav>
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
         {/* The Login Redirect */}
         <Route path="/redirect" element={
           <>
@@ -58,7 +67,10 @@ export default function App() {
             <SignedOut><RedirectToSignIn /></SignedOut>
           </> 
         } />
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
 
         {/* Regular Customer Dashboard (Anyone logged in can see this) */}
         <Route path="/dashboard" element={
@@ -72,6 +84,7 @@ export default function App() {
           </>
         } />
 
+<<<<<<< HEAD
 <<<<<<< HEAD
       <main className="main-content">
         <header className="topbar">
@@ -92,6 +105,8 @@ export default function App() {
       </main>
     </div>
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
         {/* Admin Dashboard (ONLY Admins can see this) */}
         <Route path="/admin-dashboard" element={
           <>
@@ -127,6 +142,9 @@ export default function App() {
         } />
       </Routes>
     </>
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
   );
 }

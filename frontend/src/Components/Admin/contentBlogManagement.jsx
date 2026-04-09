@@ -34,10 +34,13 @@ const initialPosts = [
 
 const previewByThumbnail = {
 <<<<<<< HEAD
+<<<<<<< HEAD
   bottle: "\ud83e\uddf4",
   cleanup: "\ud83e\uddd1\u200d\ud83e\uddf9",
   compost: "\ud83c\udf31",
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
   bottle: "🧴",
   cleanup: "🧑‍🧹",
   compost: "🌱",
@@ -47,7 +50,10 @@ const thumbnailStyles = {
   bottle: "bg-blue-100 text-blue-600",
   cleanup: "bg-amber-100 text-amber-600",
   compost: "bg-green-100 text-green-600",
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
 };
 
 export default function ContentBlogManagement() {
@@ -75,6 +81,7 @@ export default function ContentBlogManagement() {
 
   return (
 <<<<<<< HEAD
+<<<<<<< HEAD
     <section className="cbm-shell">
       <header className="cbm-header">
         <h3>Ecofy Content &amp; Blog Management</h3>
@@ -85,6 +92,8 @@ export default function ContentBlogManagement() {
           <div className="cbm-filter-block">
             <p>Search and Filter Bar</p>
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
     <section className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans text-gray-800">
       <header className="mb-8 border-b border-gray-200 pb-4">
         <h3 className="text-2xl font-bold text-gray-900">
@@ -98,12 +107,16 @@ export default function ContentBlogManagement() {
             <p className="text-sm font-medium text-gray-600">
               Search and Filter Bar
             </p>
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
             <input
               type="text"
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
               placeholder="Search for requests or staff"
+<<<<<<< HEAD
 <<<<<<< HEAD
             />
           </div>
@@ -114,6 +127,8 @@ export default function ContentBlogManagement() {
               value={selectedCategory}
               onChange={(event) => setSelectedCategory(event.target.value)}
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
               className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 sm:w-64"
             />
           </div>
@@ -124,7 +139,10 @@ export default function ContentBlogManagement() {
               value={selectedCategory}
               onChange={(event) => setSelectedCategory(event.target.value)}
               className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
             >
               {categories.map((category) => (
                 <option key={category} value={category}>
@@ -134,6 +152,7 @@ export default function ContentBlogManagement() {
             </select>
           </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
           <div className="cbm-filter-block cbm-status-toggle">
             <p>Status</p>
@@ -160,6 +179,8 @@ export default function ContentBlogManagement() {
                 Draft
               </button>
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
           <div className="flex flex-col gap-1.5">
             <p className="text-sm font-medium text-gray-600">Status</p>
             <div className="flex overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm">
@@ -177,23 +198,33 @@ export default function ContentBlogManagement() {
                   {status}
                 </button>
               ))}
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
             </div>
           </div>
         </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         <button type="button" className="cbm-create-post-btn">
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
         <button
           type="button"
           className="whitespace-nowrap rounded-md bg-green-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
         >
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
           + Create New Post
         </button>
       </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
       <div className="cbm-layout-grid">
         <section className="cbm-post-list" aria-label="Blog posts list">
@@ -230,6 +261,8 @@ export default function ContentBlogManagement() {
                   ) : (
                     <button type="button" className="publish">
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
       <div className="flex flex-col gap-6 lg:flex-row">
         {/* Post List */}
         <section
@@ -296,7 +329,10 @@ export default function ContentBlogManagement() {
                       type="button"
                       className="rounded-md border border-green-200 bg-white px-3 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-50"
                     >
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
                       Publish
                     </button>
                   )}
@@ -304,6 +340,7 @@ export default function ContentBlogManagement() {
               </div>
             </article>
           ))}
+<<<<<<< HEAD
 <<<<<<< HEAD
         </section>
 
@@ -325,6 +362,8 @@ export default function ContentBlogManagement() {
                   </div>
                   <textarea
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
           {filteredPosts.length === 0 && (
             <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
               No posts found matching your filters.
@@ -362,12 +401,17 @@ export default function ContentBlogManagement() {
                     ))}
                   </div>
                   <textarea
+<<<<<<< HEAD
                     className="min-h-[300px] w-full resize-y p-4 text-sm text-gray-800 focus:outline-none"
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+                    className="min-h-[75px] w-full resize-y p-4 text-sm text-gray-800 focus:outline-none"
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
                     defaultValue="Lorem ipsum dolor sit amet, consectetur adipiscing elit. sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis aute exercitation laboris nisi ut aliquip ex ea commodo consequat."
                   />
                 </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
                 <div className="cbm-editor-form">
                   <label>
@@ -378,6 +422,8 @@ export default function ContentBlogManagement() {
                     Category
                     <select defaultValue={editingPost.category}>
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
                 <div className="flex w-full flex-col gap-5 lg:w-64 shrink-0">
                   <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
                     Post Title
@@ -393,7 +439,10 @@ export default function ContentBlogManagement() {
                       defaultValue={editingPost.category}
                       className="rounded-md border border-gray-300 bg-white px-3 py-2 font-normal focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                     >
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
                       {categories
                         .filter((category) => category !== "All")
                         .map((category) => (
@@ -403,6 +452,7 @@ export default function ContentBlogManagement() {
                         ))}
                     </select>
                   </label>
+<<<<<<< HEAD
 <<<<<<< HEAD
                   <label>
                     Author
@@ -417,6 +467,8 @@ export default function ContentBlogManagement() {
                     <button type="button" className="cbm-upload-btn">
                       Upload image
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
                   <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
                     Author
                     <input
@@ -440,12 +492,16 @@ export default function ContentBlogManagement() {
                       className="mt-1 w-full rounded-md border-2 border-dashed border-gray-300 py-6 text-sm font-medium text-gray-500 transition-colors hover:border-gray-400 hover:bg-gray-50"
                     >
                       + Upload image
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
                     </button>
                   </label>
                 </div>
               </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
               <div className="cbm-editor-actions">
                 <button type="button">Save as Draft</button>
@@ -457,6 +513,8 @@ export default function ContentBlogManagement() {
           ) : (
             <p className="cbm-empty">No post selected for editing.</p>
 =======
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
               <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-4">
                 <button
                   type="button"
@@ -476,14 +534,21 @@ export default function ContentBlogManagement() {
             <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white text-gray-500">
               <p>No post selected for editing.</p>
             </div>
+<<<<<<< HEAD
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
           )}
         </aside>
       </div>
     </section>
   );
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
 =======
 }
 >>>>>>> 7a60d0c94eda94e8e5d0035113597bce21fd5f2a
+=======
+}
+>>>>>>> e7398e1c8aea3735a4fb42fee6393ee1ca0625bb
