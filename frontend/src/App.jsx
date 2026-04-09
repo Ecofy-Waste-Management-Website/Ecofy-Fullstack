@@ -11,10 +11,12 @@ import AdminDashboard from './Components/Admin/adminDashboard';
 import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
+import StaffDashboard from './Components/Staff/staffDashboard';
 
 // Auth Components
 import RoleRedirect from "./Components/Auth/RoleRedirect";
 import ProtectedRoute from './Components/Auth/ProtectedRoute';
+import ProtectedStaffRoute from './Components/Auth/ProtectedStaffRoute';
 
 export default function App() {
   return (
@@ -58,6 +60,16 @@ export default function App() {
               <ProtectedRoute allowedRoles={["Admin"]}>
                 <AdminDashboard />
               </ProtectedRoute>
+            </SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
+        <Route path="/staff-dashboard" element={
+          <>
+            <SignedIn>
+              <ProtectedStaffRoute>
+                <StaffDashboard />
+              </ProtectedStaffRoute>
             </SignedIn>
             <SignedOut><RedirectToSignIn /></SignedOut>
           </>
