@@ -43,5 +43,8 @@ serviceRequestSchema.index({ status: 1 });
 serviceRequestSchema.index({ service_type: 1 });
 serviceRequestSchema.index({ location: 1 });
 serviceRequestSchema.index({ createdAt: -1 });
+serviceRequestSchema.index({ assignedStaff: 1 });
+serviceRequestSchema.index({ assignedStaff: 1, scheduled_date: 1 });
+serviceRequestSchema.index({ assignedStaff: 1, status: 1 });
 
 module.exports = mongoose.model("ServiceRequest", serviceRequestSchema);

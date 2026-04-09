@@ -28,7 +28,7 @@ const getAssignedTasks = async (req, res) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const tasks = await ServiceRequest.find({
-      assignedStaffId: clerkId,
+      assignedStaff: clerkId,
       scheduled_date: { $gte: today, $lt: tomorrow },
     }).sort({ scheduled_date: 1 });
 
@@ -48,7 +48,7 @@ const getActiveTasks = async (req, res) => {
   try {
     const { clerkId } = req.params;
     const tasks = await ServiceRequest.find({
-      assignedStaffId: clerkId,
+      assignedStaff: clerkId,
       status: { $in: ["Pending", "Assigned", "In Progress"] },
     }).sort({ scheduled_date: 1 });
 
@@ -68,7 +68,7 @@ const getCompletedTasks = async (req, res) => {
   try {
     const { clerkId } = req.params;
     const tasks = await ServiceRequest.find({
-      assignedStaffId: clerkId,
+      assignedStaff: clerkId,
       status: "Completed",
     }).sort({ scheduled_date: -1 });
 
@@ -99,7 +99,7 @@ const updateTaskStatus = async (req, res) => {
     // Find task and verify it belongs to this staff member
     const task = await ServiceRequest.findOne({
       _id: taskId,
-      assignedStaffId: clerkId,
+      assignedStaff: clerkId,
     });
 
     if (!task) {
