@@ -27,7 +27,7 @@ const serviceRequestSchema = new Schema(
     scheduled_date: { type: Date, required: true },
     status: {
       type: String,
-      enum: ["Pending", "Assigned", "In Progress", "Completed", "Delayed"],
+      enum: ["Pending", "Assigned", "In Progress","En Route", "Completed", "Delayed"],
       default: "Pending",
     },
     notes: { type: String },
