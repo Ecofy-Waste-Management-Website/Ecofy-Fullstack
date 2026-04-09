@@ -7,6 +7,7 @@ export default function StaffDashboard() {
   const [activeTasks, setActiveTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updatingTask, setUpdatingTask] = useState(null);
 
   // Fetch tasks from backend
   useEffect(() => {
@@ -14,7 +15,6 @@ export default function StaffDashboard() {
 
     const fetchTasks = async () => {
       try {
-        // Fetch active tasks
         const activeRes = await fetch(
           `http://localhost:5000/staff/tasks/active/${user.id}`
         );
@@ -39,6 +39,45 @@ export default function StaffDashboard() {
 
     fetchTasks();
   }, [isLoaded, user]);
+
+  // Update task status
+  const updateTaskStatus = async (taskId, newStatus) => {
+    if (updatingTask === taskId) return; // prevent double click
+
+    setUpdatingTask(taskId);
+    try {
+      const res = await fetch(
+        `http://localhost:5000/staff/tasks/${taskId}/status`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: newStatus,
+            clerkId: user.id,
+          }),
+        }
+      );
+
+      if (res.ok) {
+        if (newStatus === 'Completed') {
+          const task = activeTasks.find(t => t._id === taskId);
+          setActiveTasks(prev => prev.filter(t => t._id !== taskId));
+          setCompletedTasks(prev => [
+            { ...task, status: 'Completed', completedAt: new Date() },
+            ...prev,
+          ]);
+        } else {
+          setActiveTasks(prev =>
+            prev.map(t => t._id === taskId ? { ...t, status: newStatus } : t)
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+    } finally {
+      setUpdatingTask(null);
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -89,8 +128,8 @@ export default function StaffDashboard() {
               Welcome, {user?.firstName || 'Staff Member'}
             </p>
             <p className="text-green-200 text-xs mt-1">
-              📅 {new Date().toLocaleDateString('en-US', { 
-                weekday: 'long', month: 'long', day: 'numeric' 
+              📅 {new Date().toLocaleDateString('en-US', {
+                weekday: 'long', month: 'long', day: 'numeric'
               })}
             </p>
           </div>
@@ -155,9 +194,9 @@ export default function StaffDashboard() {
               </div>
             ) : (
               activeTasks.map((task) => (
-                <div key={task._id} 
+                <div key={task._id}
                   className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-                  
+
                   {/* Task Header */}
                   <div className="flex justify-between items-start mb-3">
                     <div>
@@ -208,15 +247,27 @@ export default function StaffDashboard() {
                     </div>
                   )}
 
-                  {/* Action Buttons */}
+                  {/* Action Buttons with loading state */}
                   <div className="flex gap-2">
-                    <button className="flex-1 bg-blue-500 text-white py-2 rounded-lg 
-                      text-sm font-medium active:bg-blue-600">
-                      🚛 En Route
+                    <button
+                      onClick={() => updateTaskStatus(task._id, 'En Route')}
+                      disabled={updatingTask === task._id}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium text-white
+                        ${updatingTask === task._id
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-blue-500 active:bg-blue-600'}`}
+                    >
+                      {updatingTask === task._id ? '⏳ Updating...' : '🚛 En Route'}
                     </button>
-                    <button className="flex-1 bg-green-500 text-white py-2 rounded-lg 
-                      text-sm font-medium active:bg-green-600">
-                      ✅ Complete
+                    <button
+                      onClick={() => updateTaskStatus(task._id, 'Completed')}
+                      disabled={updatingTask === task._id}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium text-white
+                        ${updatingTask === task._id
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-green-500 active:bg-green-600'}`}
+                    >
+                      {updatingTask === task._id ? '⏳ Updating...' : '✅ Complete'}
                     </button>
                   </div>
                 </div>
@@ -235,7 +286,7 @@ export default function StaffDashboard() {
               </div>
             ) : (
               completedTasks.map((task) => (
-                <div key={task._id} 
+                <div key={task._id}
                   className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
                   <div className="flex justify-between items-start mb-2">
                     <div>
@@ -244,7 +295,7 @@ export default function StaffDashboard() {
                       </p>
                       <p className="text-xs text-gray-400">{task._id}</p>
                     </div>
-                    <span className="px-2 py-1 rounded-full text-xs font-medium 
+                    <span className="px-2 py-1 rounded-full text-xs font-medium
                       bg-green-100 text-green-700">
                       Completed
                     </span>
