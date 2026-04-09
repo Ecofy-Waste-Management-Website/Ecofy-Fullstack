@@ -15,12 +15,24 @@ export default function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<><Navbar /><Hero /><Footer /></>} />
+        
+        {/*the landing page*/}
+        <Route path="/" element={
+          <>
+          <Navbar />
+          <Hero />
+          <Footer />
+          
+          </>
+          } />
 
+        {/*the landing page*/}
         <Route path="/dashboard" element={
           <>
+            <>
             <SignedIn><DashboardRouter /></SignedIn>
             <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
           </>
         } />
 
