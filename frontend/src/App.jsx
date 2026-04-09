@@ -1,18 +1,20 @@
 import React from 'react';
-import RoleRedirect from "./Components/Auth/RoleRedirect";
-import { Routes, Route } from 'react-router-dom';
-import RoleRedirect from "./Components/Auth/RoleRedirect";
 import { Routes, Route } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+
+// Components
 import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
+import Footer from './Components/Main/Footer/footer';
+import Hero from './Components/Main/Hero-Section/Hero';
+import Dashboard from './Components/Screens/Dashboard'; 
+import AdminDashboard from './Components/Admin/adminDashboard';
 import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
-import Footer from './Components/Main/Footer/footer';
-import Hero from './Components/Main/Hero-Section/Hero';
-import AdminDashboard from './Components/Admin/adminDashboard';
+
+// Auth Components
+import RoleRedirect from "./Components/Auth/RoleRedirect";
 import ProtectedRoute from './Components/Auth/ProtectedRoute';
-import Dashboard from './Components/Screens/Dashboard'; 
 
 export default function App() {
   return (
