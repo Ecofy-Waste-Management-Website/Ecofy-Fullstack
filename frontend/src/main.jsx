@@ -15,6 +15,7 @@ import Notifications from "./Components/Screens/Notifications";
 import AdminDashboard from "./Components/Admin/adminDashboard";
 import RoleRedirect from "./Components/Auth/RoleRedirect";
 import StaffDashboard from "./Components/Staff/staffDashboard";
+import ProtectedStaffRoute from "./Components/Auth/ProtectedStaffRoute";
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -55,7 +56,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           {/* Staff Dashboard */}
          <Route path="/staff-dashboard" element={
   <>
-    <SignedIn><StaffDashboard /></SignedIn>
+    <SignedIn>
+      <ProtectedStaffRoute>
+        <StaffDashboard />
+      </ProtectedStaffRoute>
+    </SignedIn>
     <SignedOut><RedirectToSignIn /></SignedOut>
   </>
 } />
