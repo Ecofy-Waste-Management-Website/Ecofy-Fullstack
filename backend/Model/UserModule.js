@@ -7,12 +7,14 @@ const userSchema = new Schema(
             type:String,
             required:true,
             unique:true,
+             index: true, 
         },
 
         role :{
             type:String,
             enum:['Customer','Staff','Admin'],
-            default:'Customer'
+            default:'Customer',
+             index: true, 
             
         },
 
@@ -29,6 +31,7 @@ const userSchema = new Schema(
             type:String,
             required:true,
             unique:true,
+               index: true, 
         },
 
         preferences:{
@@ -40,13 +43,19 @@ const userSchema = new Schema(
             type:String,
             enum:['Activate','Suspended','Banned'],
             default:'Activate',
+               index: true, 
         }
 
     },
 
     {timestamps : true }
 )
+// ── Compound index for staff queries ─────────────────
+// This speeds up queries like: "find all active staff members"
+userSchema.index({ role: 1, status: 1 });
 
-
+// ── Compound index for staff identity verification ───
+// This speeds up login verification queries
+userSchema.index({ clerkId: 1, role: 1 });
 
 module.exports = mongoose.model( "UserModel" , userSchema )

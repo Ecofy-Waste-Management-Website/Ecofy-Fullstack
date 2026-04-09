@@ -1,57 +1,89 @@
-import React from "react";
-import ContentBlogManagement from "./Components/Admin/contentBlogManagement";
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 
-function App() {
+// Components
+import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
+import Footer from './Components/Main/Footer/footer';
+import Hero from './Components/Main/Hero-Section/Hero';
+import Dashboard from './Components/Screens/Dashboard'; 
+import AdminDashboard from './Components/Admin/adminDashboard';
+import ServiceHistory from './Components/Screens/ServiceHistory';
+import PaymentHistory from './Components/Screens/PaymentHistory';
+import Notifications from './Components/Screens/Notifications';
+
+// Auth Components
+import RoleRedirect from "./Components/Auth/RoleRedirect";
+import ProtectedRoute from './Components/Auth/ProtectedRoute';
+
+export default function App() {
   return (
-    <div className="dashboard-shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark">E</div>
-          <h1>Ecofy</h1>
-        </div>
+    <>
+      <Routes>
+        
+        {/* The Landing Page (Public) */}
+        <Route path="/" element={
+          <>
+            <Navbar />
+            <Hero />
+            <Footer />
+          </>
+        } />
 
-        <nav className="menu">
-          <button className="menu-item">Dashboard</button>
-          <button className="menu-item">User Management</button>
-          <button className="menu-item submenu">Customers</button>
-          <button className="menu-item submenu">Staff</button>
-          <button className="menu-item">Service Requests</button>
-          <button className="menu-item">Staff Assignment</button>
-          <button className="menu-item">SLA Analytics</button>
-          <button className="menu-item">Payments</button>
-          <button className="menu-item active">Content/Blog</button>
-          <button className="menu-item">Settings</button>
-        </nav>
+        {/* The Login Redirect */}
+        <Route path="/redirect" element={
+          <>
+            <SignedIn><RoleRedirect /></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </> 
+        } />
 
-        <div className="admin-card">
-          <div className="avatar">MN</div>
-          <div>
-            <p className="admin-role">Admin:</p>
-            <p className="admin-name">M.N. Mohamed</p>
-            <button className="logout-btn">Logout</button>
-          </div>
-        </div>
-      </aside>
+        {/* Regular Customer Dashboard (Anyone logged in can see this) */}
+        <Route path="/dashboard" element={
+          <>
+            <SignedIn>
+              <Navbar />
+              <Dashboard />
+              <Footer />
+            </SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
 
-      <main className="main-content">
-        <header className="topbar">
-          <h2>Ecofy Admin Dashboard</h2>
-          <div className="topbar-right">
-            <input
-              type="text"
-              className="search"
-              placeholder="Search for requests or staff"
-            />
-            <div className="bell">!</div>
-            <div className="profile">M.N. Mohamed</div>
-          </div>
-        </header>
-        <ContentBlogManagement />
+        {/* Admin Dashboard (ONLY Admins can see this) */}
+        <Route path="/admin-dashboard" element={
+          <>
+            <SignedIn>
+              {/* ProtectedRoute goes INSIDE SignedIn */}
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            </SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
 
-        <footer className="page-footer">&copy; 2026 Ecofy Waste Management</footer>
-      </main>
-    </div>
+        <Route path="/service-history" element={
+          <>
+            <SignedIn><Navbar /><ServiceHistory /><Footer /></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
+
+        <Route path="/payment-history" element={
+          <>
+            <SignedIn><Navbar /><PaymentHistory /><Footer /></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
+
+        <Route path="/notifications" element={
+          <>
+            <SignedIn><Navbar /><Notifications /><Footer /></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
+      </Routes>
+    </>
   );
 }
-
-export default App;
