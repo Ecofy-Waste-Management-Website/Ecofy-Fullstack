@@ -8,7 +8,7 @@ const http = require('http');
 const { WebSocketServer } = require('ws');
 
 const userRouter = require("./Route/UserRoute")
-
+const staffRouter = require("./Route/staffRoute");
 const serviceHistoryRouter = require("./Route/ServiceHistoryRoute");
 const paymentHistoryRouter = require("./Route/PaymentHistoryRoute");
 const notificationRouter = require("./Route/NotificationRoute.js");
@@ -46,6 +46,7 @@ app.use("/bookings", serviceRequestRouter);
 app.use("/admin", adminRoutes);
 app.use("/sla-analytics", slaAnalyticsRouter);
 app.use("/service-monitoring", serviceMonitoringRouter);
+app.use("/staff", staffRouter);
 
 
 mongoose.connect(process.env.MONGO_URI)

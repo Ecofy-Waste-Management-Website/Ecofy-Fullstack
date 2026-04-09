@@ -78,6 +78,12 @@ export default function App() {
             <SignedOut><RedirectToSignIn /></SignedOut>
           </>
         } />
+        <Route path="/staff" element={
+          <>
+            <SignedIn><StaffDashboard /></SignedIn>
+            <SignedOut><RedirectToSignIn /></SignedOut>
+          </>
+        } />
       </Routes>
     </>
   );
