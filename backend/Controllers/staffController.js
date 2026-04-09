@@ -95,8 +95,6 @@ const updateTaskStatus = async (req, res) => {
         message: `Status must be one of: ${validStatuses.join(", ")}`,
       });
     }
-
-    // Find task and verify it belongs to this staff member
     const task = await ServiceRequest.findOne({
       _id: taskId,
       assignedStaff: clerkId,
@@ -109,8 +107,16 @@ const updateTaskStatus = async (req, res) => {
     }
 
     task.status = status;
+       task.timeline.push({
+      event: `Status changed to ${status}`,
+      time: new Date(),
+    });
     if (status === "Completed") {
       task.completedAt = new Date();
+      task.timeline.push({
+        event: "Task completed by staff",
+        time: new Date(),
+        });
     }
     await task.save();
 

@@ -44,8 +44,9 @@ export default function StaffDashboard() {
     switch (status) {
       case 'Completed': return 'bg-green-100 text-green-700';
       case 'In Progress': return 'bg-blue-100 text-blue-700';
+      case 'En Route': return 'bg-blue-100 text-blue-700';
       case 'Assigned': return 'bg-purple-100 text-purple-700';
-      case 'Pending': return 'bg-yellow-100 text-yellow-700';
+      case 'Pending': return 'bg-gray-100 text-gray-700';
       case 'Delayed': return 'bg-red-100 text-red-700';
       default: return 'bg-gray-100 text-gray-700';
     }
