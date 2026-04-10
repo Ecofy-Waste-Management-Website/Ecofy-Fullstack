@@ -89,7 +89,7 @@ const updateTaskStatus = async (req, res) => {
     const { taskId } = req.params;
     const { status, clerkId } = req.body;
 
-    const validStatuses = ["Pending", "Assigned", "In Progress", "Completed", "Delayed"];
+    const validStatuses = ["Pending", "Assigned", "In Progress", "En Route", "Completed", "Delayed"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
         message: `Status must be one of: ${validStatuses.join(", ")}`,
