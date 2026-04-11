@@ -21,7 +21,6 @@ const getAssignedTasks = async (req, res) => {
   try {
     const { clerkId } = req.params;
 
-    // Get today's date range
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
@@ -49,7 +48,7 @@ const getActiveTasks = async (req, res) => {
     const { clerkId } = req.params;
     const tasks = await ServiceRequest.find({
       assignedStaff: clerkId,
-      status: { $in: ["Pending", "Assigned", "In Progress"] },
+      status: { $in: ["Pending", "Assigned", "In Progress", "En Route"] },
     }).sort({ scheduled_date: 1 });
 
     res.status(200).json({
@@ -89,12 +88,15 @@ const updateTaskStatus = async (req, res) => {
     const { taskId } = req.params;
     const { status, clerkId } = req.body;
 
+    // ── Validate status value ────────────────────────
     const validStatuses = ["Pending", "Assigned", "In Progress", "En Route", "Completed", "Delayed"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
         message: `Status must be one of: ${validStatuses.join(", ")}`,
       });
     }
+
+    // ── Find task and verify ownership ───────────────
     const task = await ServiceRequest.findOne({
       _id: taskId,
       assignedStaff: clerkId,
@@ -106,18 +108,53 @@ const updateTaskStatus = async (req, res) => {
       });
     }
 
+    // ── Validate status transition order ─────────────
+    const statusOrder = {
+      "Pending": 0,
+      "Assigned": 1,
+      "In Progress": 2,
+      "En Route": 3,
+      "Completed": 4,
+      "Delayed": 2,
+    };
+
+    const currentStatusLevel = statusOrder[task.status] || 0;
+    const newStatusLevel = statusOrder[status] || 0;
+
+    // Cannot go backwards (except to Delayed)
+    if (status !== "Delayed" && newStatusLevel < currentStatusLevel) {
+      return res.status(400).json({
+        message: `Cannot change status from "${task.status}" back to "${status}"`,
+      });
+    }
+
+    // Cannot mark Completed without being En Route first
+    if (status === "Completed" && 
+        task.status !== "En Route" && 
+        task.status !== "In Progress") {
+      return res.status(400).json({
+        message: "Task must be En Route or In Progress before marking as Completed",
+      });
+    }
+
+    // ── Update status ────────────────────────────────
     task.status = status;
-       task.timeline.push({
+
+    // ── Log to timeline ──────────────────────────────
+    task.timeline.push({
       event: `Status changed to ${status}`,
       time: new Date(),
     });
+
+    // ── Add completedAt timestamp ────────────────────
     if (status === "Completed") {
       task.completedAt = new Date();
       task.timeline.push({
         event: "Task completed by staff",
         time: new Date(),
-        });
+      });
     }
+
     await task.save();
 
     res.status(200).json({
