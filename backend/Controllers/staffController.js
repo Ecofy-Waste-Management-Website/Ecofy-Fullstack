@@ -81,6 +81,15 @@ const getCompletedTasks = async (req, res) => {
     res.status(500).json({ message: "Internal server Error" });
   }
 };
+// ── Broadcast helper ─────────────────────────────────
+function broadcast(req, payload) {
+  const wss = req.app.get("wss");
+  if (!wss) return;
+  const msg = JSON.stringify(payload);
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) client.send(msg);
+  });
+}
 
 // ── Update task status ───────────────────────────────
 const updateTaskStatus = async (req, res) => {
@@ -156,7 +165,17 @@ const updateTaskStatus = async (req, res) => {
     }
 
     await task.save();
-
+ // ── Broadcast to Admin dashboard via WebSocket ───
+    broadcast(req, {
+      type: "REQUEST_UPDATED",
+      data: {
+        id: task._id,
+        status: task.status,
+        timeline: task.timeline,
+        assignedStaff: task.assignedStaff,
+        completedAt: task.completedAt,
+      }
+    });
     res.status(200).json({
       message: `Task status updated to ${status}`,
       data: task,
