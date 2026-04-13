@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useUser } from "@clerk/clerk-react";
+import Staff_creation_test from './Staff_creation_test';
 
 export default function A_Dashboard() {
   const { user } = useUser();
@@ -19,9 +20,7 @@ export default function A_Dashboard() {
       case 'staff':
         return (
           <div>
-            <h2 className="text-xl font-semibold mb-4 text-gray-700">Create New Staff Account</h2>
-            {/* Form goes here */}
-            <p className="text-gray-500">Staff creation form placeholder...</p>
+          <Staff_creation_test/>
           </div>
         );
       case 'admin':
