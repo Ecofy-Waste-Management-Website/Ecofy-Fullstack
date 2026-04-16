@@ -36,6 +36,22 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Pickup Status*/}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Pickup Status</h2>
+        <p className="text-sm text-gray-400">No recent pickups to display.</p>
+        {/* TODO: map over active bookings and show status badges */}
+      </div>
+
+      {/* Driver Location */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Driver Location</h2>
+        <div className="bg-gray-50 rounded-lg h-40 flex items-center justify-center">
+          <p className="text-sm text-gray-400">No active driver assigned to your booking.</p>
+          {/* TODO: embed map component when a driver is active */}
+        </div>
+      </div>
+
       {/* Quick Links */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
@@ -65,6 +81,56 @@ export default function Dashboard() {
             </div>
           </a>
         </div>
+      </div>
+
+      {/* Profile & Settings + Inquiry — NEW (2-col grid) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+
+        {/* Profile Management */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Profile & Settings</h2>
+          <div className="flex flex-col gap-3">
+            <a href="/profile"
+              className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all">
+              <span className="text-2xl mr-3">👤</span>
+              <div>
+                <p className="font-medium text-blue-700">Edit Profile</p>
+                <p className="text-sm text-gray-500">Update your information</p>
+              </div>
+            </a>
+            <a href="/settings"
+              className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all">
+              <span className="text-2xl mr-3">⚙️</span>
+              <div>
+                <p className="font-medium text-gray-700">Settings</p>
+                <p className="text-sm text-gray-500">Preferences & account</p>
+              </div>
+            </a>
+          </div>
+        </div>
+        {/* Inquiry Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Inquiry</h2>
+          <div className="flex flex-col gap-3">
+            <a href="/inquiry"
+              className="flex items-center p-4 bg-pink-50 rounded-lg hover:bg-pink-100 transition-all">
+              <span className="text-2xl mr-3">📝</span>
+              <div>
+                <p className="font-medium text-pink-700">Submit Inquiry</p>
+                <p className="text-sm text-gray-500">Service-related questions</p>
+              </div>
+            </a>
+            <a href="/chatbot"
+              className="flex items-center p-4 bg-teal-50 rounded-lg hover:bg-teal-100 transition-all">
+              <span className="text-2xl mr-3">💬</span>
+              <div>
+                <p className="font-medium text-teal-700">AI Chatbot</p>
+                <p className="text-sm text-gray-500">Get instant help</p>
+              </div>
+            </a>
+          </div>
+        </div>
+
       </div>
 
     </div>
