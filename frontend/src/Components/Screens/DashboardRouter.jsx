@@ -4,6 +4,8 @@ import Dashboard from './Dashboard';
 import AdminDashboard from '../Admin/adminDashboard';
 import Navbar from '../Main/Top-Header-Section/navbar/navbar';
 import Footer from '../Main/Footer/footer';
+import InquiryPage from './components/Screens/Inquiry';
+
 
 export default function DashboardRouter() {
   const { user, isLoaded } = useUser();

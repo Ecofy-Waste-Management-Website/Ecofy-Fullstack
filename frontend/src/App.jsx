@@ -12,6 +12,9 @@ import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
+import InquiryPage from './components/Screens/Inquiry';
+
+
 
 // Auth Components
 import RoleRedirect from "./Components/Auth/RoleRedirect";
@@ -51,6 +54,8 @@ export default function App() {
             <SignedOut><RedirectToSignIn /></SignedOut>
           </>
         } />
+  
+        <Route path="/inquiry" element={<InquiryPage />} />
 
         {/* Admin Dashboard (ONLY Admins can see this) */}
         <Route path="/admin-dashboard" element={
@@ -95,6 +100,8 @@ export default function App() {
             <SignedOut><RedirectToSignIn /></SignedOut>
           </>
         } />
+
+        
       </Routes>
     </>
   );
