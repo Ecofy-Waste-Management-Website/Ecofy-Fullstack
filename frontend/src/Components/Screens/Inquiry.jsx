@@ -6,13 +6,7 @@ import Footer from '../Main/Footer/footer';
 export default function InquiryPage() {
   const { user } = useUser();
 
-  const [form, setForm] = useState({
-    phone: '',
-    category: '',
-    subject: '',
-    message: '',
-    file: null,
-  });
+  const [form, setForm] = useState({ phone: '', category: '', subject: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [ticketNumber, setTicketNumber] = useState('');
@@ -20,16 +14,16 @@ export default function InquiryPage() {
 
   const validate = () => {
     const e = {};
-    if (!form.phone.trim()) e.phone = 'Phone number is required.';
-    if (!form.category) e.category = 'Please select a category.';
-    if (!form.subject.trim()) e.subject = 'Subject is required.';
-    if (!form.message.trim()) e.message = 'Message is required.';
+    if (!form.phone.trim())    e.phone    = 'Phone number is required.';
+    if (!form.category)        e.category = 'Please select a category.';
+    if (!form.subject.trim())  e.subject  = 'Subject is required.';
+    if (!form.message.trim())  e.message  = 'Message is required.';
     return e;
   };
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    setForm(prev => ({ ...prev, [name]: files ? files[0] : value }));
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
@@ -40,24 +34,20 @@ export default function InquiryPage() {
 
     setSubmitting(true);
     try {
-      const formData = new FormData();
-      formData.append('clerkId', user.id);
-      formData.append('name', `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim());
-      formData.append('email', user.primaryEmailAddress?.emailAddress ?? '');
-      formData.append('phone', form.phone);
-      formData.append('category', form.category);
-      formData.append('subject', form.subject);
-      formData.append('message', form.message);
-      if (form.file) formData.append('attachment', form.file);
-
-      const res = await fetch('http://localhost:5000/inquiries', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/inquiries`, {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clerkId: user.id,
+          name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
+          email: user.primaryEmailAddress?.emailAddress ?? '',
+          ...form,
+        }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        setTicketNumber(data.ticketNumber ?? `ECO-${Math.floor(10000 + Math.random() * 90000)}`);
+        setTicketNumber(data.ticketNumber);
         setSubmitted(true);
       } else {
         alert('Something went wrong. Please try again.');
@@ -71,7 +61,10 @@ export default function InquiryPage() {
   };
 
   const fullName = `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim() || user?.username;
-  const email = user?.primaryEmailAddress?.emailAddress ?? '';
+  const email    = user?.primaryEmailAddress?.emailAddress ?? '';
+
+  const inputClass = (field) =>
+    `w-full px-3 py-2 border rounded-lg text-sm outline-none transition focus:ring-2 focus:ring-green-200 focus:border-green-400 ${errors[field] ? 'border-red-400' : 'border-gray-300'}`;
 
   return (
     <>
@@ -100,15 +93,13 @@ export default function InquiryPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                    <input
-                      type="text" value={fullName} readOnly
+                    <input type="text" value={fullName} readOnly
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                    <input
-                      type="email" value={email} readOnly
+                    <input type="email" value={email} readOnly
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
                     />
                   </div>
@@ -119,10 +110,8 @@ export default function InquiryPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Phone Number <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="tel" name="phone" value={form.phone} onChange={handleChange}
-                    placeholder="+94 77 123 4567"
-                    className={`w-full px-3 py-2 border rounded-lg text-sm outline-none transition focus:ring-2 focus:ring-green-200 focus:border-green-400 ${errors.phone ? 'border-red-400' : 'border-gray-300'}`}
+                  <input type="tel" name="phone" value={form.phone} onChange={handleChange}
+                    placeholder="+94 77 123 4567" className={inputClass('phone')}
                   />
                   {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
                 </div>
@@ -132,14 +121,11 @@ export default function InquiryPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Inquiry Category <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    name="category" value={form.category} onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-lg text-sm outline-none transition focus:ring-2 focus:ring-green-200 focus:border-green-400 ${errors.category ? 'border-red-400' : 'border-gray-300'}`}
-                  >
+                  <select name="category" value={form.category} onChange={handleChange} className={inputClass('category')}>
                     <option value="">Select a category</option>
                     <option>Pickup Issues</option>
-                    <option>Billing & Payments</option>
-                    <option>Account & Profile</option>
+                    <option>Billing &amp; Payments</option>
+                    <option>Account &amp; Profile</option>
                     <option>Driver / Staff Complaint</option>
                     <option>Schedule Change Request</option>
                     <option>General Inquiry</option>
@@ -152,10 +138,8 @@ export default function InquiryPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Subject <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text" name="subject" value={form.subject} onChange={handleChange}
-                    placeholder="Brief subject of your inquiry"
-                    className={`w-full px-3 py-2 border rounded-lg text-sm outline-none transition focus:ring-2 focus:ring-green-200 focus:border-green-400 ${errors.subject ? 'border-red-400' : 'border-gray-300'}`}
+                  <input type="text" name="subject" value={form.subject} onChange={handleChange}
+                    placeholder="Brief subject of your inquiry" className={inputClass('subject')}
                   />
                   {errors.subject && <p className="text-xs text-red-500 mt-1">{errors.subject}</p>}
                 </div>
@@ -165,36 +149,16 @@ export default function InquiryPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Message <span className="text-red-500">*</span>
                   </label>
-                  <textarea
-                    name="message" value={form.message} onChange={handleChange} rows={5}
+                  <textarea name="message" value={form.message} onChange={handleChange} rows={5}
                     placeholder="Describe your issue or question in detail..."
-                    className={`w-full px-3 py-2 border rounded-lg text-sm outline-none transition resize-y focus:ring-2 focus:ring-green-200 focus:border-green-400 ${errors.message ? 'border-red-400' : 'border-gray-300'}`}
+                    className={`${inputClass('message')} resize-y`}
                   />
                   {errors.message && <p className="text-xs text-red-500 mt-1">{errors.message}</p>}
                 </div>
 
-                {/* File Attachment */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Attachment <span className="text-gray-400 font-normal">(optional)</span>
-                  </label>
-                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg p-5 cursor-pointer hover:border-green-300 hover:bg-green-50 transition">
-                    <span className="text-2xl mb-1">📎</span>
-                    <p className="text-sm text-gray-500">
-                      <span className="text-green-600 font-medium">Click to upload</span> or drag & drop
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">PNG, JPG, PDF up to 5MB</p>
-                    {form.file && (
-                      <p className="text-xs text-green-600 mt-2 font-medium">✓ {form.file.name}</p>
-                    )}
-                    <input type="file" name="file" onChange={handleChange} accept="image/*,.pdf,.doc,.docx" className="hidden" />
-                  </label>
-                </div>
-
                 <hr className="border-gray-100" />
 
-                <button
-                  type="submit" disabled={submitting}
+                <button type="submit" disabled={submitting}
                   className="w-full py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white font-semibold rounded-lg text-sm transition"
                 >
                   {submitting ? 'Submitting...' : 'Submit Inquiry'}
@@ -219,6 +183,7 @@ export default function InquiryPage() {
               </a>
             </div>
           )}
+
         </div>
       </div>
       <Footer />
