@@ -24,7 +24,7 @@ export default function App() {
     <>
       <Routes>
         
-        <Route path="/" element={
+        <Route exact path="/" element={
           <>
             <SignedIn>
               <RoleRedirect />
