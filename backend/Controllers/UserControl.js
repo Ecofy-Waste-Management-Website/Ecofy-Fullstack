@@ -59,19 +59,19 @@ const createUser = async (req, res) => {
 //   }
 // };
 
-// //  Get single user profile by clerkId
-// const getUserByClerkId = async (req, res) => {
-//   try {
-//     const user = await User.findOne({ clerkId: req.params.clerkId });
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-//     res.status(200).json({ message: "User fetched successfully", user });
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json({ message: "Internal server Error" });
-//   }
-// };
+// Get single user profile by clerkId
+const getUserByClerkId = async (req, res) => {
+  try {
+    const user = await User.findOne({ clerkId: req.params.clerkId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: "User fetched successfully", user });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal server Error" });
+  }
+};
 
 // // Update profile (name, email, preferences) 
 // const updateUser = async (req, res) => {
@@ -137,4 +137,4 @@ const createUser = async (req, res) => {
 //   }
 // };
 // module.exports = { createUser, login, getAllUsers, getUserByClerkId, updateUser, updateUserStatus, deleteUser };
-module.exports = { createUser };
+module.exports = { createUser, getUserByClerkId };
