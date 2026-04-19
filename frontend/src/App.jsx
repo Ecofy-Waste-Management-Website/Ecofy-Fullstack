@@ -12,6 +12,7 @@ import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
+import A_Dashboard from "./Components/test_folder/A_Dashboard"
 
 // Auth Components
 import RoleRedirect from "./Components/Auth/RoleRedirect";
@@ -23,12 +24,18 @@ export default function App() {
     <>
       <Routes>
         
-        {/* The Landing Page (Public) */}
-        <Route path="/" element={
+        <Route exact path="/" element={
           <>
-            <Navbar />
-            <Hero />
-            <Footer />
+            <SignedIn>
+              <RoleRedirect />
+            </SignedIn>
+            
+            
+            <SignedOut>
+              <Navbar />
+              <Hero />
+              <Footer />
+            </SignedOut>
           </>
         } />
 
@@ -56,7 +63,6 @@ export default function App() {
         <Route path="/admin-dashboard" element={
           <>
             <SignedIn>
-              {/* ProtectedRoute goes INSIDE SignedIn */}
               <ProtectedRoute allowedRoles={["Admin"]}>
                 <AdminDashboard />
               </ProtectedRoute>
@@ -64,6 +70,7 @@ export default function App() {
             <SignedOut><RedirectToSignIn /></SignedOut>
           </>
         } />
+
         <Route path="/staff-dashboard" element={
           <>
             <SignedIn>
@@ -95,7 +102,20 @@ export default function App() {
             <SignedOut><RedirectToSignIn /></SignedOut>
           </>
         } />
+        
+        {/*for testing (MOVED INSIDE <Routes>) */}
+        <Route path="/a_dashboard" element={
+          <>
+            <SignedIn>
+              <A_Dashboard />
+            </SignedIn>
+            <SignedOut>
+              <RedirectToSignIn />
+            </SignedOut>
+          </>
+        } />
+
       </Routes>
     </>
-  );
-}
+  )
+};
