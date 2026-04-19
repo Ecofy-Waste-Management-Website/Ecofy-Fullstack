@@ -21,88 +21,98 @@ import RoleRedirect from "./Components/Auth/RoleRedirect";
 import ProtectedRoute from './Components/Auth/ProtectedRoute';
 import ProtectedStaffRoute from './Components/Auth/ProtectedStaffRoute';
 
+// ✅ Fix: Moved outside of the App component
+const PrivateRoute = ({ children }) => (
+  <>
+    <SignedIn>{children}</SignedIn>
+    <SignedOut>
+      <RedirectToSignIn />
+    </SignedOut>
+  </>
+);
+
 export default function App() {
   return (
-    <>
-      <Routes>
-        
-        {/* The Landing Page (Public) */}
-        <Route path="/" element={
-          <>
+    <Routes>
+
+      {/* Home */}
+      <Route path="/" element={
+        <>
+          <SignedIn>
+            <RoleRedirect />
+          </SignedIn>
+
+          <SignedOut>
             <Navbar />
             <Hero />
             <Footer />
-          </>
-        } />
+          </SignedOut>
+        </>
+      } />
 
-        {/* The Login Redirect */}
-        <Route path="/redirect" element={
-          <>
-            <SignedIn><RoleRedirect /></SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </> 
-        } />
+      {/* Redirect after login */}
+      <Route path="/redirect" element={
+        <PrivateRoute>
+          <RoleRedirect />
+        </PrivateRoute>
+      } />
 
-        {/* Regular Customer Dashboard (Anyone logged in can see this) */}
-        <Route path="/dashboard" element={
-          <>
-            <SignedIn>
-              <Navbar />
-              <Dashboard />
-              <Footer />
-            </SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
-  
-        <Route path="/inquiry" element={<InquiryPage />} />
+      {/* User Dashboard */}
+      <Route path="/dashboard" element={
+        <PrivateRoute>
+          <Navbar />
+          <Dashboard />
+          <Footer />
+        </PrivateRoute>
+      } />
 
-        {/* Admin Dashboard (ONLY Admins can see this) */}
-        <Route path="/admin-dashboard" element={
-          <>
-            <SignedIn>
-              {/* ProtectedRoute goes INSIDE SignedIn */}
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            </SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
-        <Route path="/staff-dashboard" element={
-          <>
-            <SignedIn>
-              <ProtectedStaffRoute>
-                <StaffDashboard />
-              </ProtectedStaffRoute>
-            </SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
+      {/* Admin Dashboard */}
+      <Route path="/admin-dashboard" element={
+        <PrivateRoute>
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        </PrivateRoute>
+      } />
 
-        <Route path="/service-history" element={
-          <>
-            <SignedIn><Navbar /><ServiceHistory /><Footer /></SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
+      {/* Staff Dashboard */}
+      <Route path="/staff-dashboard" element={
+        <PrivateRoute>
+          <ProtectedStaffRoute>
+            <StaffDashboard />
+          </ProtectedStaffRoute>
+        </PrivateRoute>
+      } />
 
-        <Route path="/payment-history" element={
-          <>
-            <SignedIn><Navbar /><PaymentHistory /><Footer /></SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
+      {/* Service History */}
+      <Route path="/service-history" element={
+        <PrivateRoute>
+          <Navbar />
+          <ServiceHistory />
+          <Footer />
+        </PrivateRoute>
+      } />
 
-        <Route path="/notifications" element={
-          <>
-            <SignedIn><Navbar /><Notifications /><Footer /></SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
+      {/* Payment History */}
+      <Route path="/payment-history" element={
+        <PrivateRoute>
+          <Navbar />
+          <PaymentHistory />
+          <Footer />
+        </PrivateRoute>
+      } />
+
+      {/* Notifications */}
+      <Route path="/notifications" element={
+        <PrivateRoute>
+          <Navbar />
+          <Notifications />
+          <Footer />
+        </PrivateRoute>
+      } />
 
         
-      </Routes>
-    </>
+
+    </Routes>
   );
 }

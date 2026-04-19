@@ -30,3 +30,50 @@ export const createStaffAccount = async (staffData, token) => {
     throw error;
   }
 };
+
+export const getInquiries = async () => {
+  const response = await fetch(`${API_BASE_URL}/admin/inquiries`);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch inquiries.");
+  }
+
+  return data.inquiries || [];
+};
+
+export const replyToInquiry = async (inquiryId, reply, repliedBy) => {
+  const response = await fetch(`${API_BASE_URL}/admin/inquiries/${inquiryId}/reply`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ reply, repliedBy }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to reply to inquiry.");
+  }
+
+  return data.inquiry;
+};
+
+export const submitInquiry = async (inquiryData) => {
+  const response = await fetch(`${API_BASE_URL}/users/inquiries`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(inquiryData),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to submit inquiry.");
+  }
+
+  return data.inquiry;
+};
