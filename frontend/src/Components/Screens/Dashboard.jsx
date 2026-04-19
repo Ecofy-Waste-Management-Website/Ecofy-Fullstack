@@ -146,6 +146,21 @@ export default function Dashboard() {
         </form>
       </div>
 
+      <a href="/profile-settings"
+        className="flex items-center w-72 h-24 mt-10 ml-1 p-5 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:bg-gray-50 transition-all">
+      
+      <span className="text-3xl mr-4 text-purple-600">👤</span>
+
+      <div>
+        <p className="text-lg font-semibold text-gray-800">
+          Profile & Settings
+        </p>
+        <p className="text-sm text-gray-500">
+          Manage your account
+        </p>
+      </div>
+      </a>
+
     </div>
   );
 }
