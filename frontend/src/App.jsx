@@ -12,110 +12,102 @@ import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
-import A_Dashboard from "./Components/test_folder/A_Dashboard"
 
 // Auth Components
 import RoleRedirect from "./Components/Auth/RoleRedirect";
 import ProtectedRoute from './Components/Auth/ProtectedRoute';
 import ProtectedStaffRoute from './Components/Auth/ProtectedStaffRoute';
 
+// ✅ Fix: Moved outside of the App component
+const PrivateRoute = ({ children }) => (
+  <>
+    <SignedIn>{children}</SignedIn>
+    <SignedOut>
+      <RedirectToSignIn />
+    </SignedOut>
+  </>
+);
+
 export default function App() {
   return (
-    <>
-      <Routes>
-        
-        <Route exact path="/" element={
-          <>
-            <SignedIn>
-              <RoleRedirect />
-            </SignedIn>
-            
-            
-            <SignedOut>
-              <Navbar />
-              <Hero />
-              <Footer />
-            </SignedOut>
-          </>
-        } />
+    <Routes>
 
-        {/* The Login Redirect */}
-        <Route path="/redirect" element={
-          <>
-            <SignedIn><RoleRedirect /></SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </> 
-        } />
+      {/* Home */}
+      <Route path="/" element={
+        <>
+          <SignedIn>
+            <RoleRedirect />
+          </SignedIn>
 
-        {/* Regular Customer Dashboard (Anyone logged in can see this) */}
-        <Route path="/dashboard" element={
-          <>
-            <SignedIn>
-              <Navbar />
-              <Dashboard />
-              <Footer />
-            </SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
+          <SignedOut>
+            <Navbar />
+            <Hero />
+            <Footer />
+          </SignedOut>
+        </>
+      } />
 
-        {/* Admin Dashboard (ONLY Admins can see this) */}
-        <Route path="/admin-dashboard" element={
-          <>
-            <SignedIn>
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            </SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
+      {/* Redirect after login */}
+      <Route path="/redirect" element={
+        <PrivateRoute>
+          <RoleRedirect />
+        </PrivateRoute>
+      } />
 
-        <Route path="/staff-dashboard" element={
-          <>
-            <SignedIn>
-              <ProtectedStaffRoute>
-                <StaffDashboard />
-              </ProtectedStaffRoute>
-            </SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
+      {/* User Dashboard */}
+      <Route path="/dashboard" element={
+        <PrivateRoute>
+          <Navbar />
+          <Dashboard />
+          <Footer />
+        </PrivateRoute>
+      } />
 
-        <Route path="/service-history" element={
-          <>
-            <SignedIn><Navbar /><ServiceHistory /><Footer /></SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
+      {/* Admin Dashboard */}
+      <Route path="/admin-dashboard" element={
+        <PrivateRoute>
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        </PrivateRoute>
+      } />
 
-        <Route path="/payment-history" element={
-          <>
-            <SignedIn><Navbar /><PaymentHistory /><Footer /></SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
+      {/* Staff Dashboard */}
+      <Route path="/staff-dashboard" element={
+        <PrivateRoute>
+          <ProtectedStaffRoute>
+            <StaffDashboard />
+          </ProtectedStaffRoute>
+        </PrivateRoute>
+      } />
 
-        <Route path="/notifications" element={
-          <>
-            <SignedIn><Navbar /><Notifications /><Footer /></SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
-        
-        {/*for testing (MOVED INSIDE <Routes>) */}
-        <Route path="/a_dashboard" element={
-          <>
-            <SignedIn>
-              <A_Dashboard />
-            </SignedIn>
-            <SignedOut>
-              <RedirectToSignIn />
-            </SignedOut>
-          </>
-        } />
+      {/* Service History */}
+      <Route path="/service-history" element={
+        <PrivateRoute>
+          <Navbar />
+          <ServiceHistory />
+          <Footer />
+        </PrivateRoute>
+      } />
 
-      </Routes>
-    </>
-  )
-};
+      {/* Payment History */}
+      <Route path="/payment-history" element={
+        <PrivateRoute>
+          <Navbar />
+          <PaymentHistory />
+          <Footer />
+        </PrivateRoute>
+      } />
+
+      {/* Notifications */}
+      <Route path="/notifications" element={
+        <PrivateRoute>
+          <Navbar />
+          <Notifications />
+          <Footer />
+        </PrivateRoute>
+      } />
+
+    </Routes>
+  );
+}
