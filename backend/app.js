@@ -17,7 +17,6 @@ const serviceRequestRouter = require("./Route/ServiceRequestRoute");
 const adminRoutes = require("./Route/adminRoutes");
 const slaAnalyticsRouter = require("./Route/slaAnalyticsRoute");
 const serviceMonitoringRouter = require("./Route/serviceMonitoringRoute"); 
-const inquiryRoutes = require('./Route/InquiryRoute');
 const app = express();
 
 
@@ -48,7 +47,7 @@ app.use("/admin", adminRoutes);
 app.use("/sla-analytics", slaAnalyticsRouter);
 app.use("/service-monitoring", serviceMonitoringRouter);
 app.use("/staff", staffRouter);
-app.use('/inquiries', inquiryRoutes);
+
 
 mongoose.connect(process.env.MONGO_URI)
 .then(()=> console.log("connected to MongoDB"))
