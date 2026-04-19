@@ -7,6 +7,7 @@ import SLAAnalytics from "./SLAAnalytics";
 import ServiceRequests from "./ServiceRequests";
 import ContentBlogManagement from "./contentBlogManagement";
 import StaffAccountCreation from "./StaffAccountCreation";
+import InquiryManagement from "./InquiryManagement";
 // Assuming you have UserManagement, otherwise this is a placeholder
 // import UserManagement from "./UserManagement"; 
 
@@ -206,7 +207,7 @@ export default function AdminDashboard() {
     SERVICE_REQ: <ServiceRequests />,
     SLA_ANALYTICS: <SLAAnalytics />,
     CONTENT_BLOG: <ContentBlogManagement />,
-    INQUIRY: <div className="p-6">Inquiry Management System</div>,
+    INQUIRY: <InquiryManagement />,
   };
 
   // ✅ 4. The missing render function
