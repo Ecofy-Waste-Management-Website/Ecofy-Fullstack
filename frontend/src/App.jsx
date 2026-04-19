@@ -13,6 +13,9 @@ import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
 
+
+
+
 // Auth Components
 import RoleRedirect from "./Components/Auth/RoleRedirect";
 import ProtectedRoute from './Components/Auth/ProtectedRoute';
@@ -107,6 +110,8 @@ export default function App() {
           <Footer />
         </PrivateRoute>
       } />
+
+        
 
     </Routes>
   );
