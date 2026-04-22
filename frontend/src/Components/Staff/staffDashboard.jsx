@@ -8,6 +8,8 @@ export default function StaffDashboard() {
   const [completedTasks, setCompletedTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingTask, setUpdatingTask] = useState(null);
+  const [notification, setNotification] = useState(null);
+
 
   // Fetch tasks from backend
   useEffect(() => {
@@ -39,6 +41,10 @@ export default function StaffDashboard() {
 
     fetchTasks();
   }, [isLoaded, user]);
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   // Update task status
   const updateTaskStatus = async (taskId, newStatus) => {
@@ -57,7 +63,7 @@ export default function StaffDashboard() {
           }),
         }
       );
-
+  const data = await res.json();
       if (res.ok) {
         if (newStatus === 'Completed') {
           const task = activeTasks.find(t => t._id === taskId);
@@ -66,14 +72,21 @@ export default function StaffDashboard() {
             { ...task, status: 'Completed', completedAt: new Date() },
             ...prev,
           ]);
+           showNotification('🎉 Task completed successfully!');
+          // Switch to completed tab
+          setTimeout(() => setActiveTab('completed'), 500);
         } else {
           setActiveTasks(prev =>
             prev.map(t => t._id === taskId ? { ...t, status: newStatus } : t)
           );
+          showNotification(`✅ Status updated to ${newStatus}`);
         }
+      } else {
+        showNotification(data.message, 'error');
       }
     } catch (err) {
       console.error('Failed to update status:', err);
+        showNotification('Failed to update status. Please try again.', 'error');
     } finally {
       setUpdatingTask(null);
     }
@@ -118,7 +131,14 @@ export default function StaffDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
+  {notification && (
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50
+          px-6 py-3 rounded-xl shadow-lg text-white font-medium text-sm
+          transition-all duration-300
+          ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
+          {notification.message}
+        </div>
+      )}
       {/* Header */}
       <div className="bg-green-600 text-white px-4 py-4">
         <div className="flex justify-between items-center">
@@ -195,7 +215,7 @@ export default function StaffDashboard() {
             ) : (
               activeTasks.map((task) => (
                 <div key={task._id}
-                  className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+                  className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 transition-all duration-300 ">
 
                   {/* Task Header */}
                   <div className="flex justify-between items-start mb-3">

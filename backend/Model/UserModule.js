@@ -31,7 +31,7 @@ const userSchema = new Schema(
             type:String,
             required:true,
             unique:true,
-               index: true, 
+            index: true, 
         },
 
         preferences:{
@@ -43,7 +43,7 @@ const userSchema = new Schema(
             type:String,
             enum:['Activate','Suspended','Banned'],
             default:'Activate',
-               index: true, 
+            index: true, 
         }
 
     },
