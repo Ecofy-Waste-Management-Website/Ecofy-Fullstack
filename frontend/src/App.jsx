@@ -12,7 +12,7 @@ import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
-
+import ProfileSettings from "./Components/Screens/ProfileSettings";
 
 
 
@@ -110,6 +110,9 @@ export default function App() {
           <Footer />
         </PrivateRoute>
       } />
+
+
+      <Route path="/profile-settings" element={<ProfileSettings />} />
 
         
 
