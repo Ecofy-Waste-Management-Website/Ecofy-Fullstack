@@ -19,7 +19,7 @@ export default function DashboardRouter() {
 
     const fetchUserRole = async () => {
       try {
-        const url = `http://localhost:5000/users/${user.id}`;
+        const url = `http://localhost:5001/users/${user.id}`;
         console.log('DashboardRouter: Fetching role from', url);
         const response = await fetch(url);
         if (response.ok) {

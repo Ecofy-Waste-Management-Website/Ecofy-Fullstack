@@ -18,10 +18,10 @@ export default function StaffDashboard() {
     const fetchTasks = async () => {
       try {
         const activeRes = await fetch(
-          `http://localhost:5000/staff/tasks/active/${user.id}`
+          `http://localhost:5001/staff/tasks/active/${user.id}`
         );
         const completedRes = await fetch(
-          `http://localhost:5000/staff/tasks/completed/${user.id}`
+          `http://localhost:5001/staff/tasks/completed/${user.id}`
         );
 
         if (activeRes.ok) {
@@ -53,7 +53,7 @@ export default function StaffDashboard() {
     setUpdatingTask(taskId);
     try {
       const res = await fetch(
-        `http://localhost:5000/staff/tasks/${taskId}/status`,
+        `http://localhost:5001/staff/tasks/${taskId}/status`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },

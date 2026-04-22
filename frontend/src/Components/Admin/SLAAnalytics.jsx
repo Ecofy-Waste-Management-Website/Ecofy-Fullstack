@@ -28,7 +28,7 @@ export default function SLAAnalytics() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:5000/sla-analytics");
+        const response = await fetch("http://localhost:5001/sla-analytics");
         if (!response.ok) throw new Error("Failed to fetch analytics");
         const result = await response.json();
         setData(result);
