@@ -64,6 +64,22 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Pickup Status*/}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Pickup Status</h2>
+        <p className="text-sm text-gray-400">No recent pickups to display.</p>
+        {/* TODO: map over active bookings and show status badges */}
+      </div>
+
+      {/* Driver Location */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Driver Location</h2>
+        <div className="bg-gray-50 rounded-lg h-40 flex items-center justify-center">
+          <p className="text-sm text-gray-400">No active driver assigned to your booking.</p>
+          {/* TODO: embed map component when a driver is active */}
+        </div>
+      </div>
+
       {/* Quick Links */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
@@ -129,6 +145,21 @@ export default function Dashboard() {
           </button>
         </form>
       </div>
+
+      <a href="/profile-settings"
+        className="flex items-center w-72 h-24 mt-10 ml-1 p-5 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:bg-gray-50 transition-all">
+      
+      <span className="text-3xl mr-4 text-purple-600">👤</span>
+
+      <div>
+        <p className="text-lg font-semibold text-gray-800">
+          Profile & Settings
+        </p>
+        <p className="text-sm text-gray-500">
+          Manage your account
+        </p>
+      </div>
+      </a>
 
     </div>
   );
