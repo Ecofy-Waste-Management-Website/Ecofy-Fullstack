@@ -1,9 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from "@clerk/clerk-react";
 import { submitInquiry } from "../../services/api/adminService";
+import { getUserBookings } from "../../services/api/bookingService";
+import RequestPickupModal from "./RequestPickupModal";
+
+// Status badge colours
+const STATUS_STYLES = {
+  Pending:       "bg-amber-100 text-amber-700",
+  Assigned:      "bg-blue-100 text-blue-700",
+  "In Progress": "bg-indigo-100 text-indigo-700",
+  "En Route":    "bg-cyan-100 text-cyan-700",
+  Completed:     "bg-emerald-100 text-emerald-700",
+  Delayed:       "bg-red-100 text-red-700",
+};
 
 export default function Dashboard() {
   const { user } = useUser();
+
+  // ── Pickup modal ──
+  const [showPickupModal, setShowPickupModal] = useState(false);
+
+  // ── User bookings (for stats + pickup status) ──
+  const [bookings, setBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(true);
+
+  const fetchBookings = useCallback(async () => {
+    const email = user?.primaryEmailAddress?.emailAddress;
+    if (!email) return;
+    try {
+      setLoadingBookings(true);
+      const data = await getUserBookings(email);
+      setBookings(data);
+    } catch {
+      /* silent — stats will stay at 0 */
+    } finally {
+      setLoadingBookings(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
+  // Derived stat
+  const activeBookings = bookings.filter((b) =>
+    ["Pending", "Assigned", "In Progress", "En Route"].includes(b.status)
+  );
+
+  // ── Inquiry form ──
   const [inquiry, setInquiry] = useState({ subject: "", message: "" });
   const [sendingInquiry, setSendingInquiry] = useState(false);
   const [inquiryStatus, setInquiryStatus] = useState({ type: "", text: "" });
@@ -45,12 +89,50 @@ export default function Dashboard() {
         </p>
       </div>
 
+      {/* ────────────────────────────────────────────
+          REQUEST PICKUP — Hero Call-to-Action Card
+          ──────────────────────────────────────────── */}
+      <div
+        id="request-pickup-card"
+        onClick={() => setShowPickupModal(true)}
+        className="group relative mb-6 cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-6 shadow-lg hover:shadow-xl transition-all duration-300"
+      >
+        {/* Decorative floating circles */}
+        <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-white/10 group-hover:scale-110 transition-transform duration-500" />
+        <div className="absolute -right-2 bottom-0 h-20 w-20 rounded-full bg-white/5 group-hover:scale-125 transition-transform duration-700" />
+
+        <div className="relative flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* Icon container */}
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20 text-3xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+              🚛
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">Request Pickup</h2>
+              <p className="text-sm text-emerald-100 mt-0.5">
+                Schedule a new waste collection at your doorstep
+              </p>
+            </div>
+          </div>
+
+          {/* Arrow CTA */}
+          <div className="hidden sm:flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-semibold text-white group-hover:bg-white/30 transition">
+            Book Now
+            <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h3 className="text-sm font-medium text-gray-500">Active Bookings</h3>
-          <p className="text-3xl font-bold text-indigo-600 mt-2">0</p>
-          <p className="text-sm text-gray-400 mt-1">No active bookings</p>
+          <p className="text-3xl font-bold text-indigo-600 mt-2">{activeBookings.length}</p>
+          <p className="text-sm text-gray-400 mt-1">
+            {activeBookings.length === 0 ? "No active bookings" : `${activeBookings.length} in progress`}
+          </p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h3 className="text-sm font-medium text-gray-500">Total Payments</h3>
@@ -64,11 +146,38 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Pickup Status*/}
+      {/* Pickup Status */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Pickup Status</h2>
-        <p className="text-sm text-gray-400">No recent pickups to display.</p>
-        {/* TODO: map over active bookings and show status badges */}
+
+        {loadingBookings ? (
+          <p className="text-sm text-gray-400">Loading pickups…</p>
+        ) : activeBookings.length === 0 ? (
+          <p className="text-sm text-gray-400">No recent pickups to display.</p>
+        ) : (
+          <div className="space-y-3">
+            {activeBookings.slice(0, 5).map((b) => (
+              <div
+                key={b._id}
+                className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3"
+              >
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    {b.service_type} — {b.waste_category}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {b.location} · {new Date(b.scheduled_date).toLocaleDateString()}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[b.status] || "bg-gray-100 text-gray-600"}`}
+                >
+                  {b.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Driver Location */}
@@ -76,7 +185,6 @@ export default function Dashboard() {
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Driver Location</h2>
         <div className="bg-gray-50 rounded-lg h-40 flex items-center justify-center">
           <p className="text-sm text-gray-400">No active driver assigned to your booking.</p>
-          {/* TODO: embed map component when a driver is active */}
         </div>
       </div>
 
@@ -161,6 +269,12 @@ export default function Dashboard() {
       </div>
       </a>
 
+      {/* ── Request Pickup Modal ── */}
+      <RequestPickupModal
+        isOpen={showPickupModal}
+        onClose={() => setShowPickupModal(false)}
+        onSuccess={fetchBookings}
+      />
     </div>
   );
 }
