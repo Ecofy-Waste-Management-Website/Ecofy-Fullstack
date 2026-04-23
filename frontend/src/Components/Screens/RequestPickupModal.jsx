@@ -85,27 +85,30 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
     >
       {/* Modal Card */}
       <div
-        className="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden animate-[fadeScaleIn_0.25s_ease-out]"
+        className="relative w-full max-w-lg mx-4 bg-white/50 backdrop-blur-md border border-white/60 rounded-2xl shadow-xl overflow-hidden animate-[fadeScaleIn_0.25s_ease-out]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header Gradient Strip */}
-        <div className="h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
 
         <div className="px-6 pt-5 pb-6">
           {/* Title Row */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
-              <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-100 text-xl">
-                🚛
+              <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-100/70 backdrop-blur-sm text-xl text-emerald-800 shadow-sm border border-emerald-200/50">
+                <svg className="w-[60%] h-[60%] text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="1" y="3" width="15" height="13" rx="2" ry="2"></rect>
+                  <path d="M16 8h4l3 3v5h-7V8z"></path>
+                  <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                  <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                </svg>
               </span>
               <div>
-                <h2 className="text-lg font-bold text-gray-800">Request Pickup</h2>
-                <p className="text-xs text-gray-400">Schedule a new waste collection</p>
+                <h2 className="text-lg font-bold text-gray-900">Request Pickup</h2>
+                <p className="text-xs text-gray-600">Schedule a new waste collection</p>
               </div>
             </div>
             <button
               onClick={() => { resetForm(); onClose(); }}
-              className="text-gray-400 hover:text-gray-600 transition text-xl leading-none"
+              className="text-gray-500 hover:text-gray-800 transition text-xl leading-none"
               aria-label="Close"
             >
               ✕
@@ -117,14 +120,14 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
             {/* Service Type & Waste Category — side by side */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   Service Type <span className="text-red-400">*</span>
                 </label>
                 <select
                   name="service_type"
                   value={form.service_type}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                  className="w-full rounded-lg border border-emerald-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-emerald-950 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                 >
                   <option value="">Select type</option>
                   {SERVICE_TYPES.map((t) => (
@@ -134,14 +137,14 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   Waste Category <span className="text-red-400">*</span>
                 </label>
                 <select
                   name="waste_category"
                   value={form.waste_category}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                  className="w-full rounded-lg border border-emerald-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-emerald-950 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                 >
                   <option value="">Select category</option>
                   {WASTE_CATEGORIES.map((c) => (
@@ -153,7 +156,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
 
             {/* Location */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 Pickup Location <span className="text-red-400">*</span>
               </label>
               <input
@@ -162,13 +165,13 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
                 value={form.location}
                 onChange={handleChange}
                 placeholder="e.g. 123 Main Street, Colombo"
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                className="w-full rounded-lg border border-emerald-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-emerald-950 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
               />
             </div>
 
             {/* Scheduled Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 Preferred Date <span className="text-red-400">*</span>
               </label>
               <input
@@ -177,13 +180,13 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
                 value={form.scheduled_date}
                 onChange={handleChange}
                 min={minDate}
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                className="w-full rounded-lg border border-emerald-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-emerald-950 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
               />
             </div>
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 Additional Notes
               </label>
               <textarea
@@ -192,7 +195,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
                 onChange={handleChange}
                 rows={3}
                 placeholder="Any special instructions for the pickup crew..."
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition resize-none"
+                className="w-full rounded-lg border border-emerald-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-emerald-950 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition resize-none"
               />
             </div>
 
@@ -214,7 +217,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
               <button
                 type="button"
                 onClick={() => { resetForm(); onClose(); }}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
+                className="rounded-lg border border-gray-300/80 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100/50 transition bg-white/30 backdrop-blur-sm"
               >
                 Cancel
               </button>
