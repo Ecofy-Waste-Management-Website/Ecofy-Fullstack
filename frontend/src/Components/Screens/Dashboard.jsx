@@ -3,6 +3,7 @@ import { useUser } from "@clerk/clerk-react";
 import { submitInquiry } from "../../services/api/adminService";
 import { getUserBookings } from "../../services/api/bookingService";
 import RequestPickupModal from "./RequestPickupModal";
+import PaymentModal from "./PaymentModal";
 
 // Status badge colours
 const STATUS_STYLES = {
@@ -19,6 +20,8 @@ export default function Dashboard() {
 
   // ── Pickup modal ──
   const [showPickupModal, setShowPickupModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [lastBooking, setLastBooking] = useState(null);
   const [scrollRatio, setScrollRatio] = useState(0);
 
   useEffect(() => {
@@ -333,7 +336,21 @@ export default function Dashboard() {
       <RequestPickupModal
         isOpen={showPickupModal}
         onClose={() => setShowPickupModal(false)}
-        onSuccess={fetchBookings}
+        onSuccess={(bookingDetails) => {
+          setLastBooking(bookingDetails);
+          setShowPickupModal(false);
+          setShowPaymentModal(true);
+        }}
+      />
+
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={() => {
+          setShowPaymentModal(false);
+          fetchBookings(); // refreshes the bookings list after payment
+        }}
+        bookingDetails={lastBooking}
       />
     </div>
   );
