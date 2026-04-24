@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function StaffDashboard() {
   const { user, isLoaded } = useUser();
   const [activeTab, setActiveTab] = useState('active');
@@ -18,10 +20,10 @@ export default function StaffDashboard() {
     const fetchTasks = async () => {
       try {
         const activeRes = await fetch(
-          `http://localhost:5001/staff/tasks/active/${user.id}`
+          `${API_BASE_URL}/staff/tasks/active/${user.id}`
         );
         const completedRes = await fetch(
-          `http://localhost:5001/staff/tasks/completed/${user.id}`
+          `${API_BASE_URL}/staff/tasks/completed/${user.id}`
         );
 
         if (activeRes.ok) {
@@ -53,7 +55,7 @@ export default function StaffDashboard() {
     setUpdatingTask(taskId);
     try {
       const res = await fetch(
-        `http://localhost:5001/staff/tasks/${taskId}/status`,
+        `${API_BASE_URL}/staff/tasks/${taskId}/status`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },

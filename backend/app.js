@@ -38,10 +38,27 @@ app.set("wss", wss);
 //Middleware 
 app.use(cors());
 app.use(express.json());
-app.use(clerkMiddleware({
-  publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-  secretKey: process.env.CLERK_SECRET_KEY,
-})); // Clerk v1+: must come before any protected routes
+
+// Register Clerk middleware only when keys are available.
+// This prevents global 500s on public routes when env vars are missing.
+const clerkPublishableKey =
+  process.env.CLERK_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+  process.env.VITE_CLERK_PUBLISHABLE_KEY;
+const clerkSecretKey = process.env.CLERK_SECRET_KEY;
+
+if (clerkPublishableKey && clerkSecretKey) {
+  app.use(
+    clerkMiddleware({
+      publishableKey: clerkPublishableKey,
+      secretKey: clerkSecretKey,
+    })
+  ); // Clerk v1+: should come before protected routes
+} else {
+  console.warn(
+    "Clerk middleware disabled: missing CLERK_PUBLISHABLE_KEY/VITE_CLERK_PUBLISHABLE_KEY or CLERK_SECRET_KEY"
+  );
+}
 
 app.use("/users",userRouter);
 
