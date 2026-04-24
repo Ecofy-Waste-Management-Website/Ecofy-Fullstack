@@ -62,7 +62,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
       // Auto-close after a brief pause so the user sees the success message
       setTimeout(() => {
         resetForm();
-        onSuccess?.();
+        onSuccess?.(form);
         onClose();
       }, 1500);
     } catch (error) {

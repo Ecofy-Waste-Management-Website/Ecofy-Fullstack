@@ -19,6 +19,7 @@ const adminRoutes = require("./Route/adminRoutes");
 const slaAnalyticsRouter = require("./Route/slaAnalyticsRoute");
 const serviceMonitoringRouter = require("./Route/serviceMonitoringRoute"); 
 const authTestRouter = require("./Route/authTestRoute");
+const stripeRoute = require("./Route/stripe.route");
 const app = express();
 
 
@@ -54,6 +55,7 @@ app.use("/sla-analytics", slaAnalyticsRouter);
 app.use("/service-monitoring", serviceMonitoringRouter);
 app.use("/staff", staffRouter);
 app.use("/auth-test", authTestRouter);
+app.use("/api/stripe", stripeRoute);
 
 
 mongoose.connect(process.env.MONGO_URI, {
