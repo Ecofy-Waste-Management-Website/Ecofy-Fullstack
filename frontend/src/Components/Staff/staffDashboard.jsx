@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useClerk } from '@clerk/clerk-react';
+import { useNavigate } from 'react-router-dom';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function StaffDashboard() {
   const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('active');
   const [activeTasks, setActiveTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
@@ -18,10 +23,10 @@ export default function StaffDashboard() {
     const fetchTasks = async () => {
       try {
         const activeRes = await fetch(
-          `http://localhost:5001/staff/tasks/active/${user.id}`
+          `${API_BASE_URL}/staff/tasks/active/${user.id}`
         );
         const completedRes = await fetch(
-          `http://localhost:5001/staff/tasks/completed/${user.id}`
+          `${API_BASE_URL}/staff/tasks/completed/${user.id}`
         );
 
         if (activeRes.ok) {
@@ -53,7 +58,7 @@ export default function StaffDashboard() {
     setUpdatingTask(taskId);
     try {
       const res = await fetch(
-        `http://localhost:5001/staff/tasks/${taskId}/status`,
+        `${API_BASE_URL}/staff/tasks/${taskId}/status`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -121,6 +126,11 @@ export default function StaffDashboard() {
     });
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   if (!isLoaded || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -153,8 +163,17 @@ export default function StaffDashboard() {
               })}
             </p>
           </div>
-          <div className="bg-green-500 rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">
-            {user?.firstName?.[0] || 'S'}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="rounded-full border border-white/50 bg-white/15 px-4 py-2 text-xs font-semibold tracking-wide text-white transition hover:bg-white hover:text-green-700"
+            >
+              Logout
+            </button>
+            <div className="bg-green-500 rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">
+              {user?.firstName?.[0] || 'S'}
+            </div>
           </div>
         </div>
 

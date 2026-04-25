@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 // ── Config ─────────────────────────────────────────────────────────────────────
-const API_BASE = "http://localhost:5001/service-monitoring";
-const WS_URL   = "ws://localhost:5001";
+const API_ORIGIN = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE = `${API_ORIGIN}/service-monitoring`;
+const WS_URL = API_ORIGIN.replace(/^http/, "ws");
 
 const STAFF_LIST = [
   "Banuka J.", "Priyantha S.", "Amara K.", "Nimal R.",
