@@ -47,16 +47,16 @@ const clerkPublishableKey =
   process.env.VITE_CLERK_PUBLISHABLE_KEY;
 const clerkSecretKey = process.env.CLERK_SECRET_KEY;
 
-if (clerkPublishableKey && clerkSecretKey) {
-  app.use(
-    clerkMiddleware({
-      publishableKey: clerkPublishableKey,
-      secretKey: clerkSecretKey,
-    })
-  ); // Clerk v1+: should come before protected routes
+if (clerkSecretKey) {
+  const clerkOptions = {
+    secretKey: clerkSecretKey,
+    ...(clerkPublishableKey ? { publishableKey: clerkPublishableKey } : {}),
+  };
+
+  app.use(clerkMiddleware(clerkOptions)); // Clerk v1+: should come before protected routes
 } else {
   console.warn(
-    "Clerk middleware disabled: missing CLERK_PUBLISHABLE_KEY/VITE_CLERK_PUBLISHABLE_KEY or CLERK_SECRET_KEY"
+    "Clerk middleware disabled: missing CLERK_SECRET_KEY"
   );
 }
 
