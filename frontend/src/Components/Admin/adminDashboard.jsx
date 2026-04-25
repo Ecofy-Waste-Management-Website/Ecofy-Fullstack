@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 
@@ -10,6 +10,8 @@ import StaffAccountCreation from "./StaffAccountCreation";
 import InquiryManagement from "./InquiryManagement";
 // Assuming you have UserManagement, otherwise this is a placeholder
 // import UserManagement from "./UserManagement"; 
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // ─── DATA & CONFIGURATION ──────────────────────────────────────────────────
 
@@ -181,6 +183,9 @@ const DashboardHome = () => (
 export default function AdminDashboard() {
   // ✅ 1. Initialize with a KEY, not a label
   const [activeTab, setActiveTab] = useState("DASHBOARD");
+  const [role, setRole] = useState(null);
+  const [roleLoading, setRoleLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // ✅ 2. State to track which submenus are expanded
   const [openMenus, setOpenMenus] = useState({ ADMIN_MODULE: true });
@@ -197,6 +202,39 @@ export default function AdminDashboard() {
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+  };
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchRole = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRole(data.user.role);
+        }
+      } catch (error) {
+        console.error("Failed to fetch admin role:", error);
+      } finally {
+        setRoleLoading(false);
+      }
+    };
+
+    fetchRole();
+  }, [user]);
+
+  const handleSwitchDashboard = () => {
+    navigate("/staff-dashboard");
+  };
+
+  const handleSelectTab = (key) => {
+    setActiveTab(key);
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleToggleMobileMenu = () => {
+    setIsMobileMenuOpen((prev) => !prev);
   };
 
   // ✅ 3. Fixed Component Map (Removed syntax error and mapped correctly)
@@ -232,8 +270,135 @@ export default function AdminDashboard() {
     setOpenMenus(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const showRoleSwitch = !roleLoading && role === "Admin";
+
   return (
-    <div className="relative grid min-h-screen grid-cols-1 font-sans text-[#0f1d33] lg:grid-cols-[240px_1fr]" style={{ background: "radial-gradient(circle at 15% 15%, #f8fbff 0%, transparent 38%), radial-gradient(circle at 90% 90%, #d8e7ff 0%, transparent 30%), #e8edf4" }}>
+    <div className="relative min-h-screen font-sans text-[#0f1d33] lg:grid lg:grid-cols-[240px_1fr]" style={{ background: "radial-gradient(circle at 15% 15%, #f8fbff 0%, transparent 38%), radial-gradient(circle at 90% 90%, #d8e7ff 0%, transparent 30%), #e8edf4" }}>
+
+      {/* Mobile top bar */}
+      <div className="sticky top-0 z-30 border-b border-white/30 bg-[#0f3a72]/95 px-4 py-3 text-white backdrop-blur-xl lg:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-white/70">Ecofy Admin</p>
+            <h2 className="truncate text-lg font-bold leading-tight">{getPageTitle()}</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            {showRoleSwitch && (
+              <button
+                type="button"
+                onClick={handleSwitchDashboard}
+                className="rounded-full border border-white/30 bg-white/10 px-3 py-2 text-[0.72rem] font-semibold text-white"
+              >
+                Staff
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(true)}
+              className="rounded-full border border-white/30 bg-white/10 px-3 py-2 text-[0.72rem] font-semibold text-white"
+            >
+              Logout
+            </button>
+            <button
+              type="button"
+              onClick={handleToggleMobileMenu}
+              className="grid h-10 w-10 place-items-center rounded-full border border-white/30 bg-white/10 text-white"
+              aria-label="Open admin menu"
+            >
+              ☰
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Close admin menu overlay"
+          />
+          <aside className="absolute left-0 top-0 flex h-full w-[86%] max-w-[320px] flex-col gap-4 overflow-y-auto bg-gradient-to-b from-[#0f3a72] to-[#0a2a53] p-5 text-[#f5f9ff] shadow-2xl">
+            <div className="flex items-center justify-between gap-2 pb-2">
+              <div className="flex items-center gap-2">
+                <div className="grid h-8 w-8 place-items-center rounded-full font-bold" style={{ background: "radial-gradient(circle at 30% 30%, #5ec8ff, #0e5eb9)" }}>E</div>
+                <h1 className="m-0 text-xl tracking-[0.2px]">Ecofy</h1>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+              <p className="text-[0.72rem] uppercase tracking-[0.24em] text-white/60">Current user</p>
+              <p className="mt-1 text-lg font-semibold text-white">{adminName}</p>
+              <p className="text-sm text-white/70">Admin dashboard access</p>
+            </div>
+
+            <nav className="flex flex-col gap-1">
+              {menuItems.map((item) => (
+                <div key={item.key} className="flex flex-col">
+                  <button
+                    className={`flex items-center justify-between rounded-[10px] px-3 py-3 text-left text-[0.92rem] transition-colors ${
+                      activeTab === item.key && !item.hasSubmenu
+                        ? "bg-[#1f5b9f] text-white"
+                        : "text-[#e9f1ff] hover:bg-white/10"
+                    }`}
+                    onClick={() => {
+                      if (item.hasSubmenu) {
+                        toggleSubmenu(item.key);
+                      } else {
+                        handleSelectTab(item.key);
+                      }
+                    }}
+                  >
+                    {item.label}
+                    {item.hasSubmenu && <span className="text-xs">{openMenus[item.key] ? "▼" : "▶"}</span>}
+                  </button>
+
+                  {item.hasSubmenu && openMenus[item.key] && (
+                    <div className="mt-1 flex flex-col gap-1 pl-4 pr-1">
+                      {item.subItems.map((sub) => (
+                        <button
+                          key={sub.key}
+                          className={`rounded-lg px-3 py-2 text-left text-[0.86rem] transition-colors ${
+                            activeTab === sub.key
+                              ? "bg-[#1f5b9f]/60 text-white font-medium"
+                              : "text-[#b0cdff] hover:bg-white/5 hover:text-white"
+                          }`}
+                          onClick={() => handleSelectTab(sub.key)}
+                        >
+                          {sub.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </nav>
+
+            <div className="mt-auto rounded-2xl border border-white/10 bg-white/10 p-4 text-white">
+              <p className="text-sm font-semibold">Need a quick switch?</p>
+              <p className="mt-1 text-sm text-white/75">Admin users can jump to the staff view from here.</p>
+              {showRoleSwitch && (
+                <button
+                  type="button"
+                  onClick={handleSwitchDashboard}
+                  className="mt-3 w-full rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#0f3a72]"
+                >
+                  Switch to Staff Dashboard
+                </button>
+              )}
+            </div>
+          </aside>
+        </div>
+      )}
       
       {/* --- LOGOUT CONFIRMATION MODAL --- */}
       {showLogoutModal && (
@@ -250,7 +415,7 @@ export default function AdminDashboard() {
       )}
 
       {/* Sidebar */}
-      <aside className="sticky top-0 z-10 flex flex-col gap-4 bg-gradient-to-b from-[#0f3a72] to-[#0a2a53] p-5 text-[#f5f9ff] lg:relative lg:h-screen lg:p-[20px_12px]">
+      <aside className="sticky top-0 z-10 hidden flex-col gap-4 bg-gradient-to-b from-[#0f3a72] to-[#0a2a53] p-5 text-[#f5f9ff] lg:relative lg:flex lg:h-screen lg:p-[20px_12px]">
         <div className="flex items-center gap-2 px-2 pb-3">
           <div className="grid h-8 w-8 place-items-center rounded-full font-bold" style={{ background: "radial-gradient(circle at 30% 30%, #5ec8ff, #0e5eb9)" }}>E</div>
           <h1 className="m-0 text-2xl tracking-[0.2px]">Ecofy</h1>
@@ -270,7 +435,7 @@ export default function AdminDashboard() {
                   if (item.hasSubmenu) {
                     toggleSubmenu(item.key); // Open/close dropdown
                   } else {
-                    setActiveTab(item.key); // Change page
+                    handleSelectTab(item.key); // Change page
                   }
                 }}
               >
@@ -291,7 +456,7 @@ export default function AdminDashboard() {
                           ? "bg-[#1f5b9f]/60 text-white font-medium" 
                           : "text-[#b0cdff] hover:text-white hover:bg-white/5"
                       }`}
-                      onClick={() => setActiveTab(sub.key)}
+                      onClick={() => handleSelectTab(sub.key)}
                     >
                       {sub.label}
                     </button>
@@ -313,8 +478,8 @@ export default function AdminDashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="p-[10px] lg:p-[12px_18px_10px] h-screen overflow-y-auto">
-        <header className="mb-4 flex flex-col items-start gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <main className="p-4 lg:h-screen lg:overflow-y-auto lg:p-[12px_18px_10px]">
+        <header className="mb-4 hidden flex-col items-start gap-4 lg:flex lg:flex-row lg:items-center lg:justify-between">
           <h2 className="m-0 text-[1.4rem] lg:text-[2.05rem] tracking-[0.2px]">
              {/* ✅ 6. Dynamic Title based on Active Tab */}
             {getPageTitle()}
@@ -323,8 +488,55 @@ export default function AdminDashboard() {
             <input type="text" className="w-full max-w-[520px] rounded-[10px] border border-[#d7deea] bg-white p-[10px_12px] outline-none focus:border-[#8eb6ee] focus:shadow-[0_0_0_3px_rgba(92,141,209,0.18)] lg:w-[320px]" placeholder="Search for requests or users" />
             <div className="grid h-7 w-7 place-items-center rounded-full bg-[#f24f60] text-[0.76rem] font-bold text-white">7</div>
             <div className="rounded-full border border-[#d7deea] bg-white p-[8px_12px] text-[0.88rem]">{adminName}</div>
+            {!roleLoading && role === "Admin" && (
+              <button
+                type="button"
+                onClick={handleSwitchDashboard}
+                className="rounded-full border border-[#0f5cbd] bg-[#0f5cbd] px-4 py-2 text-[0.8rem] font-semibold text-white transition hover:bg-[#0b4a97]"
+              >
+                Switch to Staff Dashboard
+              </button>
+            )}
           </div>
         </header>
+
+        <section className="mb-4 rounded-[24px] border border-white/60 bg-white/85 p-4 shadow-[0_18px_50px_rgba(15,29,51,0.08)] backdrop-blur md:p-5 lg:hidden">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#5d6a82]">Admin overview</p>
+              <h2 className="mt-1 text-[1.45rem] font-bold leading-tight text-[#0f1d33]">{getPageTitle()}</h2>
+              <p className="mt-1 text-sm text-[#5f6b82]">Manage service requests, staff, and insights from a compact mobile view.</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleToggleMobileMenu}
+              className="rounded-full bg-[#0f5cbd] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#0f5cbd]/20"
+            >
+              Menu
+            </button>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-[#f3f8ff] p-3">
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#6480a8]">Active tab</p>
+              <p className="mt-1 text-sm font-semibold text-[#0f1d33]">{getPageTitle()}</p>
+            </div>
+            <div className="rounded-2xl bg-[#f3f8ff] p-3">
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#6480a8]">User</p>
+              <p className="mt-1 text-sm font-semibold text-[#0f1d33]">{adminName}</p>
+            </div>
+          </div>
+
+          {showRoleSwitch && (
+            <button
+              type="button"
+              onClick={handleSwitchDashboard}
+              className="mt-4 w-full rounded-2xl bg-[#0f5cbd] px-4 py-3 text-sm font-semibold text-white"
+            >
+              Switch to Staff Dashboard
+            </button>
+          )}
+        </section>
 
         {/* ✅ 7. Execute the map render function */}
         {renderMainContent()}
