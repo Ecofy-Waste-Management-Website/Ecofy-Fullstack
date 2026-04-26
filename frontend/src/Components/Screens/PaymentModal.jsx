@@ -24,6 +24,39 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
   const elements = useElements();
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
+  const [paid, setPaid] = useState(false);
+
+  // ✅ Early return ABOVE handlePay — hooks are all declared, so React is happy
+  if (paid) {
+    return (
+      <div className="flex flex-col items-center justify-center py-6 text-center gap-4">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-400 shadow-md">
+          <svg className="w-8 h-8 text-emerald-600" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">Payment Successful!</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Your booking for{" "}
+            <span className="font-semibold text-emerald-700">{bookingDetails.service_type}</span>{" "}
+            on <span className="font-semibold">{bookingDetails.scheduled_date}</span> is confirmed.
+          </p>
+        </div>
+        <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-5 py-2 text-emerald-700 font-bold text-lg">
+          LKR {SERVICE_PRICES[bookingDetails.service_type]?.toLocaleString()}
+        </div>
+        <p className="text-xs text-gray-400">Your booking has been confirmed.</p>
+        <button
+          onClick={onClose}
+          className="mt-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-emerald-700 hover:to-teal-700 transition"
+        >
+          Done
+        </button>
+      </div>
+    );
+  }
 
   const handlePay = async (e) => {
     e.preventDefault();
@@ -32,7 +65,7 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
     setPaying(true);
     setError("");
 
-    const { error: stripeError } = await stripe.confirmPayment({
+    const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
       elements,
       redirect: "if_required",
     });
@@ -43,9 +76,27 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
       return;
     }
 
-    // Payment success
+    try {
+      await fetch("/api/stripe/confirm-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentIntentId: paymentIntent.id,
+          service_type:   bookingDetails.service_type,
+          waste_category: bookingDetails.waste_category,
+          location:       bookingDetails.location,
+          scheduled_date: bookingDetails.scheduled_date,
+          clerkId:        bookingDetails.clerkId,
+          email:          bookingDetails.email,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to save payment record:", err);
+    }
+
+    setPaying(false);
+    setPaid(true);
     onSuccess?.();
-    onClose();
   };
 
   return (
@@ -157,7 +208,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess, bookingDetail
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg mx-4 bg-white/50 backdrop-blur-md border border-white/60 rounded-2xl shadow-xl overflow-hidden animate-[fadeScaleIn_0.25s_ease-out]"
+        className="relative w-full max-w-lg mx-4 bg-white/50 backdrop-blur-md border border-white/60 rounded-2xl shadow-xl animate-[fadeScaleIn_0.25s_ease-out] max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 pt-5 pb-6">
