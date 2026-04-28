@@ -62,7 +62,11 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
       // Auto-close after a brief pause so the user sees the success message
       setTimeout(() => {
         resetForm();
-        onSuccess?.(form);
+        onSuccess?.({
+        ...form,
+        clerkId: user?.id,
+        email: user?.primaryEmailAddress?.emailAddress || "",
+      });
         onClose();
       }, 1500);
     } catch (error) {
