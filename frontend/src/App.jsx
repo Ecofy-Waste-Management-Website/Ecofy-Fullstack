@@ -70,9 +70,7 @@ export default function App() {
       {/* User Dashboard */}
       <Route path="/dashboard" element={
         <PrivateRoute>
-          <Navbar />
           <Dashboard />
-          <Footer />
         </PrivateRoute>
       } />
 
