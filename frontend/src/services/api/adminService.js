@@ -38,36 +38,49 @@ export const createStaffAccount = async (staffData, token) => {
   }
 };
 
-export const getBlogPosts = async (params, token) => {
-  const searchParams = new URLSearchParams();
+export const getInquiries = async () => {
+  const response = await fetch(`${API_BASE_URL}/admin/inquiries`);
+  const data = await response.json();
 
-  if (params?.search) searchParams.set('search', params.search);
-  if (params?.category) searchParams.set('category', params.category);
-  if (params?.status) searchParams.set('status', params.status);
-  if (params?.page) searchParams.set('page', String(params.page));
-  if (params?.limit) searchParams.set('limit', String(params.limit));
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch inquiries.");
+  }
 
-  return await requestJson(`/admin/blog-posts?${searchParams.toString()}`, token, {
-    method: 'GET',
-  });
+  return data.inquiries || [];
 };
 
-export const createBlogPost = async (postData, token) => {
-  return await requestJson('/admin/blog-posts', token, {
-    method: 'POST',
-    body: JSON.stringify(postData),
+export const replyToInquiry = async (inquiryId, reply, repliedBy) => {
+  const response = await fetch(`${API_BASE_URL}/admin/inquiries/${inquiryId}/reply`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ reply, repliedBy }),
   });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to reply to inquiry.");
+  }
+
+  return data.inquiry;
 };
 
-export const updateBlogPost = async (postId, postData, token) => {
-  return await requestJson(`/admin/blog-posts/${postId}`, token, {
-    method: 'PATCH',
-    body: JSON.stringify(postData),
+export const submitInquiry = async (inquiryData) => {
+  const response = await fetch(`${API_BASE_URL}/users/inquiries`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(inquiryData),
   });
-};
 
-export const deleteBlogPost = async (postId, token) => {
-  return await requestJson(`/admin/blog-posts/${postId}`, token, {
-    method: 'DELETE',
-  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to submit inquiry.");
+  }
+
+  return data.inquiry;
 };

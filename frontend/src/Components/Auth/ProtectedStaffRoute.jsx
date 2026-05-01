@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function ProtectedStaffRoute({ children }) {
   const { user, isLoaded } = useUser();
   const navigate = useNavigate();
@@ -13,7 +15,7 @@ export default function ProtectedStaffRoute({ children }) {
 
     const checkRole = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/users/${user.id}`);
+        const response = await fetch(`${API_BASE_URL}/users/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           const role = data.user.role;

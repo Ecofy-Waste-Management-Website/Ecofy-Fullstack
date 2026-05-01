@@ -50,227 +50,66 @@ export default function ContentBlogManagement() {
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
-  const [posts, setPosts] = useState([]);
-  const [selectedPostId, setSelectedPostId] = useState(null);
-  const [draft, setDraft] = useState(emptyDraft);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const hasAutoSelectedRef = useRef(false);
+  const [editingPostId, setEditingPostId] = useState(initialPosts[0].id);
 
-  const selectedPost = useMemo(
-    () => posts.find((post) => getPostId(post) === selectedPostId) || null,
-    [posts, selectedPostId]
-  );
+  const filteredPosts = useMemo(() => {
+    return initialPosts.filter((post) => {
+      const matchesSearch =
+        post.title.toLowerCase().includes(searchText.toLowerCase()) ||
+        post.author.toLowerCase().includes(searchText.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "All" || post.category === selectedCategory;
+      const matchesStatus =
+        selectedStatus === "All" || post.status === selectedStatus;
 
-  const loadPosts = useCallback(async () => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setError("Admin token not found. Sign in with an admin JWT before managing posts.");
-      setPosts([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await getBlogPosts(
-        {
-          search: searchText,
-          category: selectedCategory,
-          status: selectedStatus,
-          limit: 100,
-        },
-        token
-      );
-
-      setPosts(response.posts || []);
-
-      const selectedStillExists =
-        selectedPostId !== null &&
-        response.posts?.some((post) => getPostId(post) === selectedPostId);
-
-      if (!selectedStillExists) {
-        if (!hasAutoSelectedRef.current && response.posts?.length > 0) {
-          setSelectedPostId(getPostId(response.posts[0]));
-          hasAutoSelectedRef.current = true;
-        } else if (selectedPostId !== null) {
-          const fallback = response.posts?.[0] || null;
-          setSelectedPostId(getPostId(fallback));
-        }
-      }
-    } catch (requestError) {
-      setError(requestError.message || "Failed to load blog posts.");
-      setPosts([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [searchText, selectedCategory, selectedStatus, selectedPostId]);
-
-  useEffect(() => {
-    loadPosts();
-  }, [loadPosts]);
-
-  useEffect(() => {
-    if (!selectedPost) {
-      setDraft(emptyDraft);
-      return;
-    }
-
-    setDraft({
-      title: selectedPost.title || "",
-      category: selectedPost.category || "Recycling Tips",
-      author: selectedPost.author || "",
-      excerpt: selectedPost.excerpt || "",
-      content: selectedPost.content || "",
-      featuredImage: selectedPost.featuredImage || "",
-      tags: formatTags(selectedPost.tags),
-      status: selectedPost.status || "Draft",
+      return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [selectedPost]);
+  }, [searchText, selectedCategory, selectedStatus]);
 
-  const handleChange = (field, value) => {
-    setDraft((current) => ({ ...current, [field]: value }));
-  };
-
-  const persistPost = async (nextStatus) => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setError("Admin token not found. Sign in with an admin JWT before saving posts.");
-      return;
-    }
-
-    const payload = {
-      ...draft,
-      status: nextStatus,
-    };
-
-    setSaving(true);
-    setError("");
-
-    try {
-      if (selectedPost) {
-        await updateBlogPost(getPostId(selectedPost), payload, token);
-      } else {
-        const created = await createBlogPost(payload, token);
-        setSelectedPostId(getPostId(created.post));
-      }
-
-      await loadPosts();
-    } catch (requestError) {
-      setError(requestError.message || "Failed to save the blog post.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const persistExistingPost = async (post, nextStatus) => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setError("Admin token not found. Sign in with an admin JWT before saving posts.");
-      return;
-    }
-
-    setSaving(true);
-    setError("");
-
-    try {
-      await updateBlogPost(getPostId(post), buildPayloadFromPost(post, nextStatus), token);
-      await loadPosts();
-    } catch (requestError) {
-      setError(requestError.message || "Failed to save the blog post.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async (post) => {
-    if (!window.confirm(`Delete "${post.title}"?`)) {
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setError("Admin token not found. Sign in with an admin JWT before deleting posts.");
-      return;
-    }
-
-    setSaving(true);
-    setError("");
-
-    try {
-      await deleteBlogPost(getPostId(post), token);
-
-      const nextPosts = posts.filter((item) => getPostId(item) !== getPostId(post));
-      setPosts(nextPosts);
-
-      const fallback = nextPosts[0] || null;
-      setSelectedPostId(getPostId(fallback));
-    } catch (requestError) {
-      setError(requestError.message || "Failed to delete the blog post.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const visiblePosts = posts;
+  const editingPost = initialPosts.find((post) => post.id === editingPostId);
 
   return (
-    <section className="min-h-screen bg-gray-50 p-4 font-sans text-gray-800 md:p-8">
-      <header className="mb-8 border-b border-gray-200 pb-4">
-        <h3 className="text-2xl font-bold text-gray-900">
-          Ecofy Content &amp; Blog Management
-        </h3>
-      </header>
-
-      <div className="mb-8 flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
+    <section className="w-full font-sans text-[#0f1d33]">
+      
+      {/* Top Controls */}
+      <div className="mb-6 flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-end gap-4">
           <div className="flex flex-col gap-1.5">
-            <p className="text-sm font-medium text-gray-600">
-              Search and Filter Bar
-            </p>
+            <label className="text-sm font-medium text-gray-600">Search</label>
             <input
               type="text"
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
-              placeholder="Search posts or authors"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 sm:w-64"
+              placeholder="Search posts or authors..."
+              className="w-full sm:w-64 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <p className="text-sm font-medium text-gray-600">Category</p>
+            <label className="text-sm font-medium text-gray-600">Category</label>
             <select
               value={selectedCategory}
               onChange={(event) => setSelectedCategory(event.target.value)}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
             >
               {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
+                <option key={category} value={category}>{category}</option>
               ))}
             </select>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <p className="text-sm font-medium text-gray-600">Status</p>
-            <div className="flex overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm">
+            <label className="text-sm font-medium text-gray-600">Status</label>
+            <div className="flex overflow-hidden rounded-lg border border-gray-300 bg-gray-50">
               {["All", "Published", "Draft"].map((status) => (
                 <button
                   key={status}
                   type="button"
                   className={`border-l border-gray-300 px-4 py-2 text-sm font-medium transition-colors first:border-l-0 ${
                     selectedStatus === status
-                      ? "bg-green-600 text-white"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                      ? "bg-[#0f5cbd] text-white"
+                      : "text-gray-700 hover:bg-gray-200"
+                  } ${status !== "All" ? "border-l border-gray-300" : ""}`}
                   onClick={() => setSelectedStatus(status)}
                 >
                   {status}
@@ -282,11 +121,7 @@ export default function ContentBlogManagement() {
 
         <button
           type="button"
-          onClick={() => {
-            setSelectedPostId(null);
-            setDraft(emptyDraft);
-          }}
-          className="whitespace-nowrap rounded-md bg-green-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          className="whitespace-nowrap rounded-lg bg-[#0f5cbd] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0b4899] focus:outline-none focus:ring-2 focus:ring-[#0f5cbd]/40 focus:ring-offset-1"
         >
           + Create New Post
         </button>
@@ -298,226 +133,191 @@ export default function ContentBlogManagement() {
         </div>
       )}
 
-      <div className="flex flex-col gap-6 lg:flex-row">
-        <section className="flex w-full flex-col gap-4 lg:w-1/3" aria-label="Blog posts list">
-          {loading ? (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
-              Loading blog posts...
-            </div>
-          ) : visiblePosts.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
+      <div className="flex flex-col gap-6 lg:flex-row items-start">
+        
+        {/* Post List */}
+        <section className="flex w-full flex-col gap-3 lg:w-1/3" aria-label="Blog posts list">
+          {filteredPosts.map((post) => (
+            <article
+              key={post.id}
+              className={`flex flex-col gap-4 rounded-xl border bg-white p-4 shadow-sm transition-all hover:shadow-md sm:flex-row cursor-pointer ${
+                editingPostId === post.id ? "border-[#0f5cbd] ring-1 ring-[#0f5cbd]" : "border-gray-200"
+              }`}
+              onClick={() => setEditingPostId(post.id)}
+            >
+              <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-lg text-3xl ${thumbnailStyles[post.thumbnail]}`}>
+                <span>{previewByThumbnail[post.thumbnail]}</span>
+              </div>
+
+              <div className="flex flex-1 flex-col">
+                <h4 className="mb-1 text-base font-bold text-[#0f1d33] leading-tight">
+                  {post.title}
+                </h4>
+                <p className="mb-3 flex justify-between text-xs text-gray-500">
+                  <span>{post.category}</span>
+                  <span className="font-medium">{post.author}</span>
+                </p>
+                
+                <div className="mt-auto flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className={`rounded-full px-2.5 py-0.5 font-bold ${
+                        post.status === "Published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {post.status}
+                    </span>
+                    <span className="text-gray-500 font-medium">💬 {post.comments}</span>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="mt-3 flex gap-2 border-t border-gray-100 pt-3">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setEditingPostId(post.id); }}
+                    className="rounded-md border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs font-bold text-gray-700 transition-colors hover:bg-gray-200"
+                  >
+                    Edit
+                  </button>
+                  {post.status === "Published" ? (
+                    <button
+                      type="button"
+                      onClick={(e) => e.stopPropagation()}
+                      className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
+                    >
+                      Delete
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={(e) => e.stopPropagation()}
+                      className="rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700 transition-colors hover:bg-green-100"
+                    >
+                      Publish
+                    </button>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+          
+          {filteredPosts.length === 0 && (
+            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
               No posts found matching your filters.
             </div>
-          ) : (
-            visiblePosts.map((post) => {
-              const postId = getPostId(post);
-              const visual = thumbnailByCategory[post.category] || thumbnailByCategory["Recycling Tips"];
-
-              return (
-                <article
-                  key={postId}
-                  className={`flex flex-col gap-4 rounded-lg border bg-white p-4 shadow-sm transition-all hover:shadow-md sm:flex-row ${
-                    selectedPostId === postId ? "border-green-500 ring-1 ring-green-500" : "border-gray-200"
-                  }`}
-                >
-                  <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-lg text-3xl ${visual.classes}`}>
-                    <span>{visual.icon}</span>
-                  </div>
-
-                  <div className="flex flex-1 flex-col">
-                    <h4 className="mb-1 text-base font-semibold leading-tight text-gray-900">
-                      {post.title}
-                    </h4>
-                    <p className="mb-3 flex justify-between text-xs text-gray-500">
-                      <span>{post.category}</span>
-                      <span className="font-medium">{post.author}</span>
-                    </p>
-                    <div className="mt-auto flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-xs">
-                        <span
-                          className={`rounded-full px-2.5 py-0.5 font-medium ${
-                            post.status === "Published"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {post.status}
-                        </span>
-                        <span className="text-gray-500">💬 {post.commentsCount ?? 0}</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex gap-2 border-t border-gray-100 pt-3">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedPostId(postId)}
-                        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                      >
-                        Edit
-                      </button>
-                      {post.status === "Published" ? (
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(post)}
-                          disabled={saving}
-                          className="rounded-md border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          Delete
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => persistExistingPost(post, "Published")}
-                          disabled={saving}
-                          className="rounded-md border border-green-200 bg-white px-3 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          Publish
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              );
-            })
           )}
         </section>
 
-        <aside className="w-full lg:w-2/3">
-          <div className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50/50 p-4">
-              <h4 className="text-lg font-bold text-gray-900">
-                {selectedPost ? (
-                  <>
-                    Edit Post: <span className="font-medium text-gray-600">{selectedPost.title}</span>
-                  </>
-                ) : (
-                  <span>New Post</span>
-                )}
-              </h4>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedPostId(null);
-                  setDraft(emptyDraft);
-                }}
-                className="rounded px-2 py-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 focus:outline-none"
-                aria-label="Close editor"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-6 p-6 lg:flex-row">
-              <div className="flex flex-1 flex-col overflow-hidden rounded-md border border-gray-300">
-                <div className="flex gap-2 border-b border-gray-300 bg-gray-50 p-2">
-                  {["B", "I", "List", "Link"].map((tool) => (
-                    <button
-                      key={tool}
-                      type="button"
-                      className="rounded border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                    >
-                      {tool}
-                    </button>
-                  ))}
-                </div>
-                <textarea
-                  value={draft.content}
-                  onChange={(event) => handleChange("content", event.target.value)}
-                  className="min-h-[300px] w-full resize-y p-4 text-sm text-gray-800 focus:outline-none"
-                  placeholder="Write the blog content here..."
-                />
+        {/* Editor Aside */}
+        <aside className="w-full lg:w-2/3 lg:sticky lg:top-4">
+          {editingPost ? (
+            <div className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 p-4">
+                <h4 className="text-lg font-bold text-[#0f1d33]">
+                  Edit Post: <span className="font-medium text-gray-600">{editingPost.title}</span>
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setEditingPostId(null)} // Added functionality to close editor
+                  className="grid h-8 w-8 place-items-center rounded-md text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 focus:outline-none"
+                  aria-label="Close editor"
+                >
+                  ✕
+                </button>
               </div>
 
-              <div className="flex w-full shrink-0 flex-col gap-5 lg:w-64">
-                <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
-                  Post Title
-                  <input
-                    type="text"
-                    value={draft.title}
-                    onChange={(event) => handleChange("title", event.target.value)}
-                    className="rounded-md border border-gray-300 px-3 py-2 font-normal focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </label>
-
-                <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
-                  Category
-                  <select
-                    value={draft.category}
-                    onChange={(event) => handleChange("category", event.target.value)}
-                    className="rounded-md border border-gray-300 bg-white px-3 py-2 font-normal focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                  >
-                    {categories
-                      .filter((category) => category !== "All")
-                      .map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-
-                <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
-                  Author
-                  <input
-                    type="text"
-                    value={draft.author}
-                    onChange={(event) => handleChange("author", event.target.value)}
-                    className="rounded-md border border-gray-300 px-3 py-2 font-normal focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </label>
-
-                <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
-                  Tags
-                  <input
-                    type="text"
-                    value={draft.tags}
-                    onChange={(event) => handleChange("tags", event.target.value)}
-                    className="rounded-md border border-gray-300 px-3 py-2 font-normal focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </label>
-
-                <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
-                  Featured Image
-                  <input
-                    type="text"
-                    value={draft.featuredImage}
-                    onChange={(event) => handleChange("featuredImage", event.target.value)}
-                    className="rounded-md border border-gray-300 px-3 py-2 font-normal focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    placeholder="Image URL"
-                  />
-                </label>
-
-                <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
-                  Excerpt
+              <div className="flex flex-col gap-6 p-6 lg:flex-row">
+                {/* Text Editor Area */}
+                <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-gray-300">
+                  <div className="flex gap-2 border-b border-gray-300 bg-gray-50 p-2">
+                    {["B", "I", "List", "Link"].map((tool) => (
+                      <button
+                        key={tool}
+                        className="rounded border border-gray-300 bg-white px-3 py-1 text-sm font-bold text-gray-700 hover:bg-gray-100"
+                      >
+                        {tool}
+                      </button>
+                    ))}
+                  </div>
                   <textarea
-                    value={draft.excerpt}
-                    onChange={(event) => handleChange("excerpt", event.target.value)}
-                    className="min-h-24 rounded-md border border-gray-300 px-3 py-2 font-normal focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    placeholder="Short summary for the listing"
+                    className="min-h-[350px] w-full resize-y p-4 text-sm text-gray-800 outline-none"
+                    defaultValue="Lorem ipsum dolor sit amet, consectetur adipiscing elit. sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis aute exercitation laboris nisi ut aliquip ex ea commodo consequat."
                   />
-                </label>
+                </div>
+
+                {/* Sidebar Settings */}
+                <div className="flex w-full shrink-0 flex-col gap-4 lg:w-64">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">Post Title</label>
+                    <input
+                      type="text"
+                      defaultValue={editingPost.title}
+                      className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">Category</label>
+                    <select
+                      defaultValue={editingPost.category}
+                      className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                    >
+                      {categories.filter((c) => c !== "All").map((category) => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">Author</label>
+                    <input
+                      type="text"
+                      defaultValue={editingPost.author}
+                      className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">Tags</label>
+                    <input
+                      type="text"
+                      defaultValue="#eco #community"
+                      className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">Featured Image</label>
+                    <button
+                      type="button"
+                      className="mt-1 w-full rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-6 text-sm font-bold text-[#0f5cbd] transition-colors hover:border-[#0f5cbd] hover:bg-blue-50"
+                    >
+                      + Upload Image
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-4">
+                <button
+                  type="button"
+                  className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-100"
+                >
+                  Save as Draft
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg bg-[#0f5cbd] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#0b4899]"
+                >
+                  Publish Now
+                </button>
               </div>
             </div>
-
-            <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-4">
-              <button
-                type="button"
-                onClick={() => persistPost("Draft")}
-                disabled={saving}
-                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {saving ? "Saving..." : "Save as Draft"}
-              </button>
-              <button
-                type="button"
-                onClick={() => persistPost("Published")}
-                disabled={saving}
-                className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Publish Now
-              </button>
+          ) : (
+            <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white text-gray-500 shadow-sm">
+              <p>Select a post from the list to start editing.</p>
             </div>
-          </div>
+          )}
         </aside>
       </div>
     </section>

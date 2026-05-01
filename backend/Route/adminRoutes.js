@@ -1,15 +1,22 @@
 const express = require('express');
-const { createStaffAccount } = require('../Controllers/adminController.js');
-const { isAuthenticated, isAdmin } = require('../Middleware/authMiddleware.js');
-const contentBlogRouter = require('./ContentBlogRoute.js');
+const {
+	createStaffAccount,
+	getAllStaffAccounts,
+	updateStaffAccount,
+	deleteStaffAccount,
+} = require('../Controllers/adminController');
+const {
+	getAllInquiries,
+	replyToInquiry,
+} = require('../Controllers/InquiryControl');
 
 const router = express.Router();
 
-// @route   POST /admin/create-staff
-// @desc    Creates a new staff member
-// @access  Private/Admin strictly
-router.post('/create-staff', isAuthenticated, isAdmin, createStaffAccount);
-
-router.use('/blog-posts', contentBlogRouter);
+router.post('/create-staff', createStaffAccount);
+router.get('/staff', getAllStaffAccounts);
+router.patch('/staff/:id', updateStaffAccount);
+router.delete('/staff/:id', deleteStaffAccount);
+router.get('/inquiries', getAllInquiries);
+router.patch('/inquiries/:id/reply', replyToInquiry);
 
 module.exports = router;
