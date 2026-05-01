@@ -6,6 +6,8 @@ import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
 import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
+import About from './pages/About';
+import ContactUs from './pages/ContactUs';
 import Dashboard from './Components/Screens/Dashboard'; 
 import AdminDashboard from './Components/Admin/adminDashboard';
 import ServiceHistory from './Components/Screens/ServiceHistory';
@@ -49,6 +51,9 @@ export default function App() {
           </SignedOut>
         </>
       } />
+
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<ContactUs />} />
 
       {/* Redirect after login */}
       <Route path="/redirect" element={
