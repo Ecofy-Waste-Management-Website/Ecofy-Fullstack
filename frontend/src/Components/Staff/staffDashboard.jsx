@@ -273,9 +273,6 @@ export default function StaffDashboard() {
                       <p className="font-bold text-gray-800">
                         {task.customer_name || 'Customer'}
                       </p>
-                      <p className="text-xs text-gray-400">
-                        {task.request_id || task._id}
-                      </p>
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium 
                       ${getStatusColor(task.status)}`}>
@@ -363,7 +360,6 @@ export default function StaffDashboard() {
                       <p className="font-bold text-gray-800">
                         {task.customer_name || 'Customer'}
                       </p>
-                      <p className="text-xs text-gray-400">{task._id}</p>
                     </div>
                     <span className="px-2 py-1 rounded-full text-xs font-medium
                       bg-green-100 text-green-700">
