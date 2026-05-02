@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from "@clerk/clerk-react";
 import { submitInquiry } from "../../services/api/adminService";
-import { getUserBookings } from "../../services/api/bookingService";
+import { getUserBookings, getUserPayments } from "../../services/api/bookingService";
 import RequestPickupModal from "./RequestPickupModal";
 import PaymentModal from "./PaymentModal";
 
@@ -38,6 +38,7 @@ export default function Dashboard() {
   // ── User bookings (for stats + pickup status) ──
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
+  const [payments, setPayments] = useState([]); 
 
   const fetchBookings = useCallback(async () => {
     const email = user?.primaryEmailAddress?.emailAddress;
@@ -53,14 +54,28 @@ export default function Dashboard() {
     }
   }, [user]);
 
+  const fetchPayments = useCallback(async () => {
+  const email = user?.primaryEmailAddress?.emailAddress;
+  if (!email) return;
+  try {
+    const data = await getUserPayments(email);
+    setPayments(data);
+  } catch { /* silent */ }
+}, [user]);
+
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
+
+  useEffect(() => { 
+    fetchPayments(); 
+  }, [fetchPayments]);
 
   // Derived stat
   const activeBookings = bookings.filter((b) =>
     ["Pending", "Assigned", "In Progress", "En Route"].includes(b.status)
   );
+  const totalPaid = payments.reduce((sum, p) => sum + (p.amount ?? 0), 0); 
 
   // ── Inquiry form ──
   const [inquiry, setInquiry] = useState({ subject: "", message: "" });
@@ -189,10 +204,16 @@ export default function Dashboard() {
             {activeBookings.length === 0 ? "No active bookings" : `${activeBookings.length} in progress`}
           </p>
         </div>
-        <div className="bg-white/50 backdrop-blur-md rounded-xl shadow-sm border border-[#06a63e]/80 p-6 hover:shadow-md transition">
-          <h3 className="text-sm font-medium text-gray-500">Total Payments</h3>
-          <p className="text-3xl font-bold text-green-600 mt-2">LKR 0</p>
-          <p className="text-sm text-gray-400 mt-1">No payments yet</p>
+      <div className="bg-white/50 backdrop-blur-md rounded-xl shadow-sm border border-[#06a63e]/80 p-6 hover:shadow-md transition">
+        <h3 className="text-sm font-medium text-gray-500">Total Payments</h3>
+        <p className="text-3xl font-bold text-green-600 mt-2">
+          LKR {totalPaid.toLocaleString()}
+        </p>
+        <p className="text-sm text-gray-400 mt-1">
+          {payments.length === 0
+           ? "No payments yet"
+           : `${payments.length} completed payment${payments.length !== 1 ? "s" : ""}`}
+        </p>
         </div>
         <div className="bg-white/50 backdrop-blur-md rounded-xl shadow-sm border border-[#06a63e]/80 p-6 hover:shadow-md transition">
           <h3 className="text-sm font-medium text-gray-500">Notifications</h3>
@@ -349,6 +370,7 @@ export default function Dashboard() {
         onSuccess={() => {
           setShowPaymentModal(false);
           fetchBookings(); // refreshes the bookings list after payment
+          fetchPayments();
         }}
         bookingDetails={lastBooking}
       />
