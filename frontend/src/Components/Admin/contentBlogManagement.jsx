@@ -1,36 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { createArticle, deleteArticle, getArticles, setArticleStatus, updateArticle } from "../../services/articleStore";
 
 const categories = ["All", "Recycling Tips", "Community Events", "Eco-Guides"];
-
-const initialPosts = [
-  {
-    id: 1,
-    title: "5 Tips for Reducing Home Plastic",
-    category: "Recycling Tips",
-    author: "M.N. Mohamed",
-    comments: 12,
-    status: "Published",
-    thumbnail: "bottle",
-  },
-  {
-    id: 2,
-    title: "Upcoming Beach Cleanup Drive",
-    category: "Community Events",
-    author: "Guest Contributor",
-    comments: 0,
-    status: "Draft",
-    thumbnail: "cleanup",
-  },
-  {
-    id: 3,
-    title: "Composting 101: A Beginner's Guide",
-    category: "Eco-Guides",
-    author: "M.N. Mohamed",
-    comments: 5,
-    status: "Published",
-    thumbnail: "compost",
-  },
-];
 
 const previewByThumbnail = {
   bottle: "🧴",
@@ -45,13 +16,51 @@ const thumbnailStyles = {
 };
 
 export default function ContentBlogManagement() {
+  const [posts, setPosts] = useState([]);
   const [searchText, setSearchText] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Recycling Tips");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
-  const [editingPostId, setEditingPostId] = useState(initialPosts[0].id);
+  const [editingPostId, setEditingPostId] = useState(null);
+
+  useEffect(() => {
+    const loadArticles = () => {
+      const storedPosts = getArticles();
+      setPosts(storedPosts);
+      setEditingPostId((currentPostId) => currentPostId || storedPosts[0]?.id || null);
+    };
+
+    loadArticles();
+
+    const handleStoreUpdate = () => loadArticles();
+    window.addEventListener("ecofy-articles-updated", handleStoreUpdate);
+
+    return () => {
+      window.removeEventListener("ecofy-articles-updated", handleStoreUpdate);
+    };
+  }, []);
+
+  const refreshPosts = (nextPosts) => {
+    setPosts(nextPosts);
+    if (!editingPostId && nextPosts.length > 0) {
+      setEditingPostId(nextPosts[0].id);
+    }
+  };
+
+  const handlePublishPost = (postId) => {
+    refreshPosts(setArticleStatus(postId, "Published"));
+  };
+
+  const handleSaveDraft = (postId) => {
+    refreshPosts(setArticleStatus(postId, "Draft"));
+  };
+
+  const handleDeletePost = (postId) => {
+    const nextPosts = deleteArticle(postId);
+    refreshPosts(nextPosts);
+  };
 
   const filteredPosts = useMemo(() => {
-    return initialPosts.filter((post) => {
+    return posts.filter((post) => {
       const matchesSearch =
         post.title.toLowerCase().includes(searchText.toLowerCase()) ||
         post.author.toLowerCase().includes(searchText.toLowerCase());
@@ -62,9 +71,30 @@ export default function ContentBlogManagement() {
 
       return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [searchText, selectedCategory, selectedStatus]);
+  }, [posts, searchText, selectedCategory, selectedStatus]);
 
-  const editingPost = initialPosts.find((post) => post.id === editingPostId);
+  const editingPost = posts.find((post) => post.id === editingPostId);
+
+  const handleCreateNewPost = () => {
+    const nextPosts = createArticle({
+      title: "Untitled Article",
+      category: "Recycling Tips",
+      author: "M.N. Mohamed",
+      status: "Draft",
+      thumbnail: "bottle",
+      excerpt: "Start drafting your new eco article.",
+      comments: 0,
+    });
+
+    refreshPosts(nextPosts);
+    setEditingPostId(nextPosts[0]?.id || null);
+  };
+
+  const updateEditingPostField = (field, value) => {
+    if (!editingPost) return;
+    const nextPosts = updateArticle(editingPost.id, { [field]: value });
+    refreshPosts(nextPosts);
+  };
 
   return (
     <section className="w-full font-sans text-[#0f1d33]">
@@ -119,6 +149,7 @@ export default function ContentBlogManagement() {
 
         <button
           type="button"
+          onClick={handleCreateNewPost}
           className="whitespace-nowrap rounded-lg bg-[#0f5cbd] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0b4899] focus:outline-none focus:ring-2 focus:ring-[#0f5cbd]/40 focus:ring-offset-1"
         >
           + Create New Post
@@ -174,15 +205,21 @@ export default function ContentBlogManagement() {
                   {post.status === "Published" ? (
                     <button
                       type="button"
-                      onClick={(e) => e.stopPropagation()}
                       className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePost(post.id);
+                      }}
                     >
                       Delete
                     </button>
                   ) : (
                     <button
                       type="button"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePublishPost(post.id);
+                      }}
                       className="rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700 transition-colors hover:bg-green-100"
                     >
                       Publish
@@ -232,8 +269,9 @@ export default function ContentBlogManagement() {
                     ))}
                   </div>
                   <textarea
-                    className="min-h-[350px] w-full resize-y p-4 text-sm text-gray-800 outline-none"
-                    defaultValue="Lorem ipsum dolor sit amet, consectetur adipiscing elit. sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis aute exercitation laboris nisi ut aliquip ex ea commodo consequat."
+                    className="min-h-87.5 w-full resize-y p-4 text-sm text-gray-800 outline-none"
+                    value={editingPost.excerpt || ""}
+                    onChange={(event) => updateEditingPostField("excerpt", event.target.value)}
                   />
                 </div>
 
@@ -243,7 +281,8 @@ export default function ContentBlogManagement() {
                     <label className="mb-1 block text-sm font-medium text-gray-700">Post Title</label>
                     <input
                       type="text"
-                      defaultValue={editingPost.title}
+                      value={editingPost.title}
+                      onChange={(event) => updateEditingPostField("title", event.target.value)}
                       className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
@@ -251,7 +290,8 @@ export default function ContentBlogManagement() {
                   <div>
                     <label className="mb-1 block text-sm font-medium text-gray-700">Category</label>
                     <select
-                      defaultValue={editingPost.category}
+                      value={editingPost.category}
+                      onChange={(event) => updateEditingPostField("category", event.target.value)}
                       className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                     >
                       {categories.filter((c) => c !== "All").map((category) => (
@@ -264,7 +304,8 @@ export default function ContentBlogManagement() {
                     <label className="mb-1 block text-sm font-medium text-gray-700">Author</label>
                     <input
                       type="text"
-                      defaultValue={editingPost.author}
+                      value={editingPost.author}
+                      onChange={(event) => updateEditingPostField("author", event.target.value)}
                       className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
@@ -273,7 +314,8 @@ export default function ContentBlogManagement() {
                     <label className="mb-1 block text-sm font-medium text-gray-700">Tags</label>
                     <input
                       type="text"
-                      defaultValue="#eco #community"
+                      value={editingPost.tags || "#eco #community"}
+                      onChange={(event) => updateEditingPostField("tags", event.target.value)}
                       className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
@@ -293,12 +335,14 @@ export default function ContentBlogManagement() {
               <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-4">
                 <button
                   type="button"
+                  onClick={() => handleSaveDraft(editingPost.id)}
                   className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-100"
                 >
                   Save as Draft
                 </button>
                 <button
                   type="button"
+                  onClick={() => handlePublishPost(editingPost.id)}
                   className="rounded-lg bg-[#0f5cbd] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#0b4899]"
                 >
                   Publish Now

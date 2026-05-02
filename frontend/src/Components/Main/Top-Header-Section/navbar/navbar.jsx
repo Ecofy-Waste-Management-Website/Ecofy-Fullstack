@@ -12,6 +12,7 @@ export default function Navbar() {
 
           <div className="hidden md:flex items-center space-x-2">
             <a href="/" className="text-gray-700 hover:bg-green-600 hover:text-white px-5 py-2 rounded-full font-medium transition-all duration-300">Home</a>
+            <a href="/blogs" className="text-gray-700 hover:bg-green-600 hover:text-white px-5 py-2 rounded-full font-medium transition-all duration-300">Blogs</a>
             <a href="/services" className="text-gray-700 hover:bg-green-600 hover:text-white px-5 py-2 rounded-full font-medium transition-all duration-300">Services</a>
             <a href="/about" className="text-gray-700 hover:bg-green-600 hover:text-white px-5 py-2 rounded-full font-medium transition-all duration-300">About</a>
             <a href="/contact" className="text-gray-700 hover:bg-green-600 hover:text-white px-5 py-2 rounded-full font-medium transition-all duration-300">Contact</a>
@@ -47,6 +48,7 @@ export default function Navbar() {
         {/* Mobile Menu Dropdown */}
         <div id="mobile-menu" className="hidden md:hidden absolute top-[calc(100%+0.5rem)] left-0 w-full bg-white/90 backdrop-blur-xl border border-gray-200 p-4 space-y-2 rounded-3xl shadow-xl z-50">
           <a href="/" className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all font-medium">Home</a>
+          <a href="/blogs" className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all font-medium">Blogs</a>
           <a href="/services" className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all font-medium">Services</a>
           <a href="/about" className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all font-medium">About</a>
           <a href="/contact" className="block px-4 py-3 bg-green-600 text-white rounded-xl transition-all font-medium text-center shadow-sm">Contact</a>
