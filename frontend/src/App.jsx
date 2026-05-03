@@ -123,7 +123,7 @@ export default function App() {
 
 
       <Route path="/profile-settings" element={<ProfileSettings />} />
-      <Route path="/about" element={<><Navbar /><About /><Footer /></>} />
+
 <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
 
         
