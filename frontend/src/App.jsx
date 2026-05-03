@@ -14,7 +14,6 @@ import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
 import Contact from './Components/Main/Contact/Contact';
-import About from './Components/Main/About/About';
 import ProfileSettings from "./Components/Screens/ProfileSettings";
 
 
