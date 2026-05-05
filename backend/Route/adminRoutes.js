@@ -1,5 +1,10 @@
 const express = require('express');
-const { createStaffAccount } = require('../Controllers/adminController');
+const {
+	createStaffAccount,
+	getAllStaffAccounts,
+	updateStaffAccount,
+	deleteStaffAccount,
+} = require('../Controllers/adminController');
 const {
 	getAllInquiries,
 	replyToInquiry,
@@ -8,6 +13,9 @@ const {
 const router = express.Router();
 
 router.post('/create-staff', createStaffAccount);
+router.get('/staff', getAllStaffAccounts);
+router.patch('/staff/:id', updateStaffAccount);
+router.delete('/staff/:id', deleteStaffAccount);
 router.get('/inquiries', getAllInquiries);
 router.patch('/inquiries/:id/reply', replyToInquiry);
 

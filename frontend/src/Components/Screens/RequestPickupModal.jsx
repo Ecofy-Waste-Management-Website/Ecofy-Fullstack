@@ -1,12 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { createPickupRequest } from "../../services/api/bookingService";
 
 const SERVICE_TYPES = ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
 const WASTE_CATEGORIES = ["General", "Recyclable", "Hazardous", "Electronic", "Garden"];
 
-export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
+export default function RequestPickupModal({ isOpen, onClose, onSuccess, initialLocation = "" }) {
   const { user } = useUser();
+
+  const createEmptyForm = (location = "") => ({
+    service_type: "",
+    waste_category: "",
+    location,
+    scheduled_date: "",
+    notes: "",
+  });
 
   const [form, setForm] = useState({
     service_type: "",
@@ -18,12 +26,19 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState({ type: "", text: "" });
 
+  useEffect(() => {
+    if (isOpen) {
+      setForm(createEmptyForm(initialLocation));
+      setStatus({ type: "", text: "" });
+    }
+  }, [isOpen, initialLocation]);
+
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const resetForm = () => {
-    setForm({ service_type: "", waste_category: "", location: "", scheduled_date: "", notes: "" });
+  const resetForm = (location = "") => {
+    setForm(createEmptyForm(location));
     setStatus({ type: "", text: "" });
   };
 
@@ -62,7 +77,11 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
       // Auto-close after a brief pause so the user sees the success message
       setTimeout(() => {
         resetForm();
-        onSuccess?.();
+        onSuccess?.({
+        ...form,
+        clerkId: user?.id,
+        email: user?.primaryEmailAddress?.emailAddress || "",
+      });
         onClose();
       }, 1500);
     } catch (error) {
@@ -224,7 +243,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess }) {
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-emerald-700 hover:to-teal-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                className="rounded-lg bg-linear-to-r from-emerald-600 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-emerald-700 hover:to-teal-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {submitting ? (
                   <span className="flex items-center gap-2">

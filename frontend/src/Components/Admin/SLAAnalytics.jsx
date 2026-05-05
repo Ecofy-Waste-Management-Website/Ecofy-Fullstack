@@ -6,6 +6,7 @@ import {
 } from "recharts";
 
 const RADIAN = Math.PI / 180;
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Custom pie label renderer
 const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) => {
@@ -28,7 +29,7 @@ export default function SLAAnalytics() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:5001/sla-analytics");
+        const response = await fetch(`${API_BASE_URL}/sla-analytics`);
         if (!response.ok) throw new Error("Failed to fetch analytics");
         const result = await response.json();
         setData(result);

@@ -6,13 +6,15 @@ import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
 import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
+import Blogs from './Components/Main/Blogs/blogs';
 import Dashboard from './Components/Screens/Dashboard'; 
 import AdminDashboard from './Components/Admin/adminDashboard';
 import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
-
+import Contact from './Components/Main/Contact/Contact';
+import ProfileSettings from "./Components/Screens/ProfileSettings";
 
 
 
@@ -57,12 +59,19 @@ export default function App() {
         </PrivateRoute>
       } />
 
+      {/* Blogs */}
+      <Route path="/blogs" element={
+        <>
+          <Navbar />
+          <Blogs />
+          <Footer />
+        </>
+      } />
+
       {/* User Dashboard */}
       <Route path="/dashboard" element={
         <PrivateRoute>
-          <Navbar />
           <Dashboard />
-          <Footer />
         </PrivateRoute>
       } />
 
@@ -118,6 +127,11 @@ export default function App() {
           <Footer />
         </PrivateRoute>
       } />
+
+
+      <Route path="/profile-settings" element={<ProfileSettings />} />
+
+<Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
 
         
 

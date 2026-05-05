@@ -19,6 +19,7 @@ const adminRoutes = require("./Route/adminRoutes");
 const slaAnalyticsRouter = require("./Route/slaAnalyticsRoute");
 const serviceMonitoringRouter = require("./Route/serviceMonitoringRoute"); 
 const authTestRouter = require("./Route/authTestRoute");
+const stripeRoute = require("./Route/stripe.route");
 const app = express();
 
 
@@ -37,10 +38,27 @@ app.set("wss", wss);
 //Middleware 
 app.use(cors());
 app.use(express.json());
-app.use(clerkMiddleware({
-  publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-  secretKey: process.env.CLERK_SECRET_KEY,
-})); // Clerk v1+: must come before any protected routes
+
+// Register Clerk middleware only when keys are available.
+// This prevents global 500s on public routes when env vars are missing.
+const clerkPublishableKey =
+  process.env.CLERK_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+  process.env.VITE_CLERK_PUBLISHABLE_KEY;
+const clerkSecretKey = process.env.CLERK_SECRET_KEY;
+
+if (clerkSecretKey) {
+  const clerkOptions = {
+    secretKey: clerkSecretKey,
+    ...(clerkPublishableKey ? { publishableKey: clerkPublishableKey } : {}),
+  };
+
+  app.use(clerkMiddleware(clerkOptions)); // Clerk v1+: should come before protected routes
+} else {
+  console.warn(
+    "Clerk middleware disabled: missing CLERK_SECRET_KEY"
+  );
+}
 
 app.use("/users",userRouter);
 
@@ -54,6 +72,7 @@ app.use("/sla-analytics", slaAnalyticsRouter);
 app.use("/service-monitoring", serviceMonitoringRouter);
 app.use("/staff", staffRouter);
 app.use("/auth-test", authTestRouter);
+app.use("/api/stripe", stripeRoute);
 
 
 mongoose.connect(process.env.MONGO_URI, {

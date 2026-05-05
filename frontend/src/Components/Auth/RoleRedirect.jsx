@@ -2,6 +2,8 @@ import React, { useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+
 export default function RoleRedirect() {
   const { isLoaded, user } = useUser();
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ export default function RoleRedirect() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
 
-        const response = await fetch(`http://localhost:5001/users/${user.id}`, {
+        const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
           signal: controller.signal,
         });
         clearTimeout(timeoutId);

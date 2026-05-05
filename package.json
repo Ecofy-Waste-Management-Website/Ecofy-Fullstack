@@ -13,5 +13,8 @@
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "stripe": "^22.0.2"
   }
 }
