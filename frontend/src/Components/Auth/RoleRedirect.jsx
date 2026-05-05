@@ -20,7 +20,7 @@ export default function RoleRedirect() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
 
-        const response = await fetch(`http://localhost:5000/users/${user.id}`, {
+        const response = await fetch(`http://localhost:5001/users/${user.id}`, {
           signal: controller.signal,
         });
         clearTimeout(timeoutId);

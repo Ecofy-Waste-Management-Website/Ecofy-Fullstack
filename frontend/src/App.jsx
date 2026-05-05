@@ -75,6 +75,14 @@ export default function App() {
         </PrivateRoute>
       } />
 
+      <Route path="/admin" element={
+        <PrivateRoute>
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        </PrivateRoute>
+      } />
+
       {/* Staff Dashboard */}
       <Route path="/staff-dashboard" element={
         <PrivateRoute>

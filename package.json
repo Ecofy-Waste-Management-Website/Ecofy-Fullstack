@@ -1,0 +1,17 @@
+{
+  "name": "ecofy-fullstack",
+  "version": "1.0.0",
+  "description": "Fullstack Ecofy Waste Management Website",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix frontend\" \"npm start --prefix backend\"",
+    "frontend": "npm run dev --prefix frontend",
+    "backend": "npm start --prefix backend",
+    "start": "npm run dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
