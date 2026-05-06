@@ -15,7 +15,7 @@ import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
 import Contact from './Components/Main/Contact/Contact';
 import ProfileSettings from "./Components/Screens/ProfileSettings";
-
+import About from './Components/Main/About/About';
 
 
 // Auth Components
@@ -125,7 +125,7 @@ export default function App() {
 
 <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
 
-        
+        <Route path="/about" element={<About />} />
 
     </Routes>
   );

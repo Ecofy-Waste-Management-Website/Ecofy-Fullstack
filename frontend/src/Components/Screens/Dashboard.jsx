@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { submitInquiry } from "../../services/api/adminService";
-import { getUserBookings } from "../../services/api/bookingService";
+import { getUserBookings, getUserPayments } from "../../services/api/bookingService";
 import RequestPickupModal from "./RequestPickupModal";
 import PaymentModal from "./PaymentModal";
 import ProfileSettings from "./ProfileSettings";
@@ -155,6 +155,7 @@ export default function Dashboard() {
   // ── User bookings (for stats + pickup status) ──
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
+  const [payments, setPayments] = useState([]); 
 
   const fetchBookings = useCallback(async () => {
     const email = user?.primaryEmailAddress?.emailAddress;
@@ -170,14 +171,28 @@ export default function Dashboard() {
     }
   }, [user]);
 
+  const fetchPayments = useCallback(async () => {
+  const email = user?.primaryEmailAddress?.emailAddress;
+  if (!email) return;
+  try {
+    const data = await getUserPayments(email);
+    setPayments(data);
+  } catch { /* silent */ }
+}, [user]);
+
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
+
+  useEffect(() => { 
+    fetchPayments(); 
+  }, [fetchPayments]);
 
   // Derived stat
   const activeBookings = bookings.filter((b) =>
     ["Pending", "Assigned", "In Progress", "En Route"].includes(b.status)
   );
+  const totalPaid = payments.reduce((sum, p) => sum + (p.amount ?? 0), 0); 
 
   // ── Inquiry form ──
   const [inquiry, setInquiry] = useState({ subject: "", message: "" });
@@ -571,6 +586,7 @@ export default function Dashboard() {
         onSuccess={() => {
           setShowPaymentModal(false);
           fetchBookings(); // refreshes the bookings list after payment
+          fetchPayments();
         }}
         bookingDetails={lastBooking}
       />
