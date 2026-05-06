@@ -221,9 +221,20 @@ export default function StaffDashboard() {
 
   return (
     <div className="min-h-screen bg-emerald-50/50 relative overflow-hidden">
+      {/* Background Pattern Animation */}
+      <style>{`
+        @keyframes scrollPattern {
+          from { background-position: 0 0; }
+          to { background-position: 300px 150px; }
+        }
+        .animate-logo-pattern {
+          animation: scrollPattern 40s linear infinite;
+        }
+      `}</style>
+
       {/* Background Pattern */}
       <div 
-        className="absolute inset-0 z-0 pointer-events-none opacity-10"
+        className="absolute inset-0 z-0 pointer-events-none opacity-5 animate-logo-pattern"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='300' height='150' viewBox='0 0 300 150' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='75' y='40' dominant-baseline='middle' text-anchor='middle' font-family='Inter, sans-serif' font-weight='800' font-size='24' fill='%23218845' transform='rotate(-20, 75, 40)'%3EEcofy%3C/text%3E%3Ctext x='225' y='110' dominant-baseline='middle' text-anchor='middle' font-family='Inter, sans-serif' font-weight='800' font-size='24' fill='%23218845' transform='rotate(-20, 225, 110)'%3EEcofy%3C/text%3E%3C/svg%3E")`,
           backgroundRepeat: 'repeat',
@@ -240,7 +251,7 @@ export default function StaffDashboard() {
       )}
 
       {/* Navbar-style Action Card (Glassmorphism) */}
-      <div className="mx-auto mb-10 w-full rounded-[40px] bg-white/70 backdrop-blur-md border border-green-200 p-1.5 shadow-sm transition-all duration-500">
+      <div className="mx-auto mb-10 w-full rounded-[40px] bg-emerald-100/40 backdrop-blur-md border border-emerald-200/60 p-1.5 shadow-sm transition-all duration-500">
         <div className="flex flex-col items-center justify-between gap-6 px-8 py-6 lg:flex-row lg:gap-4">
           <div className="text-center lg:text-left">
             <h2 className="text-xl font-bold tracking-tight text-green-900 sm:text-2xl">
@@ -277,19 +288,19 @@ export default function StaffDashboard() {
 
       {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="rounded-none border border-[#218845]/30 bg-white/60 backdrop-blur-md p-4 shadow-[0_0_15px_rgba(33,136,69,0.15)] ring-1 ring-[#218845]/10 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(33,136,69,0.3)] hover:bg-white/80">
+        <div className="rounded-none border border-[#218845]/40 bg-[#218845]/5 backdrop-blur-md p-4 shadow-[0_0_15px_rgba(33,136,69,0.1)] ring-1 ring-[#218845]/10 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(33,136,69,0.2)] hover:bg-[#218845]/10">
           <p className="text-2xl font-bold text-green-700">{activeTasks.length}</p>
-          <p className="text-xs font-semibold text-green-600/60 mt-0.5 uppercase tracking-wider">Active Tasks</p>
+          <p className="text-xs font-semibold text-green-600/70 mt-0.5 uppercase tracking-wider">Active Tasks</p>
         </div>
-        <div className="rounded-none border border-[#218845]/30 bg-white/60 backdrop-blur-md p-4 shadow-[0_0_15px_rgba(33,136,69,0.15)] ring-1 ring-[#218845]/10 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(33,136,69,0.3)] hover:bg-white/80">
+        <div className="rounded-none border border-[#218845]/40 bg-[#218845]/5 backdrop-blur-md p-4 shadow-[0_0_15px_rgba(33,136,69,0.1)] ring-1 ring-[#218845]/10 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(33,136,69,0.2)] hover:bg-[#218845]/10">
           <p className="text-2xl font-bold text-green-700">{completedTasks.length}</p>
-          <p className="text-xs font-semibold text-green-600/60 mt-0.5 uppercase tracking-wider">Completed Today</p>
+          <p className="text-xs font-semibold text-green-600/70 mt-0.5 uppercase tracking-wider">Completed Today</p>
         </div>
-        <div className="rounded-none border border-[#218845]/30 bg-white/60 backdrop-blur-md p-4 shadow-[0_0_15px_rgba(33,136,69,0.15)] ring-1 ring-[#218845]/10 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(33,136,69,0.3)] hover:bg-white/80">
+        <div className="rounded-none border border-[#218845]/40 bg-[#218845]/5 backdrop-blur-md p-4 shadow-[0_0_15px_rgba(33,136,69,0.1)] ring-1 ring-[#218845]/10 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(33,136,69,0.2)] hover:bg-[#218845]/10">
           <p className="text-2xl font-bold text-amber-600">
             {activeTasks.filter(t => t.status === 'Pending').length}
           </p>
-          <p className="text-xs font-semibold text-green-600/60 mt-0.5 uppercase tracking-wider">Pending Assignment</p>
+          <p className="text-xs font-semibold text-green-600/70 mt-0.5 uppercase tracking-wider">Pending Assignment</p>
         </div>
       </div>
 
@@ -332,7 +343,7 @@ export default function StaffDashboard() {
             ) : (
               activeTasks.map((task) => (
                 <div key={task._id}
-                  className="bg-green-50 rounded-3xl shadow-sm p-6 border border-green-100/50 transition-all duration-300 hover:shadow-md">
+                  className="bg-emerald-50/90 backdrop-blur-sm rounded-3xl shadow-sm p-6 border border-emerald-100 transition-all duration-300 hover:shadow-md hover:bg-emerald-50">
                   
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -431,7 +442,7 @@ export default function StaffDashboard() {
             ) : (
               completedTasks.map((task) => (
                 <div key={task._id}
-                  className="bg-green-50 rounded-3xl shadow-sm p-6 border border-green-100/50">
+                  className="bg-emerald-50/90 backdrop-blur-sm rounded-3xl shadow-sm p-6 border border-emerald-100">
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-lg font-bold text-gray-800">
