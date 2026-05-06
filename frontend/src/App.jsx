@@ -15,7 +15,7 @@ import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
 import Contact from './Components/Main/Contact/Contact';
 import ProfileSettings from "./Components/Screens/ProfileSettings";
-
+import About from './Components/Main/About/About';
 
 
 // Auth Components
@@ -23,7 +23,7 @@ import RoleRedirect from "./Components/Auth/RoleRedirect";
 import ProtectedRoute from './Components/Auth/ProtectedRoute';
 import ProtectedStaffRoute from './Components/Auth/ProtectedStaffRoute';
 
-// ✅ Fix: Moved outside of the App component
+
 const PrivateRoute = ({ children }) => (
   <>
     <SignedIn>{children}</SignedIn>
@@ -128,12 +128,14 @@ export default function App() {
         </PrivateRoute>
       } />
 
-
+      {/* Profile Settings */}
       <Route path="/profile-settings" element={<ProfileSettings />} />
 
-<Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
+      {/* Contact */}
+      <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
 
-        
+      {/* About */}
+      <Route path="/about" element={ <><Navbar /> <About /> <Footer /></>} />
 
     </Routes>
   );
