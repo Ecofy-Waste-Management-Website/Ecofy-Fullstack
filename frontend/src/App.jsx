@@ -7,7 +7,7 @@ import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
 import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
 import Blogs from './Components/Main/Blogs/blogs';
-import Dashboard from './Components/Screens/Dashboard'; 
+import DashboardRouter from './Components/Screens/DashboardRouter'; 
 import AdminDashboard from './Components/Admin/adminDashboard';
 import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
@@ -71,7 +71,7 @@ export default function App() {
       {/* User Dashboard */}
       <Route path="/dashboard" element={
         <PrivateRoute>
-          <Dashboard />
+          <DashboardRouter />
         </PrivateRoute>
       } />
 
