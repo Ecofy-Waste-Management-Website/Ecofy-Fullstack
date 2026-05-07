@@ -36,10 +36,15 @@ const Footer = () => {
         <div>
           <h4 className="text-sm font-bold text-gray-900 mb-4">Company</h4>
           <ul className="space-y-3">
-            {['About Us', 'Our Journey', 'Careers', 'Press Kit'].map((item) => (
-              <li key={item}>
-                <a href="#" className="text-sm text-gray-500 hover:text-green-600 transition-colors">
-                  {item}
+            {[
+              { label: 'About Us', href: '/about' },
+              { label: 'Our Journey', href: '/about#journey' },
+              { label: 'Careers', href: '#' },
+              { label: 'Press Kit', href: '#' },
+            ].map((item) => (
+              <li key={item.label}>
+                <a href={item.href} className="text-sm text-gray-500 hover:text-green-600 transition-colors">
+                  {item.label}
                 </a>
               </li>
             ))}

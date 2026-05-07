@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 export default function RoleRedirect() {
   const { isLoaded, user } = useUser();
