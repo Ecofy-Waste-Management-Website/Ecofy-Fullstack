@@ -8,6 +8,8 @@ export default function StaffDashboard() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const navigate = useNavigate();
+  const [role, setRole] = useState(null);
+  const [roleLoading, setRoleLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('active');
   const [activeTasks, setActiveTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
@@ -19,6 +21,22 @@ export default function StaffDashboard() {
   // Fetch tasks from backend
   useEffect(() => {
     if (!isLoaded || !user) return;
+
+    const fetchRole = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRole(data.user.role);
+        }
+      } catch (error) {
+        console.error('Failed to fetch staff role:', error);
+      } finally {
+        setRoleLoading(false);
+      }
+    };
+
+    fetchRole();
 
     const fetchTasks = async () => {
       try {
@@ -131,6 +149,10 @@ export default function StaffDashboard() {
     navigate('/');
   };
 
+  const handleSwitchDashboard = () => {
+    navigate('/admin-dashboard');
+  };
+
   if (!isLoaded || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -164,6 +186,15 @@ export default function StaffDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {!roleLoading && role === 'Admin' && (
+              <button
+                type="button"
+                onClick={handleSwitchDashboard}
+                className="rounded-full border border-white/40 bg-white/15 px-4 py-2 text-xs font-semibold tracking-wide text-white transition hover:bg-white hover:text-green-700"
+              >
+                Switch to Admin Dashboard
+              </button>
+            )}
             <button
               type="button"
               onClick={handleSignOut}
@@ -241,9 +272,6 @@ export default function StaffDashboard() {
                     <div>
                       <p className="font-bold text-gray-800">
                         {task.customer_name || 'Customer'}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {task.request_id || task._id}
                       </p>
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium 
@@ -332,7 +360,6 @@ export default function StaffDashboard() {
                       <p className="font-bold text-gray-800">
                         {task.customer_name || 'Customer'}
                       </p>
-                      <p className="text-xs text-gray-400">{task._id}</p>
                     </div>
                     <span className="px-2 py-1 rounded-full text-xs font-medium
                       bg-green-100 text-green-700">

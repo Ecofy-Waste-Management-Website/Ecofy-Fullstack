@@ -6,8 +6,7 @@ import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
 import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
-import About from './pages/About';
-import ContactUs from './pages/ContactUs';
+import Blogs from './Components/Main/Blogs/blogs';
 import Dashboard from './Components/Screens/Dashboard'; 
 import AdminDashboard from './Components/Admin/adminDashboard';
 import ServiceHistory from './Components/Screens/ServiceHistory';
@@ -62,12 +61,19 @@ export default function App() {
         </PrivateRoute>
       } />
 
+      {/* Blogs */}
+      <Route path="/blogs" element={
+        <>
+          <Navbar />
+          <Blogs />
+          <Footer />
+        </>
+      } />
+
       {/* User Dashboard */}
       <Route path="/dashboard" element={
         <PrivateRoute>
-          <Navbar />
           <Dashboard />
-          <Footer />
         </PrivateRoute>
       } />
 
