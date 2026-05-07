@@ -49,7 +49,7 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
         </div>
         <p className="text-xs text-gray-400">Your booking has been confirmed.</p>
         <button
-          onClick={onClose}
+          onClick={() => { onSuccess?.(); onClose(); }}
           className="mt-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-emerald-700 hover:to-teal-700 transition"
         >
           Done
@@ -96,7 +96,7 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
 
     setPaying(false);
     setPaid(true);
-    onSuccess?.();
+    
   };
 
   return (

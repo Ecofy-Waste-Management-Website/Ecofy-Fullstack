@@ -11,7 +11,7 @@ import InquiryManagement from "./InquiryManagement";
 // Assuming you have UserManagement, otherwise this is a placeholder
 // import UserManagement from "./UserManagement"; 
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 // ─── DATA & CONFIGURATION ──────────────────────────────────────────────────
 
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
   const showRoleSwitch = !roleLoading && role === "Admin";
 
   return (
-    <div className="relative min-h-screen font-sans text-[#0f1d33] lg:grid lg:grid-cols-[240px_1fr]" style={{ background: "radial-gradient(circle at 15% 15%, #f8fbff 0%, transparent 38%), radial-gradient(circle at 90% 90%, #d8e7ff 0%, transparent 30%), #e8edf4" }}>
+    <div className="relative min-h-screen font-sans text-[#0f1d33] lg:grid lg:grid-cols-[240px_1fr]" style={{ background: "radial-gradient(circle at 15% 15%, #f0fdf4 0%, transparent 38%), radial-gradient(circle at 90% 90%, #dcfce7 0%, transparent 30%), #f0fdf4" }}>
 
       {/* Mobile top bar */}
       <div className="sticky top-0 z-30 border-b border-white/30 bg-[#0f3a72]/95 px-4 py-3 text-white backdrop-blur-xl lg:hidden">
