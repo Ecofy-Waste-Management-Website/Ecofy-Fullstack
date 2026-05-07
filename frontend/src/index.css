@@ -5,6 +5,8 @@
 }
 
 body {
+  background-color: #000000; /* Pure black, just like EatNaked */
+  color: #ffffff; /* Default text to white */
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
