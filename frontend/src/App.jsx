@@ -13,7 +13,7 @@ import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
-import Contact from './Components/Main/Contact/Contact';
+import ContactUs from './Components/Main/Contact/Contact';
 import ProfileSettings from "./Components/Screens/ProfileSettings";
 import About from './Components/Main/About/About';
 
@@ -135,7 +135,7 @@ export default function App() {
       <Route path="/profile-settings" element={<ProfileSettings />} />
 
       {/* Contact */}
-      <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
+      <Route path="/contact" element={<><Navbar /><ContactUs /><Footer /></>} />
 
       {/* About */}
       <Route path="/about" element={ <><Navbar /> <About /> <Footer /></>} />
