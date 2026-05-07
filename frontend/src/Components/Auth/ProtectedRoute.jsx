@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { Navigate } from "react-router-dom";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { isLoaded, user } = useUser();

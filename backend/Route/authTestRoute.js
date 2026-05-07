@@ -23,7 +23,7 @@ router.get('/public', (req, res) => {
  * - If invalid / missing → Clerk responds with 401 automatically.
  *
  * Test with a valid Clerk session token:
- *   curl -H "Authorization: Bearer <clerk_session_token>" http://localhost:5000/auth-test/protected
+ *   curl -H "Authorization: Bearer <clerk_session_token>" http://localhost:5001/auth-test/protected
  */
 router.get('/protected', clerkRequireAuth, (req, res) => {
   res.status(200).json({

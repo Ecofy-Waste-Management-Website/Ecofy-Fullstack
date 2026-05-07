@@ -7,13 +7,13 @@ import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
 import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
 import Blogs from './Components/Main/Blogs/blogs';
-import Dashboard from './Components/Screens/Dashboard'; 
+import DashboardRouter from './Components/Screens/DashboardRouter'; 
 import AdminDashboard from './Components/Admin/adminDashboard';
 import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
-import Contact from './Components/Main/Contact/Contact';
+import ContactUs from './Components/Main/Contact/Contact';
 import ProfileSettings from "./Components/Screens/ProfileSettings";
 import About from './Components/Main/About/About';
 
@@ -52,6 +52,9 @@ export default function App() {
         </>
       } />
 
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<ContactUs />} />
+
       {/* Redirect after login */}
       <Route path="/redirect" element={
         <PrivateRoute>
@@ -71,13 +74,20 @@ export default function App() {
       {/* User Dashboard */}
       <Route path="/dashboard" element={
         <PrivateRoute>
-          <Navbar />
-          <Dashboard />
+          <DashboardRouter />
         </PrivateRoute>
       } />
 
       {/* Admin Dashboard */}
       <Route path="/admin-dashboard" element={
+        <PrivateRoute>
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        </PrivateRoute>
+      } />
+
+      <Route path="/admin" element={
         <PrivateRoute>
           <ProtectedRoute allowedRoles={["Admin"]}>
             <AdminDashboard />
@@ -125,7 +135,7 @@ export default function App() {
       <Route path="/profile-settings" element={<ProfileSettings />} />
 
       {/* Contact */}
-      <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
+      <Route path="/contact" element={<><Navbar /><ContactUs /><Footer /></>} />
 
       {/* About */}
       <Route path="/about" element={ <><Navbar /> <About /> <Footer /></>} />

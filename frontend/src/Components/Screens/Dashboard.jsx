@@ -9,12 +9,12 @@ import ProfileSettings from "./ProfileSettings";
 
 // Status badge colours
 const STATUS_STYLES = {
-  Pending:       "bg-amber-100 text-amber-700",
-  Assigned:      "bg-blue-100 text-blue-700",
+  Pending: "bg-amber-100 text-amber-700",
+  Assigned: "bg-blue-100 text-blue-700",
   "In Progress": "bg-indigo-100 text-indigo-700",
-  "En Route":    "bg-cyan-100 text-cyan-700",
-  Completed:     "bg-emerald-100 text-emerald-700",
-  Delayed:       "bg-red-100 text-red-700",
+  "En Route": "bg-cyan-100 text-cyan-700",
+  Completed: "bg-emerald-100 text-emerald-700",
+  Delayed: "bg-red-100 text-red-700",
 };
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
@@ -129,8 +129,8 @@ function GoogleMapPicker({ value, onSelect }) {
   }
 
   return (
-    <div className="space-y-3">
-      <div ref={mapContainerRef} className="h-72 w-full rounded-3xl border border-white/20 shadow-inner" />
+    <div className="space-y-3 h-full flex flex-col">
+      <div ref={mapContainerRef} className="flex-1 w-full rounded-3xl border border-white/20 shadow-inner min-h-[150px]" />
       <p className="text-xs text-white/80">Click the map or drag the pin to select a pickup location.</p>
       {mapMessage && <p className="text-xs text-white/90">{mapMessage}</p>}
     </div>
@@ -433,121 +433,138 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-5 rounded-4xl border border-[#06a63e]/20 bg-white p-5 shadow-sm sm:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#06a63e]">Good morning</p>
-            <h1 className="mt-2 truncate text-2xl font-bold text-gray-900 sm:text-3xl">
-              {greetingName}
-            </h1>
-            <p className="mt-2 text-sm text-gray-500 sm:text-base">
-              Manage pickups, get help, and update your account from one clean workspace.
+    <>
+      {/* Background Animated Vectors */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        {/* Recycle Icons */}
+        <svg className="absolute top-24 left-12 w-28 h-28 text-[#218845] animate-wobble" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <svg className="absolute bottom-1/4 right-[40%] w-16 h-16 text-[#218845] animate-wobble-reverse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+
+        {/* Leaf Icons */}
+        <svg className="absolute top-64 right-16 w-36 h-36 text-[#218845] animate-wobble-reverse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.5V11m0 0a5 5 0 0 1 5-5h2.5c0 4.5-2 6.5-4 8l-3.5 3m0-11a5 5 0 0 0-5-5H7c0 4.5 2 6.5 4 8l3.5 3" />
+        </svg>
+        <svg className="absolute top-[15%] left-[40%] w-20 h-20 text-[#218845] animate-wobble" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.5V11m0 0a5 5 0 0 1 5-5h2.5c0 4.5-2 6.5-4 8l-3.5 3m0-11a5 5 0 0 0-5-5H7c0 4.5 2 6.5 4 8l3.5 3" />
+        </svg>
+
+        {/* Trash Bin Icons */}
+        <svg className="absolute bottom-32 left-[15%] w-24 h-24 text-[#218845] animate-wobble" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+        </svg>
+        <svg className="absolute top-[45%] right-[10%] w-16 h-16 text-[#218845] animate-wobble-reverse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+        </svg>
+
+        {/* Sparkle/Cleaning Icons */}
+        <svg className="absolute bottom-48 right-[25%] w-20 h-20 text-[#218845] animate-wobble-reverse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+        </svg>
+        <svg className="absolute bottom-[10%] left-[45%] w-14 h-14 text-[#218845] animate-wobble" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+        </svg>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+      {/* Navbar-style Action Card */}
+      <div className="mx-auto mb-10 w-full rounded-[40px] bg-green-100/30 backdrop-blur-md border border-green-300/50 p-1.5 shadow-sm transition-all duration-500">
+        <div className="flex flex-col items-center justify-between gap-6 px-8 py-6 lg:flex-row lg:gap-4">
+          <div className="text-center lg:text-left">
+            <h2 className="text-xl font-bold tracking-tight text-green-900 sm:text-2xl">What would you like to do today?</h2>
+            <p className="mt-1 text-sm text-green-700/80">
+              Quick actions to manage your pickups and history.
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={openProfile}
-            className="group flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-700 shadow-sm transition hover:border-[#06a63e]/40 hover:bg-[#06a63e]/10"
-            aria-label="Manage profile"
-            title="Manage profile"
-          >
-            {user?.imageUrl ? (
-              <img
-                src={user.imageUrl}
-                alt="User profile"
-                className="h-full w-full rounded-full object-cover"
-              />
-            ) : (
-              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            )}
-          </button>
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 w-full lg:w-auto">
+            <button
+              type="button"
+              onClick={() => setShowPickupModal(true)}
+              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-green-600 hover:text-white"
+            >
+              Schedule
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("track-status")}
+              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-green-600 hover:text-white"
+            >
+              Track status
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/service-history")}
+              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-green-600 hover:text-white"
+            >
+              History
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("special-services")}
+              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-green-600 hover:text-white"
+            >
+              Services
+            </button>
+          </div>
         </div>
+      </div>
 
-        <div className="mt-6 rounded-3xl bg-linear-to-r from-[#06a63e] to-[#118f49] p-5 text-white shadow-lg sm:p-6">
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
-            <div>
-              <h2 className="text-xl font-bold sm:text-2xl">What would you like to do today?</h2>
-              <p className="mt-1 max-w-2xl text-sm text-white/85">
-                Choose a shortcut, then search your location to start a pickup right away.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:w-140">
-              <button
-                type="button"
-                  onClick={() => setShowPickupModal(true)}
-                className="rounded-2xl border border-white/20 bg-white/15 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-white/25"
-              >
-                Schedule
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("track-status")}
-                className="rounded-2xl border border-white/20 bg-white/15 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-white/25"
-              >
-                Track status
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/service-history")}
-                className="rounded-2xl border border-white/20 bg-white/15 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-white/25"
-              >
-                Order history
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("special-services")}
-                className="rounded-2xl border border-white/20 bg-white/15 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-white/25"
-              >
-                Special services
-              </button>
-            </div>
+      {/* Search & Map Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        {/* Left: Search Card */}
+        <div className="flex flex-col rounded-3xl bg-[#218845] p-6 text-white shadow-lg h-full">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">Start a Pickup Request</h2>
+            <p className="mt-2 text-sm text-white/80">Enter your address or street name to find your service zone instantly.</p>
           </div>
 
-          <div className="mt-5 rounded-3xl bg-white/10 p-4 backdrop-blur-sm">
-            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-white/80">
+          <div className="rounded-2xl bg-white/15 p-5 backdrop-blur-sm border border-white/10">
+            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-white/90">
               Search pickup location
             </label>
-            <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-4 flex flex-col gap-3">
               <input
                 type="text"
                 value={locationQuery}
                 onChange={(e) => setLocationQuery(e.target.value)}
                 placeholder="Enter a location, street, or area"
-                className="w-full rounded-2xl border border-white/20 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-white"
+                className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-white/50"
               />
               <button
                 type="button"
                 onClick={handleLocationSearch}
-                className="rounded-2xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-black"
+                className="w-full rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-black active:scale-95 shadow-md"
               >
-                Search
+                Search Location
               </button>
             </div>
             {searchStatus.text && (
-              <p className={`mt-3 text-sm ${searchStatus.type === "success" ? "text-emerald-100" : "text-red-100"}`}>
+              <p className={`mt-3 text-sm font-medium ${searchStatus.type === "success" ? "text-emerald-100" : "text-red-100"}`}>
                 {searchStatus.text}
               </p>
             )}
           </div>
+        </div>
 
-          <div className="mt-5 rounded-3xl bg-white/10 p-4 backdrop-blur-sm">
-            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-white">Google Map Picker</h3>
-                <p className="text-xs text-white/75">Click the map below to select a pickup location.</p>
-              </div>
-              {pickupLocation && (
-                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white">
-                  Selected: {pickupLocation}
-                </span>
-              )}
+        {/* Right: Map Picker Card */}
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col h-full">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">Map Location Picker</h3>
+              <p className="text-xs text-gray-500">Manually select your spot for precise pickup.</p>
             </div>
+            {pickupLocation && (
+              <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-[10px] font-bold text-[#06a63e] uppercase tracking-wider">
+                Pinned
+              </span>
+            )}
+          </div>
+
+          <div className="flex-1">
             <GoogleMapPicker
               value={selectedMapLocation}
               onSelect={(address) => {
@@ -558,6 +575,13 @@ export default function Dashboard() {
               }}
             />
           </div>
+
+          {pickupLocation && (
+            <div className="mt-4 p-3 rounded-xl bg-gray-50 border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">SELECTED ADDRESS</p>
+              <p className="text-xs text-gray-700 truncate font-medium">{pickupLocation}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -591,5 +615,6 @@ export default function Dashboard() {
         bookingDetails={lastBooking}
       />
     </div>
+    </>
   );
 }
