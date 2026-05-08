@@ -1,5 +1,44 @@
 import React, { useState, useEffect, useCallback } from "react";
 
+// ── Icons ──────────────────────────────────────────────────────────────────
+const Icons = {
+  Total: () => (
+    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+    </svg>
+  ),
+  Pending: () => (
+    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+  InProgress: () => (
+    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  ),
+  Completed: () => (
+    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+  ),
+  Delayed: () => (
+    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+  ),
+  Search: () => (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  ),
+  Close: () => (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  )
+};
+
 // ── Config ─────────────────────────────────────────────────────────────────────
 const API_ORIGIN = import.meta.env.VITE_API_URL || "http://localhost:5001";
 const API_BASE = `${API_ORIGIN}/service-monitoring`;
@@ -46,18 +85,18 @@ function typeColor(t) {
 // ── KPI Cards ──────────────────────────────────────────────────────────────────
 function KPIGrid({ stats }) {
   const cards = [
-    { label: "Total Requests", value: stats.total,      colorText: "text-blue-600",   colorBg: "bg-blue-50",   icon: "📋", sub: "All service requests" },
-    { label: "Pending",        value: stats.pending,    colorText: "text-yellow-600", colorBg: "bg-yellow-50", icon: "⏳", sub: "Awaiting assignment" },
-    { label: "In Progress",    value: stats.inProgress, colorText: "text-purple-600", colorBg: "bg-purple-50", icon: "🚛", sub: "Currently active" },
-    { label: "Completed",      value: stats.completed,  colorText: "text-green-600",  colorBg: "bg-green-50",  icon: "✅", sub: "Successfully closed" },
-    { label: "Delayed",        value: stats.delayed,    colorText: "text-red-600",    colorBg: "bg-red-50",    icon: "🚨", sub: "Requires attention" },
+    { label: "Total Requests", value: stats.total,      colorText: "text-blue-600",   colorBg: "bg-blue-50",   icon: <Icons.Total />, sub: "All service requests" },
+    { label: "Pending",        value: stats.pending,    colorText: "text-yellow-600", colorBg: "bg-yellow-50", icon: <Icons.Pending />, sub: "Awaiting assignment" },
+    { label: "In Progress",    value: stats.inProgress, colorText: "text-purple-600", colorBg: "bg-purple-50", icon: <Icons.InProgress />, sub: "Currently active" },
+    { label: "Completed",      value: stats.completed,  colorText: "text-green-600",  colorBg: "bg-green-50",  icon: <Icons.Completed />, sub: "Successfully closed" },
+    { label: "Delayed",        value: stats.delayed,    colorText: "text-red-600",    colorBg: "bg-red-50",    icon: <Icons.Delayed />, sub: "Requires attention" },
   ];
 
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 mb-6">
       {cards.map(c => (
         <article key={c.label} className="flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className={`mb-2 w-max rounded-lg ${c.colorBg} p-2 text-xl`}>{c.icon}</div>
+          <div className={`mb-2 w-max rounded-lg ${c.colorBg} p-2 ${c.colorText}`}>{c.icon}</div>
           <p className="text-sm font-medium text-gray-500">{c.label}</p>
           <p className={`text-2xl font-bold ${c.colorText}`}>{c.value ?? "—"}</p>
           <p className="mt-1 text-xs text-gray-400">{c.sub}</p>
@@ -101,7 +140,7 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
               {req.status}
             </span>
           </div>
-          <button className="text-gray-400 hover:text-gray-600" onClick={onClose}>✕</button>
+          <button className="text-gray-400 hover:text-gray-600" onClick={onClose}><Icons.Close /></button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
@@ -290,12 +329,17 @@ export default function ServiceRequests() {
       {/* Filter bar */}
       <div className="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-3">
-          <input
-            className="flex-1 min-w-[200px] rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
-            placeholder="🔍  Search by customer, location…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+          <div className="relative flex-1 min-w-[200px]">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Icons.Search />
+            </span>
+            <input
+              className="w-full rounded-lg border border-gray-300 bg-gray-50 pl-10 pr-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+              placeholder="Search by customer, location…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
           <select className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white" value={filters.status} onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}>
             {STATUS_OPTIONS.map(o => <option key={o}>{o}</option>)}
           </select>
