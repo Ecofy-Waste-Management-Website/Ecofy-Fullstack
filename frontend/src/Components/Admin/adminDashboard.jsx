@@ -372,7 +372,7 @@ export default function AdminDashboard() {
                 </span>
                 <input type="text" className="w-full rounded-2xl border border-emerald-100 bg-white/60 p-[8px_12px_8px_38px] text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-900/5 placeholder:text-gray-400" placeholder="Search..." />
               </div>
-              <NotificationBell />
+              <NotificationBell target="admin" />
                 
               <div className="rounded-xl border border-emerald-100 bg-white/60 px-3 py-1.5 text-xs font-bold text-emerald-900 backdrop-blur-sm">Admin</div>
               {!roleLoading && role === "Admin" && (

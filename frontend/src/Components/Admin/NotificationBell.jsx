@@ -3,6 +3,7 @@ import { useUser } from "@clerk/clerk-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
+
 function timeAgo(dateStr) {
   const s = Math.round((Date.now() - new Date(dateStr)) / 1000);
   if (s < 60) return `${s}s ago`;
@@ -18,7 +19,7 @@ const TYPE_STYLES = {
   Success: "bg-emerald-100 text-emerald-800",
 };
 
-export default function NotificationBell() {
+export default function NotificationBell({ target = "user" }) {
   const { user } = useUser();
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
@@ -35,7 +36,7 @@ export default function NotificationBell() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await window.fetch(`${API_BASE_URL}/notifications/${user.id}`);
+      const res = await window.fetch(`${API_BASE_URL}/notifications/${user.id}?target=${target}`);
       if (!res.ok) return;
       const data = await res.json();
       setNotifications(data.notifications);
