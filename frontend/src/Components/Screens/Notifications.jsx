@@ -8,7 +8,7 @@ document.head.appendChild(fontLink);
 
 
 
-function Notifications() {
+function Notifications({ target = "user"}) {
   const { user, isLoaded } = useUser();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,7 @@ function Notifications() {
       try {
         setLoading(true);
         const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/notifications/${user.id}`
+          `${import.meta.env.VITE_API_URL}/notifications/${user.id}?target=${target}`
         );
         if (!res.ok) throw new Error('Failed to fetch notifications');
         const data = await res.json();

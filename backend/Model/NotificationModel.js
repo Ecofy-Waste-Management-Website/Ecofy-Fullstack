@@ -30,6 +30,11 @@ const notificationSchema = new mongoose.Schema(
       ref: "ServiceHistory",
       default: null,
     },
+    target: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    }
   },
   { timestamps: true }
 );
