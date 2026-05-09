@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import Navbar from '../Top-Header-Section/navbar/navbar';
+
 
 /* ─────────────────────────────────────────
    DATA
@@ -172,6 +174,8 @@ export default function About() {
           animation: dashMove 3s linear infinite;
         }
       `}</style>
+
+      <Navbar />
 
       {/* ══════════════════════════════
           HERO — matches Contact hero style
