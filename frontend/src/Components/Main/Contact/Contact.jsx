@@ -13,12 +13,29 @@ export default function Contact() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
-    setFormData({ name: '', email: '', subject: '', message: '' });
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await fetch('http://localhost:5000/inquiries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userName: formData.name,
+        userEmail: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      })
+    });
+
+    if (res.ok) {
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 3000);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    }
+  } catch (err) {
+    console.error('Failed to send message:', err);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50">
