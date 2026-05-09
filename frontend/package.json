@@ -12,9 +12,12 @@
   "dependencies": {
     "@clerk/clerk-react": "^5.61.4",
     "@clerk/react-router": "^3.0.7",
+    "@gsap/react": "^2.1.2",
     "@stripe/react-stripe-js": "^6.2.0",
     "@stripe/stripe-js": "^9.3.1",
     "@tailwindcss/vite": "^4.2.1",
+    "gsap": "^3.15.0",
+    "lucide-react": "^1.14.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router": "^7.13.2",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 
@@ -23,6 +23,9 @@ import RoleRedirect from "./Components/Auth/RoleRedirect";
 import ProtectedRoute from './Components/Auth/ProtectedRoute';
 import ProtectedStaffRoute from './Components/Auth/ProtectedStaffRoute';
 
+// Chatbot
+import ChatbotWidget from './Components/Chatbot/ChatbotWidget';
+
 
 const PrivateRoute = ({ children }) => (
   <>
@@ -34,7 +37,10 @@ const PrivateRoute = ({ children }) => (
 );
 
 export default function App() {
+  const [chatbotBookingOpen, setChatbotBookingOpen] = useState(false);
+
   return (
+    <>
     <Routes>
 
       {/* Home */}
@@ -141,5 +147,9 @@ export default function App() {
       <Route path="/about" element={ <><Navbar /> <About /> <Footer /></>} />
 
     </Routes>
+
+    {/* Global AI Chatbot Widget */}
+    <ChatbotWidget onOpenBooking={() => setChatbotBookingOpen(true)} />
+    </>
   );
 }

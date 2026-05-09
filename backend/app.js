@@ -20,6 +20,7 @@ const slaAnalyticsRouter = require("./Route/slaAnalyticsRoute");
 const serviceMonitoringRouter = require("./Route/serviceMonitoringRoute"); 
 const authTestRouter = require("./Route/authTestRoute");
 const stripeRoute = require("./Route/stripe.route");
+const chatbotRouter = require("./Route/chatbotRoute");
 const app = express();
 
 
@@ -73,6 +74,7 @@ app.use("/service-monitoring", serviceMonitoringRouter);
 app.use("/staff", staffRouter);
 app.use("/auth-test", authTestRouter);
 app.use("/api/stripe", stripeRoute);
+app.use("/chatbot", chatbotRouter);
 
 
 mongoose.connect(process.env.MONGO_URI, {

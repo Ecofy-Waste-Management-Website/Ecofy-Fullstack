@@ -5,7 +5,9 @@ const Stripe = require("stripe");
 const PaymentHistory = require("../Model/PaymentHistoryModel");
 const Notification = require("../Model/NotificationModel");
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY)
+  : null;
 
 const SERVICE_PRICES = {
   Household:        150000,
