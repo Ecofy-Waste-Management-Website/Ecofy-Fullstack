@@ -1,9 +1,22 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { UserButton, SignInButton, SignedIn, SignedOut } from "@clerk/clerk-react";
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 
 export default function Navbar() {
+  const navRef = useRef(null);
+
+  useGSAP(() => {
+    gsap.from(navRef.current, {
+      y: -100,
+      opacity: 0,
+      duration: 1,
+      ease: "power3.out",
+    });
+  });
+
   return (
-    <div className="sticky top-4 z-50 w-full px-4 sm:px-6 lg:px-8 flex justify-center pb-4">
+    <div ref={navRef} className="sticky top-4 z-50 w-full px-4 sm:px-6 lg:px-8 flex justify-center pb-4">
       <nav className="w-full max-w-5xl relative bg-green-50/70 backdrop-blur-md border border-green-200/60 rounded-full shadow-sm">
         <div className="flex justify-between h-16 items-center px-6 lg:px-8">
           <div className="flex-shrink-0 flex items-center">

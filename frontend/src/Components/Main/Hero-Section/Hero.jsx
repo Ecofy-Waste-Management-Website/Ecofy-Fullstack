@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { 
   Leaf, 
   PlayCircle, 
@@ -20,9 +20,40 @@ import {
   Star
 } from 'lucide-react';
 
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+import ScrollAnimationSection from './ScrollAnimationSection';
+import SmoothScroll from './SmoothScroll';
+
+gsap.registerPlugin(ScrollTrigger);
+
 export default function Hero() {
+  const containerRef = useRef(null);
+
+  useGSAP(() => {
+    // Reveal up animations for sections
+    const elements = gsap.utils.toArray('.reveal-up');
+    elements.forEach((el) => {
+      gsap.from(el, {
+        scrollTrigger: {
+          trigger: el,
+          start: "top 85%",
+          toggleActions: "play none none reverse"
+        },
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power2.out"
+      });
+    });
+
+  }, { scope: containerRef });
+
   return (
-    <main className="w-full font-sans bg-[#f4faf6]">
+    <SmoothScroll>
+    <main ref={containerRef} className="w-full font-sans bg-[#f4faf6] relative">
       {/* --- TOP DARK SECTION --- */}
       <section className="relative w-full bg-[#031509] pt-24 pb-48 px-6 lg:px-16 overflow-hidden flex justify-center text-white">
         {/* Background decorative elements */}
@@ -82,37 +113,56 @@ export default function Hero() {
                  <div className="w-[380px] h-[90px] bg-[#124227] rounded-[100%] border-t border-[#1d633b]"></div>
               </div>
 
-              {/* Detailed 3D Trash Bin (Bag removed) */}
-              <div className="absolute bottom-4 -right-16 z-30 transform perspective-[800px] rotate-y-[-10deg] rotate-x-[5deg]">
-                 {/* The Trash Bin */}
-                 <div className="relative w-40 h-52 bg-gradient-to-b from-[#4bc25b] via-[#2B8B3F] to-[#124227] rounded-b-2xl rounded-t-sm shadow-[30px_30px_50px_rgba(0,0,0,0.8),inset_-10px_0_20px_rgba(0,0,0,0.5),inset_10px_0_20px_rgba(255,255,255,0.2)] border border-[#2B8B3F] flex flex-col items-center z-20">
-                   {/* Lid */}
-                   <div className="absolute -top-6 w-[115%] h-10 bg-gradient-to-b from-[#5be06d] to-[#2B8B3F] rounded-t-xl rounded-b-sm shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_5px_10px_rgba(255,255,255,0.4)] border-b-2 border-[#124227] flex justify-center z-30">
-                      {/* Handle */}
-                      <div className="w-20 h-4 bg-gradient-to-b from-[#2B8B3F] to-[#124227] rounded-t-lg -mt-4 border border-[#1A5C28] shadow-[inset_0_2px_5px_rgba(255,255,255,0.3)]"></div>
-                   </div>
-                   {/* Lid side rims */}
-                   <div className="absolute -top-2 w-[120%] h-4 bg-gradient-to-b from-[#2B8B3F] to-[#124227] rounded-md shadow-md z-20"></div>
+              {/* Detailed 3D Wheelie Bin */}
+              <div className="absolute bottom-0 -right-12 z-30 transform perspective-[1000px] rotate-y-[-20deg] rotate-x-[5deg] scale-110">
+                <div className="relative w-40 h-[260px] flex flex-col items-center">
+                  
+                  {/* --- Lid --- */}
+                  <div className="absolute top-0 w-[105%] h-[20px] bg-gradient-to-b from-[#87C475] to-[#6AA85B] rounded-t-lg z-40 shadow-[0_4px_10px_rgba(0,0,0,0.2),inset_0_2px_4px_rgba(255,255,255,0.4)] border border-[#558D48]">
+                    {/* Lid Handle / Ridge */}
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1/2 h-2 bg-gradient-to-r from-[#7BBA6A] to-[#6AA85B] rounded-t-sm border border-[#558D48]"></div>
+                    {/* Side Hinge/Handle */}
+                    <div className="absolute top-1 -right-3 w-4 h-6 bg-[#629E53] rounded-r-md border border-[#558D48] shadow-sm"></div>
+                  </div>
 
-                   {/* Specular highlight on bin body */}
-                   <div className="absolute top-0 left-[15%] w-[10%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent blur-md"></div>
+                  {/* --- Main Lip/Rim --- */}
+                  <div className="absolute top-[18px] w-[110%] h-[16px] bg-gradient-to-b from-[#7BBA6A] to-[#5C984B] rounded-sm z-30 shadow-[0_5px_10px_rgba(0,0,0,0.3),inset_0_2px_2px_rgba(255,255,255,0.3)] border border-[#4D823E]"></div>
 
-                   {/* Lines/Texture */}
-                   <div className="w-full flex-1 flex justify-evenly px-4 pt-10 pb-6 opacity-40">
-                      <div className="w-1.5 h-full bg-gradient-to-r from-black/60 to-transparent rounded-full shadow-[1px_0_1px_rgba(255,255,255,0.2)]"></div>
-                      <div className="w-1.5 h-full bg-gradient-to-r from-black/60 to-transparent rounded-full shadow-[1px_0_1px_rgba(255,255,255,0.2)]"></div>
-                      <div className="w-1.5 h-full bg-gradient-to-r from-black/60 to-transparent rounded-full shadow-[1px_0_1px_rgba(255,255,255,0.2)]"></div>
-                   </div>
-                   
-                   {/* Recycle Icon */}
-                   <div className="absolute bottom-12 text-white/90">
-                      <Recycle className="w-16 h-16 drop-shadow-[0_2px_5px_rgba(0,0,0,0.5)]" />
-                   </div>
-                   
-                   {/* Wheel */}
-                   <div className="absolute -bottom-4 right-4 w-10 h-10 bg-[radial-gradient(circle,_#333,_#000)] rounded-full border-4 border-[#111] shadow-[5px_5px_10px_rgba(0,0,0,0.8),inset_2px_2px_5px_rgba(255,255,255,0.2)]"></div>
-                   <div className="absolute -bottom-4 left-4 w-10 h-10 bg-[radial-gradient(circle,_#333,_#000)] rounded-full border-4 border-[#111] shadow-[5px_5px_10px_rgba(0,0,0,0.8),inset_2px_2px_5px_rgba(255,255,255,0.2)]"></div>
-                 </div>
+                  {/* --- Under-rim Supports --- */}
+                  <div className="absolute top-[34px] w-[96%] flex justify-evenly z-20 px-2">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <div key={i} className="w-1.5 h-6 bg-gradient-to-b from-[#4D823E] to-transparent" style={{ clipPath: 'polygon(0 0, 100% 0, 50% 100%)' }}></div>
+                    ))}
+                  </div>
+
+                  {/* --- Tapered Body --- */}
+                  <div className="absolute top-[32px] w-[96%] h-[200px] z-10 drop-shadow-[10px_15px_15px_rgba(0,0,0,0.5)]">
+                    <div 
+                      className="w-full h-full bg-gradient-to-br from-[#80C070] via-[#61A051] to-[#3A6B2D] border border-[#4D823E]"
+                      style={{ 
+                        clipPath: 'polygon(0 0, 100% 0, 92% 100%, 8% 100%)',
+                        borderRadius: '0 0 10px 10px'
+                      }}
+                    >
+                      {/* Body Highlight */}
+                      <div className="absolute top-0 left-2 w-12 h-full bg-gradient-to-r from-white/20 to-transparent skew-x-[-4deg]"></div>
+                      
+                      {/* Recycle Logo */}
+                      <div className="absolute top-[30%] left-1/2 -translate-x-1/2 text-white/95 drop-shadow-md">
+                        <Recycle className="w-16 h-16" strokeWidth={1.5} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* --- Wheel (Right/Back) --- */}
+                  <div className="absolute bottom-3 -right-4 w-14 h-14 bg-[#5A994B] rounded-full z-20 border-4 border-[#3D6E31] shadow-[5px_5px_10px_rgba(0,0,0,0.6),inset_2px_2px_4px_rgba(255,255,255,0.3)] flex items-center justify-center transform rotate-12">
+                    {/* Wheel Inner Details */}
+                    <div className="w-8 h-8 rounded-full border-2 border-[#488339] flex items-center justify-center">
+                      <div className="w-3 h-3 bg-[#3D6E31] rounded-full shadow-inner"></div>
+                    </div>
+                  </div>
+                  
+                </div>
               </div>
 
             {/* Floating Card 1 */}
@@ -139,6 +189,12 @@ export default function Hero() {
 
             {/* Phone Mockup */}
             <div className="relative z-20 w-[280px] h-[580px] bg-gradient-to-br from-[#4a4a5a] via-[#1a1a2e] to-[#0a0a0a] rounded-[44px] p-[2px] shadow-[30px_20px_60px_rgba(0,0,0,0.8),inset_2px_2px_4px_rgba(255,255,255,0.2)] transform perspective-[1000px] rotate-y-[-4deg] rotate-x-[2deg]">
+              
+              {/* Truck beside the phone */}
+              <div className="absolute top-1/2 -left-48 w-72 z-40 transform -translate-y-1/2 drop-shadow-[0_20px_25px_rgba(0,0,0,0.6)]">
+                <img src="/truck.png" alt="Ecofy Truck" className="w-full h-auto" />
+              </div>
+
               <div className="w-full h-full bg-black rounded-[42px] p-[6px] border border-[#222] shadow-[inset_0_0_20px_rgba(0,0,0,1)]">
                 <div className="w-full h-full bg-[#081F12] rounded-[32px] overflow-hidden relative flex flex-col">
                   {/* Glass Reflection */}
@@ -222,7 +278,7 @@ export default function Hero() {
       </section>
 
       {/* --- FLOATING STATS BANNER --- */}
-      <div className="max-w-6xl mx-auto px-4 -mt-16 relative z-30">
+      <div className="max-w-6xl mx-auto px-4 -mt-16 relative z-30 reveal-up">
         <div className="bg-[#0A2916] border border-[#164525] rounded-2xl p-8 flex flex-col md:flex-row justify-between items-center shadow-2xl divide-y md:divide-y-0 md:divide-x divide-[#164525]">
           
           <div className="flex items-center gap-4 py-4 md:py-0 px-6 w-full md:w-1/4 justify-center md:justify-start">
@@ -261,7 +317,7 @@ export default function Hero() {
       </div>
 
       {/* --- BOTTOM WHITE SECTION --- */}
-      <section className="bg-white w-full py-32 px-6 lg:px-16 relative overflow-hidden">
+      <section className="bg-white w-full py-32 px-6 lg:px-16 relative overflow-hidden reveal-up">
         {/* Leaf decorations */}
         <Leaf className="absolute -left-10 top-20 text-[#E8F8E3] w-48 h-48 rotate-45 pointer-events-none" />
         <Leaf className="absolute -right-10 bottom-20 text-[#E8F8E3] w-48 h-48 -rotate-45 pointer-events-none" />
@@ -322,7 +378,7 @@ export default function Hero() {
       </section>
 
       {/* --- HOW IT WORKS SECTION --- */}
-      <section className="bg-[#fcfdfc] w-full py-24 px-6 lg:px-16 relative">
+      <section className="bg-[#fcfdfc] w-full py-24 px-6 lg:px-16 relative reveal-up">
         <div className="max-w-7xl mx-auto text-center">
           <h3 className="text-[#328B49] font-bold tracking-widest text-sm mb-4">HOW IT WORKS</h3>
           <h2 className="text-4xl font-extrabold text-[#051F10] mb-20">
@@ -384,8 +440,11 @@ export default function Hero() {
         </div>
       </section>
 
+      {/* --- SCROLL ANIMATION SECTION --- */}
+      <ScrollAnimationSection />
+
       {/* --- OUR IMPACT SECTION --- */}
-      <section className="bg-[#031509] w-full py-24 px-6 lg:px-16 relative overflow-hidden flex justify-center text-white">
+      <section className="bg-[#031509] w-full py-24 px-6 lg:px-16 relative overflow-hidden flex justify-center text-white reveal-up">
         {/* Background dark pattern/glow */}
         <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-[#A1F069]/5 rounded-full blur-[100px]"></div>
         
@@ -458,7 +517,7 @@ export default function Hero() {
       </section>
 
       {/* --- TESTIMONIALS SECTION --- */}
-      <section className="bg-[#fcfdfc] w-full py-24 px-6 lg:px-16 relative overflow-hidden">
+      <section className="bg-[#fcfdfc] w-full py-24 px-6 lg:px-16 relative overflow-hidden reveal-up">
         {/* Leaf decorations */}
         <Leaf className="absolute top-20 -left-10 text-[#E8F8E3] w-48 h-48 rotate-[120deg] pointer-events-none" />
         <Leaf className="absolute bottom-20 -right-10 text-[#E8F8E3] w-48 h-48 -rotate-[60deg] pointer-events-none" />
@@ -549,7 +608,7 @@ export default function Hero() {
       </section>
 
       {/* --- READY TO MAKE AN IMPACT BANNER --- */}
-      <section className="bg-[#fcfdfc] w-full pb-24 px-6 lg:px-16">
+      <section className="bg-[#fcfdfc] w-full pb-24 px-6 lg:px-16 relative z-10">
          <div className="max-w-6xl mx-auto rounded-3xl bg-gradient-to-r from-[#0E351E] via-[#1A5C28] to-[#2B8B3F] p-8 md:p-12 flex flex-col md:flex-row items-center justify-between shadow-2xl relative overflow-hidden">
             {/* Background elements */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-[50px]"></div>
@@ -574,5 +633,6 @@ export default function Hero() {
          </div>
       </section>
     </main>
+    </SmoothScroll>
   );
 }
