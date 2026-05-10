@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getPublishedArticles } from '../../../services/articleStore';
+import { Link } from "react-router-dom";
 
 const iconByThumbnail = {
   bottle: '🧴',
@@ -24,20 +25,16 @@ export default function Blogs() {
   return (
     <main className="bg-[#f4faf6] text-[#0f1d33]">
       <section className="mx-auto max-w-7xl px-4 pb-20 pt-10 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-green-700">Ecofy blog</p>
-            <h1 className="mt-2 text-3xl font-bold text-[#0f1d33] sm:text-4xl">Published articles</h1>
-          </div>
-          <p className="max-w-xl text-sm text-slate-600 sm:text-right">
-            Latest posts published from the content management system.
-          </p>
+        <div className="mb-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-green-700">Ecofy blog</p>
+          <h1 className="mt-2 text-3xl font-bold text-[#0f1d33] sm:text-4xl">All Articles</h1>
         </div>
 
         {articles.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {articles.map((article) => (
-              <article key={article.id} className="group overflow-hidden rounded-[28px] border border-white/60 bg-white/85 shadow-[0_18px_45px_rgba(15,29,51,0.08)] backdrop-blur transition-transform duration-300 hover:-translate-y-1">
+              <Link to={`/blogs/${article.id}`} key={article.id} className="group block">
+                <article className="overflow-hidden rounded-[28px] border border-white/60 bg-white/85 shadow-[0_18px_45px_rgba(15,29,51,0.08)] backdrop-blur transition-transform duration-300 group-hover:-translate-y-1">
                 <div className="flex h-52 items-end bg-gradient-to-br from-green-100 via-emerald-50 to-sky-100 p-6">
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/90 text-3xl shadow-sm">
                     {iconByThumbnail[article.thumbnail] || '📰'}
@@ -56,6 +53,7 @@ export default function Blogs() {
                   </div>
                 </div>
               </article>
+              </Link>
             ))}
           </div>
         ) : (
