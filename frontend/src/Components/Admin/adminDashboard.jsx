@@ -8,7 +8,7 @@ import ServiceRequests from "./ServiceRequests";
 import ContentBlogManagement from "./contentBlogManagement";
 import StaffAccountCreation from "./StaffAccountCreation";
 import InquiryManagement from "./InquiryManagement";
-import NotificationBell from "./NotificationBell";
+import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
 // Assuming you have UserManagement, otherwise this is a placeholder
 // import UserManagement from "./UserManagement"; 
 
