@@ -13,13 +13,14 @@ const staffRouter = require("./Route/staffRoute");
 const serviceHistoryRouter = require("./Route/ServiceHistoryRoute");
 const paymentHistoryRouter = require("./Route/PaymentHistoryRoute");
 const notificationRouter = require("./Route/NotificationRoute.js");
-
+const inquiryRouter = require("./Route/inquiryRoute");
 const serviceRequestRouter = require("./Route/ServiceRequestRoute");
 const adminRoutes = require("./Route/adminRoutes");
 const slaAnalyticsRouter = require("./Route/slaAnalyticsRoute");
 const serviceMonitoringRouter = require("./Route/serviceMonitoringRoute"); 
 const authTestRouter = require("./Route/authTestRoute");
 const stripeRoute = require("./Route/stripe.route");
+const chatbotRouter = require("./Route/chatbotRoute");
 const app = express();
 
 
@@ -65,7 +66,7 @@ app.use("/users",userRouter);
 app.use("/service-history", serviceHistoryRouter);
 app.use("/payment-history", paymentHistoryRouter);
 app.use("/notifications", notificationRouter);
-
+app.use("/inquiries", inquiryRouter);
 app.use("/bookings", serviceRequestRouter);
 app.use("/admin", adminRoutes);
 app.use("/sla-analytics", slaAnalyticsRouter);
@@ -73,6 +74,7 @@ app.use("/service-monitoring", serviceMonitoringRouter);
 app.use("/staff", staffRouter);
 app.use("/auth-test", authTestRouter);
 app.use("/api/stripe", stripeRoute);
+app.use("/chatbot", chatbotRouter);
 
 
 mongoose.connect(process.env.MONGO_URI, {

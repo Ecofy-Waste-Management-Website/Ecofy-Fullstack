@@ -3,10 +3,44 @@ import { createArticle, deleteArticle, getArticles, setArticleStatus, updateArti
 
 const categories = ["All", "Recycling Tips", "Community Events", "Eco-Guides"];
 
+// ── Icons ──────────────────────────────────────────────────────────────────
+const Icons = {
+  Bottle: () => (
+    <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+    </svg>
+  ),
+  Cleanup: () => (
+    <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+    </svg>
+  ),
+  Compost: () => (
+    <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+    </svg>
+  ),
+  Comments: () => (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+    </svg>
+  ),
+  Close: () => (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  ),
+  Plus: () => (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+  )
+};
+
 const previewByThumbnail = {
-  bottle: "🧴",
-  cleanup: "🧑‍🧹",
-  compost: "🌱",
+  bottle: <Icons.Bottle />,
+  cleanup: <Icons.Cleanup />,
+  compost: <Icons.Compost />,
 };
 
 const thumbnailStyles = {
@@ -150,9 +184,9 @@ export default function ContentBlogManagement() {
         <button
           type="button"
           onClick={handleCreateNewPost}
-          className="whitespace-nowrap rounded-lg bg-[#0f5cbd] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0b4899] focus:outline-none focus:ring-2 focus:ring-[#0f5cbd]/40 focus:ring-offset-1"
+          className="flex items-center gap-2 whitespace-nowrap rounded-lg bg-[#0f5cbd] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0b4899] focus:outline-none focus:ring-2 focus:ring-[#0f5cbd]/40 focus:ring-offset-1"
         >
-          + Create New Post
+          <Icons.Plus /> Create New Post
         </button>
       </div>
 
@@ -168,8 +202,8 @@ export default function ContentBlogManagement() {
               }`}
               onClick={() => setEditingPostId(post.id)}
             >
-              <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-lg text-3xl ${thumbnailStyles[post.thumbnail]}`}>
-                <span>{previewByThumbnail[post.thumbnail]}</span>
+              <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-lg ${thumbnailStyles[post.thumbnail]}`}>
+                {previewByThumbnail[post.thumbnail]}
               </div>
 
               <div className="flex flex-1 flex-col">
@@ -189,7 +223,7 @@ export default function ContentBlogManagement() {
                     >
                       {post.status}
                     </span>
-                    <span className="text-gray-500 font-medium">💬 {post.comments}</span>
+                    <span className="flex items-center gap-1 text-gray-500 font-medium"><Icons.Comments /> {post.comments}</span>
                   </div>
                 </div>
 
@@ -251,7 +285,7 @@ export default function ContentBlogManagement() {
                   className="grid h-8 w-8 place-items-center rounded-md text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 focus:outline-none"
                   aria-label="Close editor"
                 >
-                  ✕
+                  <Icons.Close />
                 </button>
               </div>
 

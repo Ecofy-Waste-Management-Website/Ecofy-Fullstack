@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 /**
  * Creates a new waste-collection pickup request.
@@ -36,6 +36,20 @@ export const getUserBookings = async (email) => {
 
   if (!response.ok) {
     throw new Error(data.message || 'Failed to fetch bookings.');
+  }
+
+  return Array.isArray(data) ? data : [];
+};
+
+export const getUserPayments = async (email) => {
+  const response = await fetch(`${API_BASE_URL}/api/stripe/payments/user/${encodeURIComponent(email)}`);
+
+  if (response.status === 404) return [];
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch payments.');
   }
 
   return Array.isArray(data) ? data : [];

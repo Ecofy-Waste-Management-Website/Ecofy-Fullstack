@@ -5,7 +5,7 @@ import AdminDashboard from '../Admin/adminDashboard';
 import Navbar from '../Main/Top-Header-Section/navbar/navbar';
 import Footer from '../Main/Footer/footer';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 
 export default function DashboardRouter() {
@@ -50,15 +50,11 @@ export default function DashboardRouter() {
     );
   }
 
-  if (role === 'Admin') {
-    return <AdminDashboard />;
-  }
-
   return (
-    <>
+    <div className="min-h-screen bg-green-50">
       <Navbar />
       <Dashboard />
       <Footer />
-    </>
+    </div>
   );
 }

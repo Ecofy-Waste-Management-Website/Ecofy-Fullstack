@@ -5,7 +5,9 @@ const Stripe = require("stripe");
 const PaymentHistory = require("../Model/PaymentHistoryModel");
 const Notification = require("../Model/NotificationModel");
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY)
+  : null;
 
 const SERVICE_PRICES = {
   Household:        150000,
@@ -79,6 +81,20 @@ router.post("/confirm-payment", async (req, res) => {
 
   } catch (err) {
     console.error("Confirm payment error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+router.get("/payments/user/:email", async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const payments = await PaymentHistory.find({ email }).sort({ paidAt: -1 });
+
+    if (!payments.length) return res.status(404).json([]);
+
+    res.json(payments);
+  } catch (err) {
+    console.error("Fetch payments error:", err);
     res.status(500).json({ error: err.message });
   }
 });

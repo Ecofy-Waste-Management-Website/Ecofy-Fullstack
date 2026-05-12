@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 
@@ -7,14 +7,16 @@ import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
 import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
 import Blogs from './Components/Main/Blogs/blogs';
-import Dashboard from './Components/Screens/Dashboard'; 
+import BlogDetail from './Components/Main/Blogs/BlogDetail';
+import DashboardRouter from './Components/Screens/DashboardRouter'; 
 import AdminDashboard from './Components/Admin/adminDashboard';
 import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
+import ContactUs from './Components/Main/Contact/Contact';
 import ProfileSettings from "./Components/Screens/ProfileSettings";
-
+import About from './Components/Main/About/About';
 
 
 // Auth Components
@@ -22,7 +24,10 @@ import RoleRedirect from "./Components/Auth/RoleRedirect";
 import ProtectedRoute from './Components/Auth/ProtectedRoute';
 import ProtectedStaffRoute from './Components/Auth/ProtectedStaffRoute';
 
-// ✅ Fix: Moved outside of the App component
+// Chatbot
+import ChatbotWidget from './Components/Chatbot/ChatbotWidget';
+
+
 const PrivateRoute = ({ children }) => (
   <>
     <SignedIn>{children}</SignedIn>
@@ -33,7 +38,10 @@ const PrivateRoute = ({ children }) => (
 );
 
 export default function App() {
+  const [chatbotBookingOpen, setChatbotBookingOpen] = useState(false);
+
   return (
+    <>
     <Routes>
 
       {/* Home */}
@@ -51,6 +59,9 @@ export default function App() {
         </>
       } />
 
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<ContactUs />} />
+
       {/* Redirect after login */}
       <Route path="/redirect" element={
         <PrivateRoute>
@@ -66,16 +77,30 @@ export default function App() {
           <Footer />
         </>
       } />
-
+<Route path="/blogs/:id" element={
+        <>
+          <Navbar />
+          <BlogDetail />
+          <Footer />
+        </>
+      } />
       {/* User Dashboard */}
       <Route path="/dashboard" element={
         <PrivateRoute>
-          <Dashboard />
+          <DashboardRouter />
         </PrivateRoute>
       } />
 
       {/* Admin Dashboard */}
       <Route path="/admin-dashboard" element={
+        <PrivateRoute>
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        </PrivateRoute>
+      } />
+
+      <Route path="/admin" element={
         <PrivateRoute>
           <ProtectedRoute allowedRoles={["Admin"]}>
             <AdminDashboard />
@@ -119,11 +144,19 @@ export default function App() {
         </PrivateRoute>
       } />
 
-
+      {/* Profile Settings */}
       <Route path="/profile-settings" element={<ProfileSettings />} />
 
-        
+      {/* Contact */}
+      <Route path="/contact" element={<><Navbar /><ContactUs /><Footer /></>} />
+
+      {/* About */}
+      <Route path="/about" element={ <><Navbar /> <About /> <Footer /></>} />
 
     </Routes>
+
+    {/* Global AI Chatbot Widget */}
+    <ChatbotWidget onOpenBooking={() => setChatbotBookingOpen(true)} />
+    </>
   );
 }
