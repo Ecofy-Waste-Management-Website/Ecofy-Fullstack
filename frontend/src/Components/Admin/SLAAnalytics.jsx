@@ -74,12 +74,12 @@ export default function SLAAnalytics() {
         </article>
         <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
           <p className="text-sm font-medium text-slate-500">Completion Rate</p>
-          <p className="text-2xl font-bold mt-1 mb-1 text-emerald-500">{overview.completionRate}%</p>
+          <p className="text-2xl font-bold mt-1 mb-1 text-green-500">{overview.completionRate}%</p>
           <p className="text-xs text-slate-400">{overview.completed} of {overview.total} completed</p>
         </article>
         <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
           <p className="text-sm font-medium text-slate-500">On-Time Rate</p>
-          <p className="text-2xl font-bold mt-1 mb-1 text-emerald-500">{overview.onTimeRate}%</p>
+          <p className="text-2xl font-bold mt-1 mb-1 text-green-500">{overview.onTimeRate}%</p>
           <p className="text-xs text-slate-400">Completed without delays</p>
         </article>
         <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
@@ -215,7 +215,7 @@ export default function SLAAnalytics() {
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                        loc.completionRate >= 80 ? "bg-emerald-100 text-emerald-700" :
+                        loc.completionRate >= 80 ? "bg-green-100 text-green-700" :
                         loc.completionRate >= 50 ? "bg-amber-100 text-amber-700" :
                         "bg-red-100 text-red-700"
                       }`}>

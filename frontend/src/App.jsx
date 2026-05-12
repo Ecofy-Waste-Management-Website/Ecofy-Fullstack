@@ -54,7 +54,6 @@ export default function App() {
           <SignedOut>
             <Navbar />
             <Hero />
-            <Footer />
           </SignedOut>
         </>
       } />

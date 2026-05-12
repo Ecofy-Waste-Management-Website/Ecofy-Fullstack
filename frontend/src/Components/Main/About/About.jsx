@@ -79,13 +79,13 @@ function MilestoneCard({ item, index }) {
         ${isRight ? 'flex-row' : 'flex-row-reverse text-right'}
         ${vis ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
     >
-      <div className="flex-shrink-0 w-12 h-12 rounded-full border-2 border-green-500
+      <div className="flex-shrink-0 w-12 h-12 rounded-full border-2 border-[#66c45e]
           bg-green-50 flex items-center justify-center text-xl z-10
           hover:scale-110 transition-all duration-300">
         {item.icon}
       </div>
       <div className="max-w-[280px]">
-        <p className="text-[0.65rem] tracking-[0.2em] uppercase text-green-600 font-medium mb-1">{item.phase}</p>
+        <p className="text-[0.65rem] tracking-[0.2em] uppercase text-[#66c45e] font-medium mb-1">{item.phase}</p>
         <h4 className="text-base font-semibold text-gray-800 mb-1">{item.title}</h4>
         <p className="text-sm leading-relaxed text-gray-500">{item.desc}</p>
       </div>
@@ -97,7 +97,7 @@ function TreeLabel({ label, desc, cls }) {
   return (
     <div className={`absolute ${cls} bg-white border border-green-200
         shadow-sm px-3 py-2 max-w-[160px] rounded-lg animate-fadeLabel`}>
-      <h4 className="text-[0.75rem] font-semibold text-green-700 mb-1">{label}</h4>
+      <h4 className="text-[0.75rem] font-semibold text-[#397239] mb-1">{label}</h4>
       <p className="text-[0.68rem] leading-relaxed text-gray-500">{desc}</p>
     </div>
   );
@@ -180,7 +180,7 @@ export default function About() {
       {/* ══════════════════════════════
           HERO — matches Contact hero style
       ══════════════════════════════ */}
-      <div className="bg-green-600 text-white py-16 px-4">
+      <div className="bg-[#66c45e] text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl font-bold mb-4">About Ecofy</h1>
           <p className="text-xl text-green-100">
@@ -200,9 +200,9 @@ export default function About() {
             ${vmVis ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
 
           {/* Vision */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border-t-4 border-green-500">
+          <div className="bg-white rounded-2xl shadow-sm p-6 border-t-4 border-[#66c45e]">
             <span className="text-3xl mb-4 block">🌿</span>
-            <h3 className="text-lg font-bold text-green-700 mb-3">Our Vision</h3>
+            <h3 className="text-lg font-bold text-[#397239] mb-3">Our Vision</h3>
             <p className="text-sm leading-relaxed text-gray-600 mb-3">
               To become Sri Lanka's leading digital waste management platform — a future where
               every pickup is on time, every complaint is heard, and every community lives
@@ -270,13 +270,13 @@ export default function About() {
                       ${m.side === 'right' ? 'left-[55%] flex-row' : 'right-[55%] flex-row-reverse text-right'}
                       transition-all duration-700
                       ${journeyVis ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-                    <div className="flex-shrink-0 w-11 h-11 rounded-full border-2 border-green-500
+                    <div className="flex-shrink-0 w-11 h-11 rounded-full border-2 border-[#66c45e]
                         bg-green-50 flex items-center justify-center text-lg z-10
                         hover:scale-110 transition-all duration-300">
                       {m.icon}
                     </div>
                     <div className="max-w-[240px] bg-white rounded-xl shadow-sm p-3 border border-gray-100">
-                      <p className="text-[0.62rem] tracking-[0.18em] uppercase text-green-600 font-medium mb-1">{m.phase}</p>
+                      <p className="text-[0.62rem] tracking-[0.18em] uppercase text-[#66c45e] font-medium mb-1">{m.phase}</p>
                       <h4 className="text-sm font-semibold text-gray-800 mb-1">{m.title}</h4>
                       <p className="text-xs leading-relaxed text-gray-500">{m.desc}</p>
                     </div>

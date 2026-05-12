@@ -113,13 +113,13 @@ const DashboardHome = () => (
     {/* Stats Grid - Compact */}
     <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {stats.map((stat) => (
-        <article key={stat.label} className="flex items-center gap-3 rounded-2xl border border-emerald-200/60 bg-white/40 backdrop-blur-md p-3 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-white/60">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-700">
+        <article key={stat.label} className="flex items-center gap-3 rounded-2xl border border-green-200/60 bg-white/40 backdrop-blur-md p-3 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-white/60">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-green-100 text-green-700">
             {stat.icon}
           </div>
           <div className="min-w-0">
-            <p className="m-0 truncate text-[0.75rem] font-medium text-emerald-800/70">{stat.label}</p>
-            <h3 className="m-0 truncate text-lg font-bold text-emerald-900 leading-tight">{stat.value}</h3>
+            <p className="m-0 truncate text-[0.75rem] font-medium text-green-800/70">{stat.label}</p>
+            <h3 className="m-0 truncate text-lg font-bold text-green-900 leading-tight">{stat.value}</h3>
           </div>
         </article>
       ))}
@@ -139,8 +139,8 @@ const DashboardHome = () => (
             <div className="relative h-24 overflow-hidden rounded-xl border border-gray-50 bg-gray-50/50 p-2">
               <div className="absolute inset-0 flex items-end px-1 gap-1">
                  {[40, 70, 45, 90, 65, 80, 55].map((h, i) => (
-                   <div key={i} className="flex-1 bg-emerald-500/20 rounded-t-sm relative group cursor-pointer" style={{ height: `${h}%` }}>
-                     <div className="absolute inset-0 bg-emerald-500 rounded-t-sm opacity-60 group-hover:opacity-100 transition-opacity" />
+                   <div key={i} className="flex-1 bg-green-500/20 rounded-t-sm relative group cursor-pointer" style={{ height: `${h}%` }}>
+                     <div className="absolute inset-0 bg-green-500 rounded-t-sm opacity-60 group-hover:opacity-100 transition-opacity" />
                    </div>
                  ))}
               </div>
@@ -155,8 +155,8 @@ const DashboardHome = () => (
               </div>
             </div>
             <div className="flex justify-center gap-4 text-[0.7rem] font-semibold text-gray-600">
-              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Household</span>
-              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-800" /> Industrial</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-green-500" /> Household</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-green-800" /> Industrial</span>
             </div>
           </div>
         </div>
@@ -187,13 +187,13 @@ const DashboardHome = () => (
                     <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.65rem] font-bold ${
                       row.status === "Pending" ? "bg-amber-100 text-amber-700" :
                       row.status === "In-Progress" ? "bg-blue-100 text-blue-700" :
-                      "bg-emerald-100 text-emerald-700"
+                      "bg-green-100 text-green-700"
                     }`}>
                       {row.status}
                     </span>
                   </td>
                   <td className="p-3">
-                    <button className="rounded-lg bg-emerald-600 px-2.5 py-1 text-[0.7rem] font-bold text-white hover:bg-emerald-700 transition-all">Assign</button>
+                    <button className="rounded-lg bg-green-600 px-2.5 py-1 text-[0.7rem] font-bold text-white hover:bg-green-700 transition-all">Assign</button>
                   </td>
                 </tr>
               ))}
@@ -299,11 +299,11 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="h-screen w-screen font-sans text-gray-900 bg-emerald-50/50 p-4 lg:p-3 overflow-hidden">
+    <div className="h-screen w-screen font-sans text-gray-900 bg-green-50/50 p-4 lg:p-3 overflow-hidden">
       <div className="flex h-full w-full gap-3">
         
         {/* Sidebar - Fixed Height to Fill */}
-        <aside className="hidden lg:flex flex-col gap-4 bg-emerald-900/40 backdrop-blur-xl border border-white/10 p-5 text-white w-[240px] shrink-0 rounded-3xl shadow-xl overflow-hidden h-full">
+        <aside className="hidden lg:flex flex-col gap-4 bg-green-900/40 backdrop-blur-xl border border-white/10 p-5 text-white w-[240px] shrink-0 rounded-3xl shadow-xl overflow-hidden h-full">
           <div className="flex items-center gap-3 pb-2">
             <h1 className="m-0 text-2xl font-bold tracking-tight">Ecofy</h1>
           </div>
@@ -314,8 +314,8 @@ export default function AdminDashboard() {
                 <button
                   className={`flex justify-between items-center text-left text-sm font-semibold px-4 py-3 rounded-xl transition-all ${
                     activeTab === item.key && !item.hasSubmenu 
-                      ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/20" 
-                      : "text-emerald-100 hover:bg-white/10"
+                      ? "bg-green-600 text-white shadow-md shadow-green-900/20" 
+                      : "text-green-100 hover:bg-white/10"
                   }`}
                   onClick={() => item.hasSubmenu ? toggleSubmenu(item.key) : handleSelectTab(item.key)}
                 >
@@ -334,8 +334,8 @@ export default function AdminDashboard() {
                         key={sub.key}
                         className={`text-left text-[0.8rem] px-4 py-2 rounded-lg transition-colors ${
                           activeTab === sub.key 
-                            ? "bg-emerald-600/60 text-white font-medium" 
-                            : "text-emerald-100/70 hover:text-white hover:bg-white/5"
+                            ? "bg-green-600/60 text-white font-medium" 
+                            : "text-green-100/70 hover:text-white hover:bg-white/5"
                         }`}
                         onClick={() => handleSelectTab(sub.key)}
                       >
@@ -349,9 +349,9 @@ export default function AdminDashboard() {
           </nav>
 
           <div className="mt-auto flex items-center gap-3 rounded-2xl bg-white/10 p-3 text-white border border-white/5 backdrop-blur-sm shrink-0">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-700 text-xs font-bold text-white shadow-inner">{adminInitials}</div>
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-green-700 text-xs font-bold text-white shadow-inner">{adminInitials}</div>
             <div className="min-w-0">
-              <p className="m-0 text-[0.65rem] font-bold uppercase tracking-wider text-emerald-300/80">Admin</p>
+              <p className="m-0 text-[0.65rem] font-bold uppercase tracking-wider text-green-300/80">Admin</p>
               <p className="m-0 text-xs font-bold truncate">{adminName}</p>
               <button className="mt-0.5 cursor-pointer border-none bg-transparent p-0 text-[0.65rem] font-bold text-white/60 hover:text-white hover:underline transition-all" onClick={() => setShowLogoutModal(true)}>Logout</button>
             </div>
@@ -362,7 +362,7 @@ export default function AdminDashboard() {
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
           {/* Header - Fixed Height */}
           <header className="mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
-            <h2 className="m-0 text-2xl font-bold tracking-tight text-emerald-900 truncate">
+            <h2 className="m-0 text-2xl font-bold tracking-tight text-green-900 truncate">
               {getPageTitle()}
             </h2>
             <div className="flex items-center gap-3">
@@ -370,13 +370,13 @@ export default function AdminDashboard() {
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                   <Icons.Search />
                 </span>
-                <input type="text" className="w-full rounded-2xl border border-emerald-100 bg-white/60 p-[8px_12px_8px_38px] text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-900/5 placeholder:text-gray-400" placeholder="Search..." />
+                <input type="text" className="w-full rounded-2xl border border-green-100 bg-white/60 p-[8px_12px_8px_38px] text-sm outline-none transition-all focus:border-green-500 focus:bg-white focus:shadow-lg focus:shadow-green-900/5 placeholder:text-gray-400" placeholder="Search..." />
               </div>
               <NotificationBell target="admin" />
                 
-              <div className="rounded-xl border border-emerald-100 bg-white/60 px-3 py-1.5 text-xs font-bold text-emerald-900 backdrop-blur-sm">Admin</div>
+              <div className="rounded-xl border border-green-100 bg-white/60 px-3 py-1.5 text-xs font-bold text-green-900 backdrop-blur-sm">Admin</div>
               {!roleLoading && role === "Admin" && (
-                <button onClick={handleSwitchDashboard} className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-emerald-700 shadow-md shadow-emerald-900/10">Switch to Staff</button>
+                <button onClick={handleSwitchDashboard} className="rounded-xl bg-green-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-green-700 shadow-md shadow-green-900/10">Switch to Staff</button>
               )}
             </div>
           </header>
@@ -385,7 +385,7 @@ export default function AdminDashboard() {
           <main className="flex-1 overflow-y-auto no-scrollbar lg:pr-1">
             <div className="h-full">
                {renderMainContent()}
-               <footer className="mt-4 text-[0.75rem] text-emerald-800/40 pb-4 text-center">&copy; 2026 Ecofy Waste Management</footer>
+               <footer className="mt-4 text-[0.75rem] text-green-800/40 pb-4 text-center">&copy; 2026 Ecofy Waste Management</footer>
             </div>
           </main>
         </div>
@@ -393,7 +393,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Mobile Elements - Omitted for brevity but kept functional */}
-      <div className="fixed top-0 left-0 right-0 z-30 border-b border-emerald-100/50 bg-emerald-900/95 px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">
+      <div className="fixed top-0 left-0 right-0 z-30 border-b border-green-100/50 bg-green-900/95 px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0"><h2 className="truncate text-base font-bold leading-tight">{getPageTitle()}</h2></div>
           <button onClick={handleToggleMobileMenu} className="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-white/10 text-white"><Icons.Menu /></button>
@@ -402,18 +402,18 @@ export default function AdminDashboard() {
       
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <button className="absolute inset-0 bg-emerald-950/40 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="absolute left-4 top-4 bottom-4 flex w-[86%] max-w-[300px] flex-col gap-4 overflow-y-auto bg-emerald-900/90 backdrop-blur-xl p-5 text-white shadow-2xl border border-white/10 rounded-3xl">
+          <button className="absolute inset-0 bg-green-950/40 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
+          <aside className="absolute left-4 top-4 bottom-4 flex w-[86%] max-w-[300px] flex-col gap-4 overflow-y-auto bg-green-900/90 backdrop-blur-xl p-5 text-white shadow-2xl border border-white/10 rounded-3xl">
             <div className="flex items-center justify-between gap-2 pb-2">
               <div className="flex items-center gap-3"><h1 className="m-0 text-lg font-bold">Ecofy</h1></div>
               <button onClick={() => setIsMobileMenuOpen(false)} className="text-white/60 text-xs font-bold">✕</button>
             </div>
             <nav className="flex flex-col gap-1">
               {menuItems.map((item) => (
-                <button key={item.key} onClick={() => handleSelectTab(item.key)} className={`text-left text-sm font-semibold px-4 py-2.5 rounded-xl transition-all ${activeTab === item.key ? "bg-emerald-600" : "hover:bg-white/10"}`}>{item.label}</button>
+                <button key={item.key} onClick={() => handleSelectTab(item.key)} className={`text-left text-sm font-semibold px-4 py-2.5 rounded-xl transition-all ${activeTab === item.key ? "bg-green-600" : "hover:bg-white/10"}`}>{item.label}</button>
               ))}
             </nav>
-            <button onClick={handleSwitchDashboard} className="mt-auto w-full rounded-xl bg-white py-2.5 text-xs font-bold text-emerald-900">Switch to Staff</button>
+            <button onClick={handleSwitchDashboard} className="mt-auto w-full rounded-xl bg-white py-2.5 text-xs font-bold text-green-900">Switch to Staff</button>
           </aside>
         </div>
       )}
@@ -421,7 +421,7 @@ export default function AdminDashboard() {
       {showLogoutModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-[360px] rounded-3xl bg-white p-6 text-center shadow-2xl">
-            <h3 className="mb-2 text-xl font-bold text-emerald-900">Sign Out?</h3>
+            <h3 className="mb-2 text-xl font-bold text-green-900">Sign Out?</h3>
             <p className="mb-6 text-sm text-gray-500">Are you sure you want to exit the Admin Portal?</p>
             <div className="flex gap-3">
               <button onClick={() => setShowLogoutModal(false)} className="flex-1 rounded-2xl bg-gray-100 py-3 text-sm font-bold text-gray-600">Cancel</button>

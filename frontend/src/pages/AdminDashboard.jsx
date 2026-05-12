@@ -60,7 +60,7 @@ const AdminDashboard = () => {
         
         {status.message && (
           <div className={`p-4 mb-6 rounded-md text-sm font-medium ${
-            status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+            status.type === 'success' ? 'bg-green-50 text-[#397239]' : 'bg-red-50 text-red-700'
           }`}>
             {status.message}
           </div>

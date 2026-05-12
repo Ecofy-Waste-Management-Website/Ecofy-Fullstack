@@ -259,7 +259,7 @@ export default function Staff_creation_test() {
         {/* Status Message Display */}
         {statusMessage && (
           <div className={`mb-6 rounded-xl border p-4 text-sm font-bold shadow-sm transition-all animate-in fade-in slide-in-from-top-1 ${
-            statusMessage.includes('Success') ? 'border-green-100 bg-green-50 text-green-700' : 
+            statusMessage.includes('Success') ? 'border-green-100 bg-green-50 text-[#397239]' : 
             statusMessage === 'Creating account...' ? 'border-blue-100 bg-blue-50 text-blue-700' : 
             'border-red-100 bg-red-50 text-red-700'
           }`}>
@@ -394,11 +394,11 @@ export default function Staff_creation_test() {
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
                             (staff.displayStatus || (staff.status === 'Activate' ? 'Active' : 'Inactive')) === 'Active'
-                              ? 'bg-emerald-50 text-emerald-700'
+                              ? 'bg-green-50 text-green-700'
                               : 'bg-rose-50 text-rose-700'
                           }`}
                         >
-                          <span className={`h-1.5 w-1.5 rounded-full ${ (staff.displayStatus || (staff.status === 'Activate' ? 'Active' : 'Inactive')) === 'Active' ? 'bg-emerald-500' : 'bg-rose-500' }`} />
+                          <span className={`h-1.5 w-1.5 rounded-full ${ (staff.displayStatus || (staff.status === 'Activate' ? 'Active' : 'Inactive')) === 'Active' ? 'bg-green-500' : 'bg-rose-500' }`} />
                           {staff.displayStatus || (staff.status === 'Activate' ? 'Active' : 'Inactive')}
                         </span>
                       </td>

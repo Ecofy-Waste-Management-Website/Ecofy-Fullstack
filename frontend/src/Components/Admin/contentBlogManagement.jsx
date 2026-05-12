@@ -46,7 +46,7 @@ const previewByThumbnail = {
 const thumbnailStyles = {
   bottle: "bg-blue-100 text-blue-600",
   cleanup: "bg-amber-100 text-amber-600",
-  compost: "bg-green-100 text-green-600",
+  compost: "bg-green-100 text-[#66c45e]",
 };
 
 export default function ContentBlogManagement() {
@@ -218,7 +218,7 @@ export default function ContentBlogManagement() {
                 <div className="mt-auto flex items-center justify-between">
                   <div className="flex items-center gap-3 text-xs">
                     <span className={`rounded-full px-2.5 py-0.5 font-bold ${
-                        post.status === "Published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                        post.status === "Published" ? "bg-green-100 text-[#397239]" : "bg-gray-100 text-gray-600"
                       }`}
                     >
                       {post.status}
@@ -254,7 +254,7 @@ export default function ContentBlogManagement() {
                         e.stopPropagation();
                         handlePublishPost(post.id);
                       }}
-                      className="rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700 transition-colors hover:bg-green-100"
+                      className="rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-bold text-[#397239] transition-colors hover:bg-green-100"
                     >
                       Publish
                     </button>

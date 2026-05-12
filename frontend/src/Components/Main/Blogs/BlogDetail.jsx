@@ -17,12 +17,12 @@ export default function BlogDetail() {
   return (
     <main className="bg-white min-h-screen">
       <article className="mx-auto max-w-3xl px-4 py-20">
-        <Link to="/blogs" className="text-green-700 font-bold mb-8 inline-block hover:underline">
+        <Link to="/blogs" className="text-[#397239] font-bold mb-8 inline-block hover:underline">
           ← Back to Articles
         </Link>
         
         <header className="mb-10">
-          <div className="text-xs font-semibold uppercase tracking-widest text-green-700 mb-2">
+          <div className="text-xs font-semibold uppercase tracking-widest text-[#397239] mb-2">
             {article.category}
           </div>
           <h1 className="text-4xl font-extrabold text-[#0f1d33] mb-4">{article.title}</h1>

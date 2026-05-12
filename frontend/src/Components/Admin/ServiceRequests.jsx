@@ -67,7 +67,7 @@ function statusTailwind(s) {
     Pending:      "bg-yellow-100 text-yellow-800",
     Assigned:     "bg-blue-100 text-blue-800",
     "In Progress":"bg-purple-100 text-purple-800",
-    Completed:    "bg-green-100 text-green-800",
+    Completed:    "bg-green-100 text-[#397239]",
     Delayed:      "bg-red-100 text-red-800",
   }[s] || "bg-gray-100 text-gray-800";
 }
@@ -88,7 +88,7 @@ function KPIGrid({ stats }) {
     { label: "Total Requests", value: stats.total,      colorText: "text-blue-600",   colorBg: "bg-blue-50",   icon: <Icons.Total />, sub: "All service requests" },
     { label: "Pending",        value: stats.pending,    colorText: "text-yellow-600", colorBg: "bg-yellow-50", icon: <Icons.Pending />, sub: "Awaiting assignment" },
     { label: "In Progress",    value: stats.inProgress, colorText: "text-purple-600", colorBg: "bg-purple-50", icon: <Icons.InProgress />, sub: "Currently active" },
-    { label: "Completed",      value: stats.completed,  colorText: "text-green-600",  colorBg: "bg-green-50",  icon: <Icons.Completed />, sub: "Successfully closed" },
+    { label: "Completed",      value: stats.completed,  colorText: "text-[#66c45e]",  colorBg: "bg-green-50",  icon: <Icons.Completed />, sub: "Successfully closed" },
     { label: "Delayed",        value: stats.delayed,    colorText: "text-red-600",    colorBg: "bg-red-50",    icon: <Icons.Delayed />, sub: "Requires attention" },
   ];
 
@@ -314,10 +314,10 @@ export default function ServiceRequests() {
       {/* Page header */}
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <p className="text-sm text-gray-500 m-0">Monitor, filter and manage all active waste pickup requests</p>
-        <div className="flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-700">
+        <div className="flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-[#397239]">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#66c45e] opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#66c45e]"></span>
           </span>
           Live Updates
         </div>
