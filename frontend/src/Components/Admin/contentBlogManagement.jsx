@@ -131,47 +131,47 @@ export default function ContentBlogManagement() {
   };
 
   return (
-    <section className="w-full font-sans text-[#0f1d33]">
+    <section className="w-full font-sans text-white">
       
       {/* Top Controls */}
-      <div className="mb-6 flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-wrap items-end gap-4">
+      <div className="mb-6 flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end rounded-2xl border border-white/20 bg-white/10 backdrop-blur-[50px] p-6 shadow-xl">
+        <div className="flex flex-wrap items-end gap-6">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-600">Search</label>
+            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Search Content</label>
             <input
               type="text"
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
-              placeholder="Search posts or authors..."
-              className="w-full sm:w-64 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+              placeholder="Titles or authors..."
+              className="w-full sm:w-64 rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:border-[#66c45e] transition-all placeholder:text-white/20"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-600">Category</label>
+            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Filter Category</label>
             <select
               value={selectedCategory}
               onChange={(event) => setSelectedCategory(event.target.value)}
-              className="rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+              className="rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:border-[#66c45e] transition-all cursor-pointer"
             >
               {categories.map((category) => (
-                <option key={category} value={category}>{category}</option>
+                <option key={category} value={category} className="bg-[#244c21]">{category}</option>
               ))}
             </select>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-600">Status</label>
-            <div className="flex overflow-hidden rounded-lg border border-gray-300 bg-gray-50">
+            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Post Status</label>
+            <div className="flex overflow-hidden rounded-xl border border-white/10 bg-black/20 p-1">
               {["All", "Published", "Draft"].map((status) => (
                 <button
                   key={status}
                   type="button"
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg ${
                     selectedStatus === status
-                      ? "bg-[#0f5cbd] text-white"
-                      : "text-gray-700 hover:bg-gray-200"
-                  } ${status !== "All" ? "border-l border-gray-300" : ""}`}
+                      ? "bg-[#66c45e] text-[#051F10] shadow-lg"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  }`}
                   onClick={() => setSelectedStatus(status)}
                 >
                   {status}
@@ -184,7 +184,7 @@ export default function ContentBlogManagement() {
         <button
           type="button"
           onClick={handleCreateNewPost}
-          className="flex items-center gap-2 whitespace-nowrap rounded-lg bg-[#0f5cbd] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0b4899] focus:outline-none focus:ring-2 focus:ring-[#0f5cbd]/40 focus:ring-offset-1"
+          className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-[#66c45e] px-6 py-3 text-sm font-extrabold text-[#051F10] transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-[#66c45e]/20"
         >
           <Icons.Plus /> Create New Post
         </button>
@@ -193,53 +193,58 @@ export default function ContentBlogManagement() {
       <div className="flex flex-col gap-6 lg:flex-row items-start">
         
         {/* Post List */}
-        <section className="flex w-full flex-col gap-3 lg:w-1/3" aria-label="Blog posts list">
+        <section className="flex w-full flex-col gap-4 lg:w-1/3" aria-label="Blog posts list">
           {filteredPosts.map((post) => (
             <article
               key={post.id}
-              className={`flex flex-col gap-4 rounded-xl border bg-white p-4 shadow-sm transition-all hover:shadow-md sm:flex-row cursor-pointer ${
-                editingPostId === post.id ? "border-[#0f5cbd] ring-1 ring-[#0f5cbd]" : "border-gray-200"
+              className={`flex flex-col gap-5 rounded-2xl border transition-all cursor-pointer group backdrop-blur-[50px] p-5 ${
+                editingPostId === post.id 
+                  ? "bg-white/10 border-[#66c45e] shadow-xl shadow-[#66c45e]/5" 
+                  : "bg-white/5 border-white/10 hover:border-white/30"
               }`}
               onClick={() => setEditingPostId(post.id)}
             >
-              <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-lg ${thumbnailStyles[post.thumbnail]}`}>
-                {previewByThumbnail[post.thumbnail]}
-              </div>
-
-              <div className="flex flex-1 flex-col">
-                <h4 className="mb-1 text-base font-bold text-[#0f1d33] leading-tight">
-                  {post.title}
-                </h4>
-                <p className="mb-3 flex justify-between text-xs text-gray-500">
-                  <span>{post.category}</span>
-                  <span className="font-medium">{post.author}</span>
-                </p>
-                
-                <div className="mt-auto flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-xs">
-                    <span className={`rounded-full px-2.5 py-0.5 font-bold ${
-                        post.status === "Published" ? "bg-green-100 text-[#397239]" : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {post.status}
-                    </span>
-                    <span className="flex items-center gap-1 text-gray-500 font-medium"><Icons.Comments /> {post.comments}</span>
+              <div className="flex gap-4">
+                <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white/10 border border-white/10 shadow-inner`}>
+                  <div className={thumbnailStyles[post.thumbnail].split(' ')[1]}>
+                    {previewByThumbnail[post.thumbnail]}
                   </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="mt-3 flex gap-2 border-t border-gray-100 pt-3">
+                <div className="flex flex-1 flex-col">
+                  <h4 className="mb-1 text-base font-extrabold text-white leading-tight group-hover:text-[#66c45e] transition-colors">
+                    {post.title}
+                  </h4>
+                  <p className="flex justify-between text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                    <span>{post.category}</span>
+                    <span className="text-[#66c45e]">{post.author}</span>
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between mt-1">
+                <div className="flex items-center gap-4">
+                  <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest ${
+                      post.status === "Published" ? "bg-green-400/20 text-green-400" : "bg-white/10 text-white/40"
+                    }`}
+                  >
+                    {post.status}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-white/30 uppercase"><Icons.Comments /> {post.comments}</span>
+                </div>
+                
+                <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setEditingPostId(post.id); }}
-                    className="rounded-md border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs font-bold text-gray-700 transition-colors hover:bg-gray-200"
+                    className="rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-[10px] font-bold text-white uppercase tracking-widest hover:bg-white/10 transition-all"
                   >
                     Edit
                   </button>
                   {post.status === "Published" ? (
                     <button
                       type="button"
-                      className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
+                      className="rounded-lg bg-red-400/10 border border-red-400/20 px-3 py-1.5 text-[10px] font-bold text-red-400 uppercase tracking-widest hover:bg-red-400/20 transition-all"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeletePost(post.id);
@@ -254,7 +259,7 @@ export default function ContentBlogManagement() {
                         e.stopPropagation();
                         handlePublishPost(post.id);
                       }}
-                      className="rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-bold text-[#397239] transition-colors hover:bg-green-100"
+                      className="rounded-lg bg-[#66c45e]/10 border border-[#66c45e]/20 px-3 py-1.5 text-[10px] font-bold text-[#66c45e] uppercase tracking-widest hover:bg-[#66c45e]/20 transition-all"
                     >
                       Publish
                     </button>
@@ -265,8 +270,8 @@ export default function ContentBlogManagement() {
           ))}
           
           {filteredPosts.length === 0 && (
-            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
-              No posts found matching your filters.
+            <div className="rounded-2xl border-2 border-dashed border-white/10 bg-white/5 p-10 text-center text-white/20 font-bold uppercase tracking-widest text-xs">
+              No matching content found
             </div>
           )}
         </section>
@@ -274,118 +279,121 @@ export default function ContentBlogManagement() {
         {/* Editor Aside */}
         <aside className="w-full lg:w-2/3 lg:sticky lg:top-4">
           {editingPost ? (
-            <div className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 p-4">
-                <h4 className="text-lg font-bold text-[#0f1d33]">
-                  Edit Post: <span className="font-medium text-gray-600">{editingPost.title}</span>
+            <div className="flex flex-col overflow-hidden rounded-3xl border border-white/20 bg-white/10 backdrop-blur-[50px] shadow-2xl">
+              <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-6 py-4">
+                <h4 className="text-lg font-extrabold text-white">
+                  Editor: <span className="text-[#66c45e]">{editingPost.title}</span>
                 </h4>
                 <button
                   type="button"
-                  onClick={() => setEditingPostId(null)} // Added functionality to close editor
-                  className="grid h-8 w-8 place-items-center rounded-md text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 focus:outline-none"
-                  aria-label="Close editor"
+                  onClick={() => setEditingPostId(null)}
+                  className="grid h-8 w-8 place-items-center rounded-xl bg-white/5 text-white/40 transition-all hover:bg-white/10 hover:text-white"
                 >
                   <Icons.Close />
                 </button>
               </div>
 
-              <div className="flex flex-col gap-6 p-6 lg:flex-row">
+              <div className="flex flex-col gap-8 p-8 lg:flex-row">
                 {/* Text Editor Area */}
-                <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-gray-300">
-                  <div className="flex gap-2 border-b border-gray-300 bg-gray-50 p-2">
+                <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/20 shadow-inner">
+                  <div className="flex gap-2 border-b border-white/10 bg-white/5 p-3">
                     {["B", "I", "List", "Link"].map((tool) => (
                       <button
                         key={tool}
-                        className="rounded border border-gray-300 bg-white px-3 py-1 text-sm font-bold text-gray-700 hover:bg-gray-100"
+                        className="rounded-lg border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-bold text-white/60 hover:bg-white/10 hover:text-white transition-all uppercase tracking-widest"
                       >
                         {tool}
                       </button>
                     ))}
                   </div>
                   <textarea
-                    className="min-h-87.5 w-full resize-y p-4 text-sm text-gray-800 outline-none"
+                    className="min-h-[400px] w-full resize-y bg-transparent p-6 text-sm text-white/90 outline-none placeholder:text-white/20 leading-relaxed"
                     value={editingPost.excerpt || ""}
+                    placeholder="Start writing your article content here..."
                     onChange={(event) => updateEditingPostField("excerpt", event.target.value)}
                   />
                 </div>
 
                 {/* Sidebar Settings */}
-                <div className="flex w-full shrink-0 flex-col gap-4 lg:w-64">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">Post Title</label>
-                    <input
-                      type="text"
-                      value={editingPost.title}
-                      onChange={(event) => updateEditingPostField("title", event.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">Category</label>
-                    <select
-                      value={editingPost.category}
-                      onChange={(event) => updateEditingPostField("category", event.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
-                    >
-                      {categories.filter((c) => c !== "All").map((category) => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">Author</label>
-                    <input
-                      type="text"
-                      value={editingPost.author}
-                      onChange={(event) => updateEditingPostField("author", event.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">Tags</label>
-                    <input
-                      type="text"
-                      value={editingPost.tags || "#eco #community"}
-                      onChange={(event) => updateEditingPostField("tags", event.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">Featured Image</label>
-                    <button
-                      type="button"
-                      className="mt-1 w-full rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-6 text-sm font-bold text-[#0f5cbd] transition-colors hover:border-[#0f5cbd] hover:bg-blue-50"
-                    >
-                      + Upload Image
-                    </button>
+                <div className="flex w-full shrink-0 flex-col gap-6 lg:w-72">
+                  <div className="space-y-5">
+                    <div>
+                      <label className="mb-1.5 block text-[10px] font-bold text-white/40 uppercase tracking-widest">Article Title</label>
+                      <input
+                        type="text"
+                        value={editingPost.title}
+                        onChange={(event) => updateEditingPostField("title", event.target.value)}
+                        className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:border-[#66c45e] transition-all"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="mb-1.5 block text-[10px] font-bold text-white/40 uppercase tracking-widest">Category</label>
+                      <select
+                        value={editingPost.category}
+                        onChange={(event) => updateEditingPostField("category", event.target.value)}
+                        className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:border-[#66c45e] transition-all cursor-pointer"
+                      >
+                        {categories.filter((c) => c !== "All").map((category) => (
+                          <option key={category} value={category} className="bg-[#244c21]">{category}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="mb-1.5 block text-[10px] font-bold text-white/40 uppercase tracking-widest">Author Name</label>
+                      <input
+                        type="text"
+                        value={editingPost.author}
+                        onChange={(event) => updateEditingPostField("author", event.target.value)}
+                        className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:border-[#66c45e] transition-all"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="mb-1.5 block text-[10px] font-bold text-white/40 uppercase tracking-widest">Keywords / Tags</label>
+                      <input
+                        type="text"
+                        value={editingPost.tags || "#eco #community"}
+                        onChange={(event) => updateEditingPostField("tags", event.target.value)}
+                        className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-[#66c45e] font-mono outline-none focus:border-[#66c45e] transition-all"
+                      />
+                    </div>
+                    
+                    <div className="pt-2">
+                      <label className="mb-1.5 block text-[10px] font-bold text-white/40 uppercase tracking-widest">Cover Image</label>
+                      <button
+                        type="button"
+                        className="w-full rounded-2xl border-2 border-dashed border-white/10 bg-white/5 py-10 text-[10px] font-extrabold text-[#66c45e] transition-all hover:border-[#66c45e] hover:bg-[#66c45e]/5 uppercase tracking-widest"
+                      >
+                        + Upload Image
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-4">
+              <div className="flex justify-end gap-4 border-t border-white/10 bg-white/5 px-8 py-6">
                 <button
                   type="button"
                   onClick={() => handleSaveDraft(editingPost.id)}
-                  className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-100"
+                  className="rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-xs font-extrabold text-white uppercase tracking-widest hover:bg-white/10 transition-all"
                 >
                   Save as Draft
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePublishPost(editingPost.id)}
-                  className="rounded-lg bg-[#0f5cbd] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#0b4899]"
+                  className="rounded-xl bg-[#66c45e] px-8 py-3 text-xs font-extrabold text-[#051F10] shadow-lg shadow-[#66c45e]/20 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
                 >
                   Publish Now
                 </button>
               </div>
             </div>
           ) : (
-            <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white text-gray-500 shadow-sm">
-              <p>Select a post from the list to start editing.</p>
+            <div className="flex h-96 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-white/10 bg-white/5 text-white/20 shadow-2xl">
+              <Icons.Plus />
+              <p className="mt-4 font-bold uppercase tracking-widest text-[10px]">Select a post to edit</p>
             </div>
           )}
         </aside>
