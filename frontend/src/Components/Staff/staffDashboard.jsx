@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
+import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -330,14 +331,7 @@ export default function StaffDashboard() {
                 </span>
                 <input type="text" className="w-full rounded-2xl border border-emerald-100 bg-white/60 p-[8px_12px_8px_38px] text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-900/5 placeholder:text-gray-400" placeholder="Search tasks..." />
               </div>
-              <div className="relative cursor-pointer" onClick={() => setActiveTab('pending')}>
-                <div className={`grid h-9 w-9 place-items-center rounded-full border transition-all shadow-sm ${activeTab === 'pending' ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white border-emerald-100 text-emerald-600 hover:bg-emerald-50'}`}>
-                  <Icons.Bell />
-                </div>
-                {pendingTasks.length > 0 && (
-                  <div className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white shadow-sm">{pendingTasks.length}</div>
-                )}
-              </div>
+              <NotificationBell target="staff" />
               <div className="rounded-xl border border-emerald-100 bg-white/60 px-3 py-1.5 text-xs font-bold text-emerald-900 backdrop-blur-sm">Staff</div>
               {!roleLoading && role === 'Admin' && (
                 <button onClick={handleSwitchDashboard} className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-emerald-700 shadow-md shadow-emerald-900/10">Switch to Admin</button>

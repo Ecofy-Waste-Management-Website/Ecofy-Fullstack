@@ -8,6 +8,7 @@ import ServiceRequests from "./ServiceRequests";
 import ContentBlogManagement from "./contentBlogManagement";
 import StaffAccountCreation from "./StaffAccountCreation";
 import InquiryManagement from "./InquiryManagement";
+import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
 // Assuming you have UserManagement, otherwise this is a placeholder
 // import UserManagement from "./UserManagement"; 
 
@@ -371,12 +372,8 @@ export default function AdminDashboard() {
                 </span>
                 <input type="text" className="w-full rounded-2xl border border-emerald-100 bg-white/60 p-[8px_12px_8px_38px] text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-900/5 placeholder:text-gray-400" placeholder="Search..." />
               </div>
-              <div className="relative cursor-pointer">
-                <div className="grid h-9 w-9 place-items-center rounded-full bg-white border border-emerald-100 text-emerald-600 hover:bg-emerald-50 transition-colors shadow-sm">
-                  <Icons.Bell />
-                </div>
-                <div className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white shadow-sm">7</div>
-              </div>
+              <NotificationBell target="admin" />
+                
               <div className="rounded-xl border border-emerald-100 bg-white/60 px-3 py-1.5 text-xs font-bold text-emerald-900 backdrop-blur-sm">Admin</div>
               {!roleLoading && role === "Admin" && (
                 <button onClick={handleSwitchDashboard} className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-emerald-700 shadow-md shadow-emerald-900/10">Switch to Staff</button>

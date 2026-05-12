@@ -7,6 +7,7 @@ import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
 import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
 import Blogs from './Components/Main/Blogs/blogs';
+import BlogDetail from './Components/Main/Blogs/BlogDetail';
 import DashboardRouter from './Components/Screens/DashboardRouter'; 
 import AdminDashboard from './Components/Admin/adminDashboard';
 import ServiceHistory from './Components/Screens/ServiceHistory';
@@ -76,7 +77,13 @@ export default function App() {
           <Footer />
         </>
       } />
-
+<Route path="/blogs/:id" element={
+        <>
+          <Navbar />
+          <BlogDetail />
+          <Footer />
+        </>
+      } />
       {/* User Dashboard */}
       <Route path="/dashboard" element={
         <PrivateRoute>

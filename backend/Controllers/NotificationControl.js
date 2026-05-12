@@ -4,7 +4,9 @@ const Notification = require("../Model/NotificationModel");
 const getNotifications = async (req, res) => {
   try {
     const { clerkId } = req.params;
-    const records = await Notification.find({ clerkId })
+    const { target } = req.query;
+    const filter = { clerkId, ...(target ? { target } : {}) };
+    const records = await Notification.find(filter)
       .sort({ createdAt: -1 })
       .select("-__v");
 
