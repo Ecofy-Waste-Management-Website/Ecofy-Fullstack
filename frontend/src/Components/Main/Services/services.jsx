@@ -101,7 +101,7 @@ function ServiceCard({ service, index, onBookNow }) {
       <div className={`absolute -inset-0.5 bg-gradient-to-r ${service.gradient} rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500 group-hover:duration-200`}></div>
       
       {/* Card content */}
-      <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden transform transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+      <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden transform transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 h-full flex flex-col">
         {/* Animated wave background */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
           <svg className="absolute bottom-0 w-full h-32" preserveAspectRatio="none" viewBox="0 0 1440 320">
@@ -136,7 +136,7 @@ function ServiceCard({ service, index, onBookNow }) {
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 flex flex-col flex-grow">
           <h3 className="text-2xl font-black text-[#244c21] mb-2">{service.name}</h3>
           <p className="text-gray-600 text-sm leading-relaxed mb-4">{service.description}</p>
           
@@ -152,7 +152,7 @@ function ServiceCard({ service, index, onBookNow }) {
           </div>
 
           {/* Price section */}
-          <div className="border-t border-gray-100 pt-4 mb-4">
+          <div className="border-t border-gray-100 pt-4 mb-4 mt-auto">
             <div className="flex items-baseline justify-between">
               <div>
                 <span className="text-3xl font-black text-[#244c21]">{service.price}</span>
@@ -463,6 +463,58 @@ function AIChatbot({ isOpen, onClose }) {
   );
 }
 
+// Counter Component for stats
+function AnimatedCounter({ target, suffix = '', prefix = '' }) {
+  const [count, setCount] = useState(0);
+  const counterRef = useRef(null);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasAnimated) {
+            setHasAnimated(true);
+            let start = 0;
+            const end = target;
+            const duration = 2000; // 2 seconds
+            const increment = end / (duration / 16); // 60fps
+            
+            const timer = setInterval(() => {
+              start += increment;
+              if (start >= end) {
+                setCount(end);
+                clearInterval(timer);
+              } else {
+                setCount(Math.floor(start));
+              }
+            }, 16);
+            
+            return () => clearInterval(timer);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    
+    if (counterRef.current) {
+      observer.observe(counterRef.current);
+    }
+    
+    return () => {
+      if (counterRef.current) {
+        observer.unobserve(counterRef.current);
+      }
+    };
+  }, [target, hasAnimated]);
+  
+  return (
+    <span ref={counterRef}>
+      {prefix}{count}{suffix}
+    </span>
+  );
+}
+
 export default function Services() {
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -470,6 +522,7 @@ export default function Services() {
   const [recentBookings, setRecentBookings] = useState([]);
   const heroRef = useRef(null);
   const statsRef = useRef(null);
+  const [countersStarted, setCountersStarted] = useState(false);
 
   useEffect(() => {
     // Hero animations
@@ -485,29 +538,6 @@ export default function Services() {
       { opacity: 0, scale: 0.8 },
       { opacity: 1, scale: 1, duration: 0.8, delay: 0.4, stagger: 0.1, ease: "back.out(1.2)" }
     );
-
-    // Stats counter animation
-    const counters = document.querySelectorAll('.stat-number');
-    counters.forEach(counter => {
-      const updateCount = () => {
-        const target = parseInt(counter.getAttribute('data-target'));
-        const count = parseInt(counter.innerText);
-        const increment = target / 50;
-        if (count < target) {
-          counter.innerText = Math.ceil(count + increment);
-          setTimeout(updateCount, 20);
-        } else {
-          counter.innerText = target;
-        }
-      };
-      
-      ScrollTrigger.create({
-        trigger: statsRef.current,
-        start: "top 80%",
-        onEnter: () => updateCount(),
-        once: true
-      });
-    });
   }, []);
 
   const handleBookNow = (service) => {
@@ -633,11 +663,7 @@ export default function Services() {
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 py-20 md:py-28 text-center">
-          <div className="hero-title inline-block mb-4">
-            <span className="bg-white/10 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-semibold tracking-wider">
-              ✨ OUR SERVICES
-            </span>
-          </div>
+          
           <h1 className="hero-title text-5xl md:text-7xl font-black text-white mb-6 tracking-tighter glow-text">
             Waste Collection
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-200">
@@ -648,18 +674,23 @@ export default function Services() {
             Book, track, and manage your waste collection with Sri Lanka's most trusted platform
           </p>
 
-          {/* Stats */}
+          {/* Stats with Animated Counters */}
           <div ref={statsRef} className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
             {[
-              { icon: '🗑️', label: 'Waste Collected', target: 1250, suffix: 'tons' },
+              { icon: '🗑️', label: 'Waste Collected', target: 1250, suffix: ' tons' },
               { icon: '✅', label: 'Happy Customers', target: 5000, suffix: '+' },
               { icon: '🚛', label: 'Pickups Completed', target: 15000, suffix: '+' },
-              { icon: '⭐', label: 'Customer Rating', target: 48, prefix: '4.', suffix: '/5' }
+              { icon: '⭐', label: 'Customer Rating', target: 4, prefix: '4.', suffix: '/5' }
             ].map((stat, idx) => (
-              <div key={idx} className="hero-stats bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+              <div key={idx} className="hero-stats bg-white/10 backdrop-blur-sm rounded-2xl p-4 transform hover:scale-105 transition-transform duration-300">
                 <div className="text-3xl mb-2">{stat.icon}</div>
                 <div className="text-2xl md:text-3xl font-black text-white">
-                  {stat.prefix}<span className="stat-number" data-target={stat.target}>0</span>{stat.suffix}
+                  {stat.prefix}
+                  <AnimatedCounter 
+                    target={stat.target} 
+                    suffix={stat.suffix || ''}
+                    prefix={stat.prefix || ''}
+                  />
                 </div>
                 <div className="text-sm text-green-100 font-medium">{stat.label}</div>
               </div>
@@ -755,8 +786,6 @@ export default function Services() {
           </div>
         </div>
       </div>
-
-     
 
       {/* Modals */}
       <BookingModal
