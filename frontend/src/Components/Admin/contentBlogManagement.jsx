@@ -131,46 +131,46 @@ export default function ContentBlogManagement() {
   };
 
   return (
-    <section className="w-full font-sans text-white">
+    <section className="w-full font-sans text-[#244c21]">
       
       {/* Top Controls */}
-      <div className="mb-6 flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end rounded-2xl border border-white/20 bg-white/10 backdrop-blur-[50px] p-6 shadow-xl">
+      <div className="mb-6 flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 shadow-sm">
         <div className="flex flex-wrap items-end gap-6">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Search Content</label>
+            <label className="text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Search Content</label>
             <input
               type="text"
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
               placeholder="Titles or authors..."
-              className="w-full sm:w-64 rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:border-[#66c45e] transition-all placeholder:text-white/20"
+              className="w-full sm:w-64 rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all placeholder:text-[#397239]/20"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Filter Category</label>
+            <label className="text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Filter Category</label>
             <select
               value={selectedCategory}
               onChange={(event) => setSelectedCategory(event.target.value)}
-              className="rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:border-[#66c45e] transition-all cursor-pointer"
+              className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all cursor-pointer font-bold"
             >
               {categories.map((category) => (
-                <option key={category} value={category} className="bg-[#244c21]">{category}</option>
+                <option key={category} value={category} className="bg-white">{category}</option>
               ))}
             </select>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Post Status</label>
-            <div className="flex overflow-hidden rounded-xl border border-white/10 bg-black/20 p-1">
+            <label className="text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Post Status</label>
+            <div className="flex overflow-hidden rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-1">
               {["All", "Published", "Draft"].map((status) => (
                 <button
                   key={status}
                   type="button"
                   className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg ${
                     selectedStatus === status
-                      ? "bg-[#66c45e] text-[#051F10] shadow-lg"
-                      : "text-white/60 hover:text-white hover:bg-white/5"
+                      ? "bg-[#397239] text-white shadow-md"
+                      : "text-[#397239]/70 hover:text-[#397239] hover:bg-[#112A0F]/5"
                   }`}
                   onClick={() => setSelectedStatus(status)}
                 >
@@ -184,7 +184,7 @@ export default function ContentBlogManagement() {
         <button
           type="button"
           onClick={handleCreateNewPost}
-          className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-[#66c45e] px-6 py-3 text-sm font-extrabold text-[#051F10] transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-[#66c45e]/20"
+          className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-[#397239] px-6 py-3 text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-95 shadow-md"
         >
           <Icons.Plus /> Create New Post
         </button>
@@ -197,27 +197,27 @@ export default function ContentBlogManagement() {
           {filteredPosts.map((post) => (
             <article
               key={post.id}
-              className={`flex flex-col gap-5 rounded-2xl border transition-all cursor-pointer group backdrop-blur-[50px] p-5 ${
+              className={`flex flex-col gap-5 rounded-2xl border transition-all cursor-pointer group backdrop-blur-[40px] p-5 ${
                 editingPostId === post.id 
-                  ? "bg-white/10 border-[#66c45e] shadow-xl shadow-[#66c45e]/5" 
-                  : "bg-white/5 border-white/10 hover:border-white/30"
+                  ? "bg-white border-[#397239] shadow-md shadow-[#397239]/5" 
+                  : "bg-[#D6E9CA]/50 border-[#397234]/20 hover:border-[#397239]/30"
               }`}
               onClick={() => setEditingPostId(post.id)}
             >
               <div className="flex gap-4">
-                <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white/10 border border-white/10 shadow-inner`}>
-                  <div className={thumbnailStyles[post.thumbnail].split(' ')[1]}>
+                <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-[#397234]/10 border border-[#397234]/20 shadow-inner`}>
+                  <div className={thumbnailStyles[post.thumbnail].split(' ')[1].replace('text-[#66c45e]', 'text-[#397239]')}>
                     {previewByThumbnail[post.thumbnail]}
                   </div>
                 </div>
 
                 <div className="flex flex-1 flex-col">
-                  <h4 className="mb-1 text-base font-extrabold text-white leading-tight group-hover:text-[#66c45e] transition-colors">
+                  <h4 className="mb-1 text-base font-black text-[#244c21] leading-tight group-hover:text-[#397239] transition-colors">
                     {post.title}
                   </h4>
-                  <p className="flex justify-between text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                  <p className="flex justify-between text-[10px] font-bold text-[#397239]/80 uppercase tracking-widest">
                     <span>{post.category}</span>
-                    <span className="text-[#66c45e]">{post.author}</span>
+                    <span className="text-[#397239]">{post.author}</span>
                   </p>
                 </div>
               </div>
@@ -225,19 +225,19 @@ export default function ContentBlogManagement() {
               <div className="flex items-center justify-between mt-1">
                 <div className="flex items-center gap-4">
                   <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest ${
-                      post.status === "Published" ? "bg-green-400/20 text-green-400" : "bg-white/10 text-white/40"
+                      post.status === "Published" ? "bg-green-100 text-[#397239]" : "bg-[#112A0F]/10 text-[#397239]/80"
                     }`}
                   >
                     {post.status}
                   </span>
-                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-white/30 uppercase"><Icons.Comments /> {post.comments}</span>
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#397239]/60 uppercase"><Icons.Comments /> {post.comments}</span>
                 </div>
                 
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setEditingPostId(post.id); }}
-                    className="rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-[10px] font-bold text-white uppercase tracking-widest hover:bg-white/10 transition-all"
+                    className="rounded-lg bg-[#112A0F]/5 border border-[#112A0F]/10 px-3 py-1.5 text-[10px] font-bold text-[#397239] uppercase tracking-widest hover:bg-[#112A0F]/10 transition-all"
                   >
                     Edit
                   </button>
@@ -259,7 +259,7 @@ export default function ContentBlogManagement() {
                         e.stopPropagation();
                         handlePublishPost(post.id);
                       }}
-                      className="rounded-lg bg-[#66c45e]/10 border border-[#66c45e]/20 px-3 py-1.5 text-[10px] font-bold text-[#66c45e] uppercase tracking-widest hover:bg-[#66c45e]/20 transition-all"
+                      className="rounded-lg bg-[#397239] px-3 py-1.5 text-[10px] font-bold text-white uppercase tracking-widest hover:bg-[#244c21] transition-all"
                     >
                       Publish
                     </button>
@@ -270,7 +270,7 @@ export default function ContentBlogManagement() {
           ))}
           
           {filteredPosts.length === 0 && (
-            <div className="rounded-2xl border-2 border-dashed border-white/10 bg-white/5 p-10 text-center text-white/20 font-bold uppercase tracking-widest text-xs">
+            <div className="rounded-2xl border-2 border-dashed border-[#397234]/10 bg-[#D6E9CA]/50 p-10 text-center text-[#397239]/20 font-bold uppercase tracking-widest text-xs">
               No matching content found
             </div>
           )}
@@ -279,15 +279,15 @@ export default function ContentBlogManagement() {
         {/* Editor Aside */}
         <aside className="w-full lg:w-2/3 lg:sticky lg:top-4">
           {editingPost ? (
-            <div className="flex flex-col overflow-hidden rounded-3xl border border-white/20 bg-white/10 backdrop-blur-[50px] shadow-2xl">
-              <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-6 py-4">
-                <h4 className="text-lg font-extrabold text-white">
-                  Editor: <span className="text-[#66c45e]">{editingPost.title}</span>
+            <div className="flex flex-col overflow-hidden rounded-3xl border border-[#397234]/20 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-[#397234]/10 bg-[#D6E9CA]/50 px-6 py-4">
+                <h4 className="text-lg font-black text-[#244c21]">
+                  Editor: <span className="text-[#397239]">{editingPost.title}</span>
                 </h4>
                 <button
                   type="button"
                   onClick={() => setEditingPostId(null)}
-                  className="grid h-8 w-8 place-items-center rounded-xl bg-white/5 text-white/40 transition-all hover:bg-white/10 hover:text-white"
+                  className="grid h-8 w-8 place-items-center rounded-xl bg-[#112A0F]/5 text-[#397239] transition-all hover:bg-[#112A0F]/10"
                 >
                   <Icons.Close />
                 </button>
@@ -295,19 +295,19 @@ export default function ContentBlogManagement() {
 
               <div className="flex flex-col gap-8 p-8 lg:flex-row">
                 {/* Text Editor Area */}
-                <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/20 shadow-inner">
-                  <div className="flex gap-2 border-b border-white/10 bg-white/5 p-3">
+                <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-[#397234]/10 bg-[#D6E9CA]/50 shadow-inner">
+                  <div className="flex gap-2 border-b border-[#397234]/10 bg-[#D6E9CA]/50 p-3">
                     {["B", "I", "List", "Link"].map((tool) => (
                       <button
                         key={tool}
-                        className="rounded-lg border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-bold text-white/60 hover:bg-white/10 hover:text-white transition-all uppercase tracking-widest"
+                        className="rounded-lg border border-[#112A0F]/10 bg-white px-4 py-1.5 text-[10px] font-bold text-[#397239]/80 hover:bg-[#112A0F]/10 hover:text-[#397239] transition-all uppercase tracking-widest"
                       >
                         {tool}
                       </button>
                     ))}
                   </div>
                   <textarea
-                    className="min-h-[400px] w-full resize-y bg-transparent p-6 text-sm text-white/90 outline-none placeholder:text-white/20 leading-relaxed"
+                    className="min-h-[400px] w-full resize-y bg-transparent p-6 text-sm text-[#244c21] font-medium outline-none placeholder:text-[#397239]/20 leading-relaxed"
                     value={editingPost.excerpt || ""}
                     placeholder="Start writing your article content here..."
                     onChange={(event) => updateEditingPostField("excerpt", event.target.value)}
@@ -318,53 +318,53 @@ export default function ContentBlogManagement() {
                 <div className="flex w-full shrink-0 flex-col gap-6 lg:w-72">
                   <div className="space-y-5">
                     <div>
-                      <label className="mb-1.5 block text-[10px] font-bold text-white/40 uppercase tracking-widest">Article Title</label>
+                      <label className="mb-1.5 block text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Article Title</label>
                       <input
                         type="text"
                         value={editingPost.title}
                         onChange={(event) => updateEditingPostField("title", event.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:border-[#66c45e] transition-all"
+                        className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm text-[#244c21] font-medium outline-none focus:border-[#397239] transition-all"
                       />
                     </div>
                     
                     <div>
-                      <label className="mb-1.5 block text-[10px] font-bold text-white/40 uppercase tracking-widest">Category</label>
+                      <label className="mb-1.5 block text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Category</label>
                       <select
                         value={editingPost.category}
                         onChange={(event) => updateEditingPostField("category", event.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:border-[#66c45e] transition-all cursor-pointer"
+                        className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm text-[#244c21] font-bold outline-none focus:border-[#397239] transition-all cursor-pointer"
                       >
                         {categories.filter((c) => c !== "All").map((category) => (
-                          <option key={category} value={category} className="bg-[#244c21]">{category}</option>
+                          <option key={category} value={category} className="bg-white">{category}</option>
                         ))}
                       </select>
                     </div>
                     
                     <div>
-                      <label className="mb-1.5 block text-[10px] font-bold text-white/40 uppercase tracking-widest">Author Name</label>
+                      <label className="mb-1.5 block text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Author Name</label>
                       <input
                         type="text"
                         value={editingPost.author}
                         onChange={(event) => updateEditingPostField("author", event.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:border-[#66c45e] transition-all"
+                        className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm text-[#244c21] font-medium outline-none focus:border-[#397239] transition-all"
                       />
                     </div>
                     
                     <div>
-                      <label className="mb-1.5 block text-[10px] font-bold text-white/40 uppercase tracking-widest">Keywords / Tags</label>
+                      <label className="mb-1.5 block text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Keywords / Tags</label>
                       <input
                         type="text"
                         value={editingPost.tags || "#eco #community"}
                         onChange={(event) => updateEditingPostField("tags", event.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-[#66c45e] font-mono outline-none focus:border-[#66c45e] transition-all"
+                        className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm text-[#397239] font-mono font-bold outline-none focus:border-[#397239] transition-all"
                       />
                     </div>
                     
                     <div className="pt-2">
-                      <label className="mb-1.5 block text-[10px] font-bold text-white/40 uppercase tracking-widest">Cover Image</label>
+                      <label className="mb-1.5 block text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Cover Image</label>
                       <button
                         type="button"
-                        className="w-full rounded-2xl border-2 border-dashed border-white/10 bg-white/5 py-10 text-[10px] font-extrabold text-[#66c45e] transition-all hover:border-[#66c45e] hover:bg-[#66c45e]/5 uppercase tracking-widest"
+                        className="w-full rounded-2xl border-2 border-dashed border-[#397234]/10 bg-[#D6E9CA]/50 py-10 text-[10px] font-black text-[#397239] transition-all hover:border-[#397239] hover:bg-[#D6E9CA]/60 uppercase tracking-widest"
                       >
                         + Upload Image
                       </button>
@@ -373,25 +373,25 @@ export default function ContentBlogManagement() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-4 border-t border-white/10 bg-white/5 px-8 py-6">
+              <div className="flex justify-end gap-4 border-t border-[#397234]/10 bg-[#D6E9CA]/50 px-8 py-6">
                 <button
                   type="button"
                   onClick={() => handleSaveDraft(editingPost.id)}
-                  className="rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-xs font-extrabold text-white uppercase tracking-widest hover:bg-white/10 transition-all"
+                  className="rounded-xl border border-[#112A0F]/10 bg-white px-6 py-3 text-xs font-black text-[#397239] uppercase tracking-widest hover:bg-[#112A0F]/5 transition-all shadow-sm"
                 >
                   Save as Draft
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePublishPost(editingPost.id)}
-                  className="rounded-xl bg-[#66c45e] px-8 py-3 text-xs font-extrabold text-[#051F10] shadow-lg shadow-[#66c45e]/20 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
+                  className="rounded-xl bg-[#397239] px-8 py-3 text-xs font-black text-white shadow-md transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
                 >
                   Publish Now
                 </button>
               </div>
             </div>
           ) : (
-            <div className="flex h-96 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-white/10 bg-white/5 text-white/20 shadow-2xl">
+            <div className="flex h-96 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-[#397234]/10 bg-[#D6E9CA]/50 text-[#397239]/20 shadow-sm">
               <Icons.Plus />
               <p className="mt-4 font-bold uppercase tracking-widest text-[10px]">Select a post to edit</p>
             </div>

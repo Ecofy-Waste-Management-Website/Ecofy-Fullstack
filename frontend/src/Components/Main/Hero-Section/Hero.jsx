@@ -14,34 +14,49 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Hero() {
   React.useEffect(() => {
-    // Ensure ScrollTrigger recalculates positions after all panels are rendered
-    ScrollTrigger.refresh();
+    // Delay refresh so all panels and fonts are fully rendered before GSAP measures them
+    const timeout = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 100);
+    return () => clearTimeout(timeout);
   }, []);
 
   return (
     <main className="w-full bg-[#244c21]">
       {/* Panel 1: Hero */}
-      <ScrollPanel offset={0} bgColor="bg-[#244c21]" zIndex={10}>
+      <ScrollPanel offset={0} bgColor="bg-[#397234]" zIndex={10}>
         <HeroPanel />
       </ScrollPanel>
 
       {/* Panel 2: Features */}
-      <ScrollPanel offset={40} bgColor="bg-[#244c21]" zIndex={20}>
+      <ScrollPanel offset={40} bgColor="bg-[#D6E9CA]" zIndex={20}>
         <FeaturesPanel />
       </ScrollPanel>
 
       {/* Panel 3: Steps */}
-      <ScrollPanel offset={80} bgColor="bg-[#397239]" zIndex={30}>
+      <ScrollPanel offset={80} bgColor="bg-[#397234]" zIndex={30}>
         <StepsPanel />
       </ScrollPanel>
 
       {/* Panel 4: Impact */}
-      <ScrollPanel offset={120} bgColor="bg-[#397239]" zIndex={40}>
+      <ScrollPanel offset={120} bgColor="bg-[#D6E9CA]" zIndex={40}>
         <ImpactPanel />
       </ScrollPanel>
 
       {/* Final Combined Frame: Testimonials + CTA + Footer */}
-      <section className="relative w-full z-[60] bg-[#66c45e] rounded-t-[3rem] -mt-10 overflow-hidden shadow-[0_-20px_50px_rgba(0,0,0,0.2)]">
+      {/* isLast=true disables GSAP scale/parallax on this section, preventing animation overlap glitch */}
+      <div
+        className="relative w-full z-[60]"
+        style={{
+          borderRadius: '3rem 3rem 0 0',
+          overflow: 'hidden',
+          boxShadow: '0 -20px 80px rgba(0,0,0,0.3)',
+          backgroundColor: '#397234',
+          isolation: 'isolate',
+          willChange: 'auto',
+          transform: 'translateZ(0)',
+        }}
+      >
         {/* Testimonials Part */}
         <div className="py-24 px-6 lg:px-16">
           <TestimonialsPanel />
@@ -62,7 +77,7 @@ export default function Hero() {
         {/* Decorative elements */}
         <Leaf className="absolute top-40 right-10 text-white/5 w-64 h-64 rotate-45 pointer-events-none" />
         <Leaf className="absolute bottom-96 left-10 text-white/5 w-48 h-48 -rotate-45 pointer-events-none" />
-      </section>
+      </div>
     </main>
   );
 }

@@ -20,12 +20,12 @@ const StepsPanel = () => {
           { icon: Leaf, step: "04", title: "We Impact", desc: "You contribute to a greener future." }
         ].map((step, i) => (
           <div key={i} className="flex flex-col items-center group">
-            <div className="w-24 h-24 rounded-full bg-[#397239] flex items-center justify-center text-[#66c45e] border-4 border-[#244c21] shadow-2xl mb-6 group-hover:scale-110 transition-transform">
+            <div className="w-24 h-24 rounded-full bg-[#244c21] flex items-center justify-center text-[#66c45e] border-4 border-white/10 shadow-2xl mb-6 group-hover:scale-110 transition-transform">
               <step.icon className="w-10 h-10" />
             </div>
             <div className="text-[#66c45e] font-bold mb-2">{step.step}</div>
             <h4 className="font-bold text-xl text-white mb-3">{step.title}</h4>
-            <p className="text-gray-400 text-sm leading-relaxed max-w-[200px]">{step.desc}</p>
+            <p className="text-white/60 text-sm font-medium leading-relaxed max-w-[200px]">{step.desc}</p>
           </div>
         ))}
       </div>

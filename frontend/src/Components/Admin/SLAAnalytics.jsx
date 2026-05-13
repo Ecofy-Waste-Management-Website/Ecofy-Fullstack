@@ -74,20 +74,20 @@ export default function SLAAnalytics() {
           { label: "Avg Response", val: `${overview.avgResponseDays}d`, color: "text-blue-400", sub: "Scheduled time" },
           { label: "Delayed", val: overview.delayed, color: "text-red-400", sub: `${overview.delayRate}% rate` }
         ].map((card, i) => (
-          <article key={i} className="bg-white/10 backdrop-blur-[50px] p-5 rounded-2xl shadow-xl border border-white/20">
-            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{card.label}</p>
-            <p className={`text-3xl font-extrabold mt-1 ${card.color}`}>{card.val}</p>
-            <p className="text-[9px] text-white/20 uppercase font-bold mt-1">{card.sub}</p>
+          <article key={i} className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-5 rounded-2xl shadow-sm border border-[#397234]/20">
+            <p className="text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest">{card.label}</p>
+            <p className={`text-3xl font-extrabold mt-1 ${card.color.replace('text-green-400', 'text-[#397239]').replace('text-blue-400', 'text-blue-600').replace('text-red-400', 'text-red-600')}`}>{card.val}</p>
+            <p className="text-[9px] text-[#397239]/40 uppercase font-bold mt-1">{card.sub}</p>
           </article>
         ))}
       </section>
 
       {/* ── Charts Row ───────────────────────────────── */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <article className="bg-white/10 backdrop-blur-[50px] p-6 rounded-3xl shadow-xl border border-white/20 lg:col-span-2">
+        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20 lg:col-span-2">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-white">Pickup Completion vs Target</h3>
-            <span className="px-3 py-1 bg-white/5 text-white/60 text-[10px] font-bold uppercase tracking-widest rounded-full border border-white/10">SLA Trends</span>
+            <h3 className="text-lg font-bold text-[#244c21]">Pickup Completion vs Target</h3>
+            <span className="px-3 py-1 bg-[#D6E9CA]/50 text-[#397239] text-[10px] font-bold uppercase tracking-widest rounded-full border border-[#397234]/10">SLA Trends</span>
           </div>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -103,8 +103,8 @@ export default function SLAAnalytics() {
           </div>
         </article>
 
-        <article className="bg-white/10 backdrop-blur-[50px] p-6 rounded-3xl shadow-xl border border-white/20">
-          <h3 className="text-lg font-bold text-white mb-6">Status Distribution</h3>
+        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
+          <h3 className="text-lg font-bold text-[#244c21] mb-6">Status Distribution</h3>
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -117,8 +117,8 @@ export default function SLAAnalytics() {
           </div>
         </article>
 
-        <article className="bg-white/10 backdrop-blur-[50px] p-6 rounded-3xl shadow-xl border border-white/20">
-          <h3 className="text-lg font-bold text-white mb-6">Waste Categories</h3>
+        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
+          <h3 className="text-lg font-bold text-[#244c21] mb-6">Waste Categories</h3>
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -134,11 +134,11 @@ export default function SLAAnalytics() {
 
       {/* ── Bottom Row ───────────────────────────────── */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <article className="bg-white/10 backdrop-blur-[50px] p-6 rounded-3xl shadow-xl border border-white/20">
-          <h3 className="text-lg font-bold text-white mb-6">Location Performance</h3>
-          <div className="overflow-x-auto rounded-2xl bg-black/10 border border-white/5">
-            <table className="w-full text-left text-xs text-white/70">
-              <thead className="bg-white/5 uppercase tracking-widest text-[9px] font-bold text-white/40">
+        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
+          <h3 className="text-lg font-bold text-[#244c21] mb-6">Location Performance</h3>
+          <div className="overflow-x-auto rounded-2xl bg-[#D6E9CA]/50 border border-[#397234]/10">
+            <table className="w-full text-left text-xs text-[#244c21]">
+              <thead className="bg-[#112A0F]/5 uppercase tracking-widest text-[9px] font-bold text-[#397239]">
                 <tr><th className="p-4">Location</th><th className="p-4">Total</th><th className="p-4">Done</th><th className="p-4">SLA</th></tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -157,8 +157,8 @@ export default function SLAAnalytics() {
           </div>
         </article>
 
-        <article className="bg-white/10 backdrop-blur-[50px] p-6 rounded-3xl shadow-xl border border-white/20">
-          <h3 className="text-lg font-bold text-white mb-6">Service Analysis</h3>
+        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
+          <h3 className="text-lg font-bold text-[#244c21] mb-6">Service Analysis</h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={serviceTypeAnalysis}>
