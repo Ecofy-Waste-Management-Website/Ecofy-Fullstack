@@ -1,5 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Navbar from '../Top-Header-Section/navbar/navbar';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 
 /* ─────────────────────────────────────────
@@ -69,25 +73,43 @@ function useFadeIn(threshold = 0.15) {
    SUB-COMPONENTS
 ───────────────────────────────────────── */
 function MilestoneCard({ item, index }) {
-  const [ref, vis] = useFadeIn();
+  const ref = useRef(null);
   const isRight = item.side === 'right';
+
+  useEffect(() => {
+    const el = ref.current;
+    
+    // Animate the container
+    gsap.fromTo(el, 
+      { opacity: 0, y: 30, scale: 0.95 },
+      { 
+        opacity: 1, y: 0, scale: 1,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: el,
+          start: "top 85%",
+          toggleActions: "play none none reverse"
+        }
+      }
+    );
+  }, []);
+
   return (
     <div
       ref={ref}
-      style={{ transitionDelay: `${index * 100}ms` }}
-      className={`flex items-start gap-4 transition-all duration-700
-        ${isRight ? 'flex-row' : 'flex-row-reverse text-right'}
-        ${vis ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+      className={`flex items-start gap-4 
+        ${isRight ? 'flex-row' : 'flex-row-reverse text-right'}`}
     >
-      <div className="flex-shrink-0 w-12 h-12 rounded-full border-2 border-green-500
-          bg-green-50 flex items-center justify-center text-xl z-10
-          hover:scale-110 transition-all duration-300">
+      <div className="flex-shrink-0 w-12 h-12 rounded-full border-2 border-[#397234]
+          bg-[#D6E9CA] flex items-center justify-center text-xl z-10
+          hover:scale-110 transition-all duration-300 shadow-md">
         {item.icon}
       </div>
-      <div className="max-w-[280px]">
-        <p className="text-[0.65rem] tracking-[0.2em] uppercase text-green-600 font-medium mb-1">{item.phase}</p>
-        <h4 className="text-base font-semibold text-gray-800 mb-1">{item.title}</h4>
-        <p className="text-sm leading-relaxed text-gray-500">{item.desc}</p>
+      <div className="max-w-[280px] bg-[#D6E9CA] p-5 rounded-2xl border border-[#397234]/10 shadow-xl">
+        <p className="text-[0.65rem] tracking-[0.2em] uppercase text-[#397234] font-black mb-1">{item.phase}</p>
+        <h4 className="text-base font-black text-[#244c21] mb-1">{item.title}</h4>
+        <p className="text-sm leading-relaxed text-[#244c21]/80 font-bold">{item.desc}</p>
       </div>
     </div>
   );
@@ -95,10 +117,10 @@ function MilestoneCard({ item, index }) {
 
 function TreeLabel({ label, desc, cls }) {
   return (
-    <div className={`absolute ${cls} bg-white border border-green-200
-        shadow-sm px-3 py-2 max-w-[160px] rounded-lg animate-fadeLabel`}>
-      <h4 className="text-[0.75rem] font-semibold text-green-700 mb-1">{label}</h4>
-      <p className="text-[0.68rem] leading-relaxed text-gray-500">{desc}</p>
+    <div className={`absolute ${cls} bg-[#D6E9CA]/90 border border-[#397234]/20
+        shadow-xl px-3 py-2 max-w-[160px] rounded-lg animate-fadeLabel backdrop-blur-md`}>
+      <h4 className="text-[0.75rem] font-black text-[#244c21] mb-1">{label}</h4>
+      <p className="text-[0.68rem] leading-relaxed text-[#244c21]/70 font-bold">{desc}</p>
     </div>
   );
 }
@@ -110,9 +132,33 @@ export default function About() {
   const [vmRef, vmVis]         = useFadeIn();
   const [journeyRef, journeyVis] = useFadeIn();
   const [treeRef, treeVis]     = useFadeIn();
+  const journeyContainerRef = useRef(null);
+
+  useEffect(() => {
+    const cards = journeyContainerRef.current.querySelectorAll('.desktop-journey-card');
+    cards.forEach((card, i) => {
+      gsap.fromTo(card, 
+        { 
+          opacity: 0, 
+          x: card.classList.contains('left-side') ? 50 : -50,
+          scale: 0.8 
+        },
+        { 
+          opacity: 1, x: 0, scale: 1,
+          duration: 1,
+          ease: "back.out(1.2)",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 80%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+    });
+  }, []);
 
   return (
-    <div className="bg-gray-50 text-gray-800">
+    <div className="bg-[#244c21] text-[#244c21]">
 
       {/* ── KEYFRAMES ── */}
       <style>{`
@@ -178,12 +224,12 @@ export default function About() {
       <Navbar />
 
       {/* ══════════════════════════════
-          HERO — matches Contact hero style
+          HERO — matches Home hero style
       ══════════════════════════════ */}
-      <div className="bg-green-600 text-white py-16 px-4">
+      <div className="bg-[#397234] text-white py-24 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl font-bold mb-4">About Ecofy</h1>
-          <p className="text-xl text-green-100">
+          <h1 className="text-5xl font-black mb-4 tracking-tighter">About Ecofy</h1>
+          <p className="text-xl text-green-100 font-bold opacity-80">
             Sri Lanka's first fully integrated smart waste collection platform.
           </p>
         </div>
@@ -192,54 +238,56 @@ export default function About() {
       {/* ══════════════════════════════
           VISION & MISSION
       ══════════════════════════════ */}
-      <div ref={vmRef} className="max-w-4xl mx-auto px-4 py-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">Vision &amp; Mission</h2>
-        <p className="text-sm text-gray-500 text-center mb-8">What drives us</p>
+      <section className="bg-[#D6E9CA] py-20 px-4">
+        <div ref={vmRef} className="max-w-5xl mx-auto">
+          <h2 className="text-4xl font-black text-[#244c21] mb-2 text-center tracking-tight">Vision &amp; Mission</h2>
+          <p className="text-sm text-[#397234]/60 text-center mb-12 font-bold uppercase tracking-widest">What drives us</p>
 
-        <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 transition-all duration-700
-            ${vmVis ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 transition-all duration-700
+              ${vmVis ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
 
-          {/* Vision */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border-t-4 border-green-500">
-            <span className="text-3xl mb-4 block">🌿</span>
-            <h3 className="text-lg font-bold text-green-700 mb-3">Our Vision</h3>
-            <p className="text-sm leading-relaxed text-gray-600 mb-3">
-              To become Sri Lanka's leading digital waste management platform — a future where
-              every pickup is on time, every complaint is heard, and every community lives
-              cleaner through the power of smart technology.
-            </p>
-            <p className="text-sm leading-relaxed text-gray-600">
-              We envision a country where waste collection is no longer an afterthought,
-              but a transparent, data-driven public service that communities can depend on.
-            </p>
-          </div>
+            {/* Vision */}
+            <div className="bg-white/60 backdrop-blur-xl rounded-[2.5rem] shadow-2xl p-10 border border-white/20">
+              <span className="text-4xl mb-6 block">🌿</span>
+              <h3 className="text-2xl font-black text-[#244c21] mb-4">Our Vision</h3>
+              <p className="text-base leading-relaxed text-[#244c21]/80 mb-4 font-medium">
+                To become Sri Lanka's leading digital waste management platform — a future where
+                every pickup is on time, every complaint is heard, and every community lives
+                cleaner through the power of smart technology.
+              </p>
+              <p className="text-base leading-relaxed text-[#244c21]/80 font-medium">
+                We envision a country where waste collection is no longer an afterthought,
+                but a transparent, data-driven public service that communities can depend on.
+              </p>
+            </div>
 
-          {/* Mission */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border-t-4 border-yellow-400">
-            <span className="text-3xl mb-4 block">🎯</span>
-            <h3 className="text-lg font-bold text-yellow-600 mb-3">Our Mission</h3>
-            <p className="text-sm leading-relaxed text-gray-600 mb-3">
-              To design and deliver a smart, web-based waste management system that
-              digitalizes private waste collection — ensuring timely pickups, transparent
-              operations, and seamless communication between customers, staff, and administrators.
-            </p>
-            <p className="text-sm leading-relaxed text-gray-600">
-              We achieve this through real-time tracking, AI-powered support, SLA-driven
-              analytics, and a platform that scales with Sri Lanka's growing urban needs.
-            </p>
+            {/* Mission */}
+            <div className="bg-white/60 backdrop-blur-xl rounded-[2.5rem] shadow-2xl p-10 border border-white/20">
+              <span className="text-4xl mb-6 block">🎯</span>
+              <h3 className="text-2xl font-black text-[#244c21] mb-4">Our Mission</h3>
+              <p className="text-base leading-relaxed text-[#244c21]/80 mb-4 font-medium">
+                To design and deliver a smart, web-based waste management system that
+                digitalizes private waste collection — ensuring timely pickups, transparent
+                operations, and seamless communication between customers, staff, and administrators.
+              </p>
+              <p className="text-base leading-relaxed text-[#244c21]/80 font-medium">
+                We achieve this through real-time tracking, AI-powered support, SLA-driven
+                analytics, and a platform that scales with Sri Lanka's growing urban needs.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* ══════════════════════════════
           WINDING PATH TIMELINE
       ══════════════════════════════ */}
-      <div ref={journeyRef} className="bg-white py-12 px-4">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">Our Journey</h2>
-          <p className="text-sm text-gray-500 text-center mb-10">
-            From identifying a real urban problem in Sri Lanka to building a future-ready platform —
-            every step with purpose.
+      <section ref={journeyContainerRef} className="bg-[#397234] py-24 px-4 overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent pointer-events-none" />
+        <div className="max-w-5xl mx-auto relative z-10">
+          <h2 className="text-4xl font-black text-white mb-2 text-center tracking-tight">Our Journey</h2>
+          <p className="text-sm text-green-100/60 text-center mb-16 font-bold uppercase tracking-widest">
+            From identifying a real urban problem in Sri Lanka to building a future-ready platform
           </p>
 
           {/* Desktop: SVG path + floating cards */}
@@ -265,20 +313,18 @@ export default function About() {
                 const tops = ['2%', '17%', '34%', '51%', '68%', '84%'];
                 return (
                   <div key={i}
-                    style={{ top: tops[i], transitionDelay: `${i * 120}ms` }}
-                    className={`absolute flex items-start gap-4
-                      ${m.side === 'right' ? 'left-[55%] flex-row' : 'right-[55%] flex-row-reverse text-right'}
-                      transition-all duration-700
-                      ${journeyVis ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-                    <div className="flex-shrink-0 w-11 h-11 rounded-full border-2 border-green-500
-                        bg-green-50 flex items-center justify-center text-lg z-10
-                        hover:scale-110 transition-all duration-300">
+                    style={{ top: tops[i] }}
+                    className={`absolute flex items-start gap-4 desktop-journey-card
+                      ${m.side === 'right' ? 'left-[55%] flex-row left-side' : 'right-[55%] flex-row-reverse text-right right-side'}`}>
+                    <div className="flex-shrink-0 w-11 h-11 rounded-full border-2 border-[#D6E9CA]
+                        bg-[#D6E9CA] flex items-center justify-center text-lg z-10
+                        hover:scale-110 transition-all duration-300 shadow-[0_0_20px_rgba(214,233,202,0.3)]">
                       {m.icon}
                     </div>
-                    <div className="max-w-[240px] bg-white rounded-xl shadow-sm p-3 border border-gray-100">
-                      <p className="text-[0.62rem] tracking-[0.18em] uppercase text-green-600 font-medium mb-1">{m.phase}</p>
-                      <h4 className="text-sm font-semibold text-gray-800 mb-1">{m.title}</h4>
-                      <p className="text-xs leading-relaxed text-gray-500">{m.desc}</p>
+                    <div className="max-w-[240px] bg-[#D6E9CA] rounded-2xl shadow-2xl p-6 border border-[#397234]/10">
+                      <p className="text-[0.62rem] tracking-[0.18em] uppercase text-[#397234] font-black mb-1">{m.phase}</p>
+                      <h4 className="text-sm font-black text-[#244c21] mb-1">{m.title}</h4>
+                      <p className="text-xs leading-relaxed text-[#244c21]/60 font-bold">{m.desc}</p>
                     </div>
                   </div>
                 );
@@ -293,20 +339,20 @@ export default function About() {
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* ══════════════════════════════
           SEED TO TREE
       ══════════════════════════════ */}
-      <div ref={treeRef} className="max-w-4xl mx-auto px-4 py-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">How Ecofy Grew</h2>
-        <p className="text-sm text-gray-500 text-center mb-10">
-          Every great platform starts as a seed. Watch how Ecofy grew from a single problem
-          into a branching ecosystem of solutions.
-        </p>
+      <section ref={treeRef} className="bg-[#D6E9CA] py-24 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-4xl font-black text-[#244c21] mb-2 text-center tracking-tight">How Ecofy Grew</h2>
+          <p className="text-sm text-[#397234]/60 text-center mb-16 font-bold uppercase tracking-widest max-w-2xl mx-auto">
+            Watch how Ecofy grew from a single problem into a branching ecosystem of solutions.
+          </p>
 
-        <div className={`relative max-w-2xl mx-auto transition-all duration-1000
-            ${treeVis ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`relative max-w-2xl mx-auto transition-all duration-1000
+              ${treeVis ? 'opacity-100' : 'opacity-0'}`}>
 
           {/* tree SVG — unchanged */}
           <svg viewBox="0 0 800 700" className="w-full" xmlns="http://www.w3.org/2000/svg">
@@ -360,7 +406,8 @@ export default function About() {
             ))}
           </div>
         </div>
-      </div>
+        </div>
+      </section>
 
     </div>
   );

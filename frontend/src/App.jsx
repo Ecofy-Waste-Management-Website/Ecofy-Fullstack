@@ -17,7 +17,7 @@ import StaffDashboard from './Components/Staff/staffDashboard';
 import ContactUs from './Components/Main/Contact/Contact';
 import ProfileSettings from "./Components/Screens/ProfileSettings";
 import About from './Components/Main/About/About';
-
+import Services from './Components/Main/Services/services';
 
 // Auth Components
 import RoleRedirect from "./Components/Auth/RoleRedirect";
@@ -54,13 +54,10 @@ export default function App() {
           <SignedOut>
             <Navbar />
             <Hero />
-            <Footer />
           </SignedOut>
         </>
       } />
 
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<ContactUs />} />
 
       {/* Redirect after login */}
       <Route path="/redirect" element={
@@ -152,6 +149,8 @@ export default function App() {
 
       {/* About */}
       <Route path="/about" element={ <><Navbar /> <About /> <Footer /></>} />
+
+      <Route path="/services" element={ <><Navbar /> <Services /> <Footer /></> } />
 
     </Routes>
 

@@ -63,164 +63,92 @@ export default function SLAAnalytics() {
   const { overview, statusDistribution, dailyCompletion, wasteCategories, locationPerformance, serviceTypeAnalysis } = data;
 
   return (
-    <div className="p-4 md:p-6 space-y-6 bg-slate-50 min-h-screen">
+    <div className="space-y-6">
 
       {/* ── KPI Cards ────────────────────────────────── */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <p className="text-sm font-medium text-slate-500">Total Requests</p>
-          <p className="text-2xl font-bold mt-1 mb-1 text-blue-600">{overview.total}</p>
-          <p className="text-xs text-slate-400">All service requests</p>
-        </article>
-        <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <p className="text-sm font-medium text-slate-500">Completion Rate</p>
-          <p className="text-2xl font-bold mt-1 mb-1 text-emerald-500">{overview.completionRate}%</p>
-          <p className="text-xs text-slate-400">{overview.completed} of {overview.total} completed</p>
-        </article>
-        <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <p className="text-sm font-medium text-slate-500">On-Time Rate</p>
-          <p className="text-2xl font-bold mt-1 mb-1 text-emerald-500">{overview.onTimeRate}%</p>
-          <p className="text-xs text-slate-400">Completed without delays</p>
-        </article>
-        <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <p className="text-sm font-medium text-slate-500">Avg Response Time</p>
-          <p className="text-2xl font-bold mt-1 mb-1 text-purple-600">{overview.avgResponseDays} days</p>
-          <p className="text-xs text-slate-400">Request to scheduled date</p>
-        </article>
-        <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <p className="text-sm font-medium text-slate-500">Delayed Requests</p>
-          <p className="text-2xl font-bold mt-1 mb-1 text-red-500">{overview.delayed}</p>
-          <p className="text-xs text-slate-400">{overview.delayRate}% delay rate</p>
-        </article>
+        {[
+          { label: "Total Requests", val: overview.total, color: "text-[#66c45e]", sub: "All requests" },
+          { label: "Completion", val: `${overview.completionRate}%`, color: "text-[#66c45e]", sub: `${overview.completed} done` },
+          { label: "On-Time", val: `${overview.onTimeRate}%`, color: "text-[#66c45e]", sub: "No delays" },
+          { label: "Avg Response", val: `${overview.avgResponseDays}d`, color: "text-blue-400", sub: "Scheduled time" },
+          { label: "Delayed", val: overview.delayed, color: "text-red-400", sub: `${overview.delayRate}% rate` }
+        ].map((card, i) => (
+          <article key={i} className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-5 rounded-2xl shadow-sm border border-[#397234]/20">
+            <p className="text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest">{card.label}</p>
+            <p className={`text-3xl font-extrabold mt-1 ${card.color.replace('text-green-400', 'text-[#397239]').replace('text-blue-400', 'text-blue-600').replace('text-red-400', 'text-red-600')}`}>{card.val}</p>
+            <p className="text-[9px] text-[#397239]/40 uppercase font-bold mt-1">{card.sub}</p>
+          </article>
+        ))}
       </section>
 
       {/* ── Charts Row ───────────────────────────────── */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Daily Completion Trend (Spans 2 columns on large screens) */}
-        <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 lg:col-span-2">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-base font-semibold text-slate-800">Daily Pickup Completion vs Target SLA</h3>
-            <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
-              Last {dailyCompletion.length} days
-            </span>
+        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20 lg:col-span-2">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-bold text-[#244c21]">Pickup Completion vs Target</h3>
+            <span className="px-3 py-1 bg-[#D6E9CA]/50 text-[#397239] text-[10px] font-bold uppercase tracking-widest rounded-full border border-[#397234]/10">SLA Trends</span>
           </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={dailyCompletion} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7edf7" />
-              <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#5d6a82" }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#5d6a82" }} />
-              <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #d7deea", fontSize: 13 }} />
-              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-              <Line type="monotone" dataKey="completed" stroke="#10b981" strokeWidth={3} dot={{ r: 5, fill: "#10b981" }} name="Completed" />
-              <Line type="monotone" dataKey="target" stroke="#0f5cbd" strokeWidth={2} strokeDasharray="6 3" dot={false} name="SLA Target" />
-              <Line type="monotone" dataKey="delayed" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="Delayed" />
-            </LineChart>
-          </ResponsiveContainer>
-        </article>
-
-        {/* Status Distribution Pie */}
-        <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <div className="mb-4">
-            <h3 className="text-base font-semibold text-slate-800">Status Distribution</h3>
-          </div>
-          <ResponsiveContainer width="100%" height={240}>
-            <PieChart>
-              <Pie
-                data={statusDistribution}
-                cx="50%" cy="50%"
-                innerRadius={50} outerRadius={90}
-                dataKey="value"
-                labelLine={false}
-                label={renderCustomLabel}
-              >
-                {statusDistribution.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #d7deea", fontSize: 13 }} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4">
-            {statusDistribution.map((s, i) => (
-              <span key={i} className="flex items-center text-sm text-slate-600">
-                <span className="w-3 h-3 rounded-full mr-2" style={{ background: s.color }} />
-                {s.name} ({s.value})
-              </span>
-            ))}
+          <div className="h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={dailyCompletion}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }} />
+                <Line type="monotone" dataKey="completed" stroke="#66c45e" strokeWidth={4} dot={{ r: 4, fill: "#66c45e" }} />
+                <Line type="monotone" dataKey="target" stroke="rgba(255,255,255,0.2)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </article>
 
-        {/* Waste Categories Pie */}
-        <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <div className="mb-4">
-            <h3 className="text-base font-semibold text-slate-800">Waste Categories</h3>
+        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
+          <h3 className="text-lg font-bold text-[#244c21] mb-6">Status Distribution</h3>
+          <div className="h-[240px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={statusDistribution} innerRadius={60} outerRadius={85} dataKey="value" labelLine={false} label={renderCustomLabel} stroke="none">
+                  {statusDistribution.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={240}>
-            <PieChart>
-              <Pie
-                data={wasteCategories}
-                cx="50%" cy="50%"
-                innerRadius={50} outerRadius={90}
-                dataKey="value"
-                labelLine={false}
-                label={renderCustomLabel}
-              >
-                {wasteCategories.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #d7deea", fontSize: 13 }} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4">
-            {wasteCategories.map((w, i) => (
-              <span key={i} className="flex items-center text-sm text-slate-600">
-                <span className="w-3 h-3 rounded-full mr-2" style={{ background: w.color }} />
-                {w.name} ({w.value})
-              </span>
-            ))}
+        </article>
+
+        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
+          <h3 className="text-lg font-bold text-[#244c21] mb-6">Waste Categories</h3>
+          <div className="h-[240px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={wasteCategories} innerRadius={60} outerRadius={85} dataKey="value" labelLine={false} label={renderCustomLabel} stroke="none">
+                  {wasteCategories.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </article>
       </section>
 
       {/* ── Bottom Row ───────────────────────────────── */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Location Performance Table */}
-        <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-base font-semibold text-slate-800">Location Performance</h3>
-            <span className="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
-              {locationPerformance.length} areas
-            </span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600 border-collapse">
-              <thead className="bg-slate-50 border-y border-slate-200">
-                <tr>
-                  <th className="px-4 py-3 font-semibold text-slate-700">Location</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700">Total</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700">Completed</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700">Delayed</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700">Completion Rate</th>
-                </tr>
+        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
+          <h3 className="text-lg font-bold text-[#244c21] mb-6">Location Performance</h3>
+          <div className="overflow-x-auto rounded-2xl bg-[#D6E9CA]/50 border border-[#397234]/10">
+            <table className="w-full text-left text-xs text-[#244c21]">
+              <thead className="bg-[#112A0F]/5 uppercase tracking-widest text-[9px] font-bold text-[#397239]">
+                <tr><th className="p-4">Location</th><th className="p-4">Total</th><th className="p-4">Done</th><th className="p-4">SLA</th></tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-white/5">
                 {locationPerformance.map((loc, i) => (
-                  <tr key={i} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-slate-800">{loc.location}</td>
-                    <td className="px-4 py-3">{loc.total}</td>
-                    <td className="px-4 py-3">{loc.completed}</td>
-                    <td className={`px-4 py-3 ${loc.delayed > 0 ? "text-red-500 font-bold" : "text-slate-600"}`}>
-                      {loc.delayed}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                        loc.completionRate >= 80 ? "bg-emerald-100 text-emerald-700" :
-                        loc.completionRate >= 50 ? "bg-amber-100 text-amber-700" :
-                        "bg-red-100 text-red-700"
-                      }`}>
-                        {loc.completionRate}%
-                      </span>
+                  <tr key={i} className="hover:bg-white/5 transition-colors">
+                    <td className="p-4 font-bold text-white">{loc.location}</td>
+                    <td className="p-4">{loc.total}</td>
+                    <td className="p-4 text-green-400">{loc.completed}</td>
+                    <td className="p-4">
+                      <span className="px-2 py-0.5 rounded-full bg-green-400/20 text-green-400 font-bold">{loc.completionRate}%</span>
                     </td>
                   </tr>
                 ))}
@@ -229,23 +157,20 @@ export default function SLAAnalytics() {
           </div>
         </article>
 
-        {/* Service Type Analysis Bar Chart */}
-        <article className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <div className="mb-4">
-            <h3 className="text-base font-semibold text-slate-800">Service Type Analysis</h3>
+        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
+          <h3 className="text-lg font-bold text-[#244c21] mb-6">Service Analysis</h3>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={serviceTypeAnalysis}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 9, fill: "rgba(255,255,255,0.4)" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }} axisLine={false} tickLine={false} />
+                <Bar dataKey="total" fill="rgba(255,255,255,0.1)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="completed" fill="#66c45e" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="delayed" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={serviceTypeAnalysis} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7edf7" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#5d6a82" }} interval={0} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#5d6a82" }} />
-              <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #d7deea", fontSize: 13 }} />
-              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-              <Bar dataKey="total" fill="#3b82f6" name="Total" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="completed" fill="#10b981" name="Completed" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="delayed" fill="#ef4444" name="Delayed" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
         </article>
       </section>
     </div>
