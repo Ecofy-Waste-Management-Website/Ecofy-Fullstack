@@ -13,18 +13,35 @@ export default function Contact() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
-    setFormData({ name: '', email: '', subject: '', message: '' });
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await fetch('http://localhost:5000/inquiries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userName: formData.name,
+        userEmail: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      })
+    });
+
+    if (res.ok) {
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 3000);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    }
+  } catch (err) {
+    console.error('Failed to send message:', err);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50">
 
       {/* Hero Section */}
-      <div className="bg-green-600 text-white py-16 px-4">
+      <div className="bg-[#66c45e] text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
           <p className="text-xl text-green-100">
@@ -130,7 +147,7 @@ export default function Contact() {
 
             {submitted && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                <p className="text-green-700 text-sm font-medium">
+                <p className="text-[#397239] text-sm font-medium">
                   ✅ Message sent successfully! We'll get back to you soon.
                 </p>
               </div>
@@ -146,7 +163,7 @@ export default function Contact() {
                   onChange={handleChange}
                   placeholder="Your full name"
                   className="w-full mt-1 px-3 py-2 border border-gray-300 
-                    rounded-lg text-sm focus:outline-none focus:border-green-500"
+                    rounded-lg text-sm focus:outline-none focus:border-[#66c45e]"
                 />
               </div>
               <div>
@@ -158,7 +175,7 @@ export default function Contact() {
                   onChange={handleChange}
                   placeholder="your@email.com"
                   className="w-full mt-1 px-3 py-2 border border-gray-300 
-                    rounded-lg text-sm focus:outline-none focus:border-green-500"
+                    rounded-lg text-sm focus:outline-none focus:border-[#66c45e]"
                 />
               </div>
               <div>
@@ -170,7 +187,7 @@ export default function Contact() {
                   onChange={handleChange}
                   placeholder="How can we help?"
                   className="w-full mt-1 px-3 py-2 border border-gray-300 
-                    rounded-lg text-sm focus:outline-none focus:border-green-500"
+                    rounded-lg text-sm focus:outline-none focus:border-[#66c45e]"
                 />
               </div>
               <div>
@@ -182,13 +199,13 @@ export default function Contact() {
                   placeholder="Tell us more..."
                   rows={4}
                   className="w-full mt-1 px-3 py-2 border border-gray-300 
-                    rounded-lg text-sm focus:outline-none focus:border-green-500"
+                    rounded-lg text-sm focus:outline-none focus:border-[#66c45e]"
                 />
               </div>
               <button
                 onClick={handleSubmit}
-                className="w-full bg-green-600 text-white py-3 rounded-lg 
-                  font-medium hover:bg-green-700 transition-all"
+                className="w-full bg-[#66c45e] text-white py-3 rounded-lg 
+                  font-medium hover:bg-[#397239] transition-all"
               >
                 Send Message
               </button>

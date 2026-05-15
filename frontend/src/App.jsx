@@ -7,6 +7,7 @@ import Navbar from './Components/Main/Top-Header-Section/navbar/navbar';
 import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
 import Blogs from './Components/Main/Blogs/blogs';
+import BlogDetail from './Components/Main/Blogs/BlogDetail';
 import DashboardRouter from './Components/Screens/DashboardRouter'; 
 import AdminDashboard from './Components/Admin/adminDashboard';
 import ServiceHistory from './Components/Screens/ServiceHistory';
@@ -16,7 +17,7 @@ import StaffDashboard from './Components/Staff/staffDashboard';
 import ContactUs from './Components/Main/Contact/Contact';
 import ProfileSettings from "./Components/Screens/ProfileSettings";
 import About from './Components/Main/About/About';
-
+import Services from './Components/Main/Services/services';
 
 // Auth Components
 import RoleRedirect from "./Components/Auth/RoleRedirect";
@@ -53,13 +54,10 @@ export default function App() {
           <SignedOut>
             <Navbar />
             <Hero />
-            <Footer />
           </SignedOut>
         </>
       } />
 
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<ContactUs />} />
 
       {/* Redirect after login */}
       <Route path="/redirect" element={
@@ -76,7 +74,13 @@ export default function App() {
           <Footer />
         </>
       } />
-
+<Route path="/blogs/:id" element={
+        <>
+          <Navbar />
+          <BlogDetail />
+          <Footer />
+        </>
+      } />
       {/* User Dashboard */}
       <Route path="/dashboard" element={
         <PrivateRoute>
@@ -145,6 +149,8 @@ export default function App() {
 
       {/* About */}
       <Route path="/about" element={ <><Navbar /> <About /> <Footer /></>} />
+
+      <Route path="/services" element={ <><Navbar /> <Services /> <Footer /></> } />
 
     </Routes>
 
