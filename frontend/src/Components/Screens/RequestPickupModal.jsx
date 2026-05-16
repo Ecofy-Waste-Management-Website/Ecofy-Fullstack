@@ -69,6 +69,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
           user?.username ||
           "Ecofy Customer",
         customer_email: user?.primaryEmailAddress?.emailAddress || "",
+        clerkId: user?.id,
         ...form,
       });
 
