@@ -140,7 +140,12 @@ router.patch("/:id/assign", async (req, res) => {
 
     const doc = await ServiceRequest.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: "Not found" });
-
+   if (assignedStaff && assignedStaff.startsWith("user_")) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid staff name",
+      });
+    }
     if (doc.assignedStaff !== assignedStaff) {
       doc.assignedStaff = assignedStaff || null;
       const event = assignedStaff
