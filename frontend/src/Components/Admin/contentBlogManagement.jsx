@@ -1,4 +1,4 @@
-import ReactQuill from "react-quill";
+import ReactQuill from "react-quill-new";
 import "react-quill/dist/quill.snow.css";
 import React, { useEffect, useMemo, useState } from "react";
 import {
