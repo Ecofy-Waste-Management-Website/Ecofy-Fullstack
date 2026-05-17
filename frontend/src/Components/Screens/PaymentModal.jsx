@@ -30,8 +30,8 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
   if (paid) {
     return (
       <div className="flex flex-col items-center justify-center py-6 text-center gap-4">
-        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-400 shadow-md">
-          <svg className="w-8 h-8 text-emerald-600" viewBox="0 0 24 24" fill="none"
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 border-2 border-green-400 shadow-md">
+          <svg className="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
@@ -40,17 +40,17 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
           <h3 className="text-xl font-bold text-gray-900">Payment Successful!</h3>
           <p className="text-sm text-gray-500 mt-1">
             Your booking for{" "}
-            <span className="font-semibold text-emerald-700">{bookingDetails.service_type}</span>{" "}
+            <span className="font-semibold text-green-700">{bookingDetails.service_type}</span>{" "}
             on <span className="font-semibold">{bookingDetails.scheduled_date}</span> is confirmed.
           </p>
         </div>
-        <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-5 py-2 text-emerald-700 font-bold text-lg">
+        <div className="rounded-xl bg-green-50 border border-green-200 px-5 py-2 text-green-700 font-bold text-lg">
           LKR {SERVICE_PRICES[bookingDetails.service_type]?.toLocaleString()}
         </div>
         <p className="text-xs text-gray-400">Your booking has been confirmed.</p>
         <button
           onClick={() => { onSuccess?.(); onClose(); }}
-          className="mt-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-emerald-700 hover:to-teal-700 transition"
+          className="mt-2 rounded-lg bg-gradient-to-r from-green-600 to-teal-600 px-6 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-green-700 hover:to-teal-700 transition"
         >
           Done
         </button>
@@ -102,7 +102,7 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
   return (
     <form onSubmit={handlePay} className="space-y-4">
       {/* Booking Summary */}
-      <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/60 px-4 py-3 text-sm text-emerald-800 space-y-1">
+      <div className="rounded-xl bg-green-50/70 border border-green-200/60 px-4 py-3 text-sm text-green-800 space-y-1">
         <p className="font-semibold text-gray-700 mb-2">Booking Summary</p>
         <div className="flex justify-between">
           <span className="text-gray-500">Service</span>
@@ -120,16 +120,16 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
           <span className="text-gray-500">Date</span>
           <span className="font-medium">{bookingDetails.scheduled_date}</span>
         </div>
-        <div className="flex justify-between border-t border-emerald-200 pt-2 mt-1">
-          <span className="font-semibold text-emerald-700">Total</span>
-          <span className="font-bold text-emerald-700">
+        <div className="flex justify-between border-t border-green-200 pt-2 mt-1">
+          <span className="font-semibold text-green-700">Total</span>
+          <span className="font-bold text-green-700">
             LKR {SERVICE_PRICES[bookingDetails.service_type]?.toLocaleString()}
           </span>
         </div>
       </div>
 
       {/* Stripe Card Form */}
-      <div className="rounded-xl border border-emerald-200/50 bg-white/70 backdrop-blur-sm p-3">
+      <div className="rounded-xl border border-green-200/50 bg-white/70 backdrop-blur-sm p-3">
         <PaymentElement />
       </div>
 
@@ -150,7 +150,7 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
         <button
           type="submit"
           disabled={paying || !stripe}
-          className="rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-emerald-700 hover:to-teal-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          className="rounded-lg bg-gradient-to-r from-green-600 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-green-700 hover:to-teal-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {paying ? (
             <span className="flex items-center gap-2">
@@ -215,8 +215,8 @@ export default function PaymentModal({ isOpen, onClose, onSuccess, bookingDetail
           {/* Title Row */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
-              <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-100/70 backdrop-blur-sm shadow-sm border border-emerald-200/50">
-                <svg className="w-5 h-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-green-100/70 backdrop-blur-sm shadow-sm border border-green-200/50">
+                <svg className="w-5 h-5 text-green-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                   <line x1="1" y1="10" x2="23" y2="10"></line>
                 </svg>
@@ -238,7 +238,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess, bookingDetail
           {/* Loading intent */}
           {loadingIntent && (
             <div className="flex items-center justify-center py-10 text-sm text-gray-500 gap-2">
-              <svg className="animate-spin h-5 w-5 text-emerald-500" viewBox="0 0 24 24">
+              <svg className="animate-spin h-5 w-5 text-green-500" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>

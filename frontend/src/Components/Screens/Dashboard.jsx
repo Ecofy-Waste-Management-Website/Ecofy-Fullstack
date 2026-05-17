@@ -6,6 +6,7 @@ import { getUserBookings, getUserPayments } from "../../services/api/bookingServ
 import RequestPickupModal from "./RequestPickupModal";
 import PaymentModal from "./PaymentModal";
 import ProfileSettings from "./ProfileSettings";
+import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
 
 // Status badge colours
 const STATUS_STYLES = {
@@ -13,7 +14,7 @@ const STATUS_STYLES = {
   Assigned: "bg-blue-100 text-blue-700",
   "In Progress": "bg-indigo-100 text-indigo-700",
   "En Route": "bg-cyan-100 text-cyan-700",
-  Completed: "bg-emerald-100 text-emerald-700",
+  Completed: "bg-green-100 text-green-700",
   Delayed: "bg-red-100 text-red-700",
 };
 
@@ -286,7 +287,7 @@ export default function Dashboard() {
         />
 
         {inquiryStatus.text && (
-          <p className={`text-sm ${inquiryStatus.type === "success" ? "text-green-600" : "text-red-600"}`}>
+          <p className={`text-sm ${inquiryStatus.type === "success" ? "text-[#66c45e]" : "text-red-600"}`}>
             {inquiryStatus.text}
           </p>
         )}
@@ -469,49 +470,54 @@ export default function Dashboard() {
         </svg>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+      <div className="mx-auto max-w-7xl px-4 py-25 sm:px-6 lg:px-8 relative z-10">
       {/* Navbar-style Action Card */}
       <div className="mx-auto mb-10 w-full rounded-[40px] bg-green-100/30 backdrop-blur-md border border-green-300/50 p-1.5 shadow-sm transition-all duration-500">
-        <div className="flex flex-col items-center justify-between gap-6 px-8 py-6 lg:flex-row lg:gap-4">
+        <div className="flex flex-col items-center justify-between gap-6 px-8 py-8 lg:flex-row lg:gap-4">
           <div className="text-center lg:text-left">
-            <h2 className="text-xl font-bold tracking-tight text-green-900 sm:text-2xl">What would you like to do today?</h2>
-            <p className="mt-1 text-sm text-green-700/80">
+            <h2 className="text-xl font-bold tracking-tight text-[#244c21] sm:text-2xl">What would you like to do today?</h2>
+            <p className="mt-1 text-sm text-[#397239]/80">
               Quick actions to manage your pickups and history.
             </p>
           </div>
+
+           <div className="flex items-center gap-3 w-full lg:w-auto">
+             {/* Notification Bell */}
+            <NotificationBell target="user" />
 
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 w-full lg:w-auto">
             <button
               type="button"
               onClick={() => setShowPickupModal(true)}
-              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-green-600 hover:text-white"
+              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-[#66c45e] hover:text-white"
             >
               Schedule
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("track-status")}
-              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-green-600 hover:text-white"
+              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-[#66c45e] hover:text-white"
             >
               Track status
             </button>
             <button
               type="button"
               onClick={() => navigate("/service-history")}
-              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-green-600 hover:text-white"
+              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-[#66c45e] hover:text-white"
             >
               History
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("special-services")}
-              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-green-600 hover:text-white"
+              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-[#66c45e] hover:text-white"
             >
               Services
             </button>
           </div>
         </div>
       </div>
+    </div>
 
       {/* Search & Map Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
@@ -543,7 +549,7 @@ export default function Dashboard() {
               </button>
             </div>
             {searchStatus.text && (
-              <p className={`mt-3 text-sm font-medium ${searchStatus.type === "success" ? "text-emerald-100" : "text-red-100"}`}>
+              <p className={`mt-3 text-sm font-medium ${searchStatus.type === "success" ? "text-green-100" : "text-red-100"}`}>
                 {searchStatus.text}
               </p>
             )}

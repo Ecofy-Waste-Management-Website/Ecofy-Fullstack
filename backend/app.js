@@ -13,7 +13,7 @@ const staffRouter = require("./Route/staffRoute");
 const serviceHistoryRouter = require("./Route/ServiceHistoryRoute");
 const paymentHistoryRouter = require("./Route/PaymentHistoryRoute");
 const notificationRouter = require("./Route/NotificationRoute.js");
-
+const inquiryRouter = require("./Route/inquiryRoute");
 const serviceRequestRouter = require("./Route/ServiceRequestRoute");
 const adminRoutes = require("./Route/adminRoutes");
 const slaAnalyticsRouter = require("./Route/slaAnalyticsRoute");
@@ -66,7 +66,7 @@ app.use("/users",userRouter);
 app.use("/service-history", serviceHistoryRouter);
 app.use("/payment-history", paymentHistoryRouter);
 app.use("/notifications", notificationRouter);
-
+app.use("/inquiries", inquiryRouter);
 app.use("/bookings", serviceRequestRouter);
 app.use("/admin", adminRoutes);
 app.use("/sla-analytics", slaAnalyticsRouter);
