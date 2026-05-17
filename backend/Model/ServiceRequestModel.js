@@ -13,6 +13,7 @@ const serviceRequestSchema = new Schema(
   {
     customer_name: { type: String, required: true },
     customer_email: { type: String, required: true },
+    clerkId: { type: String, default: null, index: true },
     service_type: {
       type: String,
       enum: ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"],

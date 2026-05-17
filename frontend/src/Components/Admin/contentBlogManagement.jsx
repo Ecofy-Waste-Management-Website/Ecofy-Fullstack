@@ -190,6 +190,12 @@ export default function ContentBlogManagement() {
         </button>
       </div>
 
+      {error && (
+        <div className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="flex flex-col gap-6 lg:flex-row items-start">
         
         {/* Post List */}

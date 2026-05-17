@@ -31,3 +31,44 @@ body {
 .animate-wobble-reverse {
   animation: wobble-float-reverse 10s ease-in-out infinite;
 }
+
+/* ── Horizontal Snap Sections ───────────────────────────────── */
+
+.h-snap-section {
+  will-change: transform, opacity;
+  transform-origin: center center;
+}
+
+/* Smooth custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #081F12;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1a5c2a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0f3d1a;
+}
+
+@keyframes eco-loader-float {
+  0%, 100% { transform: translateY(0) rotate(-18deg); }
+  50% { transform: translateY(-16px) rotate(-8deg); }
+}
+
+@keyframes eco-loader-float-reverse {
+  0%, 100% { transform: translateY(0) rotate(22deg); }
+  50% { transform: translateY(14px) rotate(8deg); }
+}
+
+@keyframes eco-loader-sweep {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(50%); }
+  100% { transform: translateX(200%); }
+}
