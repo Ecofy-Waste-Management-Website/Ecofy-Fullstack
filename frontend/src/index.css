@@ -31,3 +31,19 @@ body {
 .animate-wobble-reverse {
   animation: wobble-float-reverse 10s ease-in-out infinite;
 }
+
+@keyframes eco-loader-float {
+  0%, 100% { transform: translateY(0) rotate(-18deg); }
+  50% { transform: translateY(-16px) rotate(-8deg); }
+}
+
+@keyframes eco-loader-float-reverse {
+  0%, 100% { transform: translateY(0) rotate(22deg); }
+  50% { transform: translateY(14px) rotate(8deg); }
+}
+
+@keyframes eco-loader-sweep {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(50%); }
+  100% { transform: translateX(200%); }
+}
