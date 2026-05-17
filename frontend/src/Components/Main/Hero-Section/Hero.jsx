@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   Leaf, 
   PlayCircle, 
@@ -31,6 +31,38 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Hero() {
   const containerRef = useRef(null);
+  const loaderExitTimerRef = useRef(null);
+  const heroBadgeRef = useRef(null);
+  const heroTitleRef = useRef(null);
+  const heroCopyRef = useRef(null);
+  const heroActionsRef = useRef(null);
+  const heroVisualRef = useRef(null);
+  const heroStatsRef = useRef(null);
+  const heroFloatingCardsRef = useRef([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoaderExiting, setIsLoaderExiting] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setIsLoaderExiting(true);
+    }, 1800);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaderExiting) return;
+
+    loaderExitTimerRef.current = window.setTimeout(() => {
+      setIsLoading(false);
+    }, 650);
+
+    return () => {
+      if (loaderExitTimerRef.current) {
+        window.clearTimeout(loaderExitTimerRef.current);
+      }
+    };
+  }, [isLoaderExiting]);
 
   useGSAP(() => {
     // Reveal up animations for sections
@@ -49,11 +81,118 @@ export default function Hero() {
       });
     });
 
-  }, { scope: containerRef });
+    if (!isLoaderExiting) return;
+
+    const entranceTargets = [
+      heroBadgeRef.current,
+      heroTitleRef.current,
+      heroCopyRef.current,
+      heroActionsRef.current,
+      heroVisualRef.current,
+      heroStatsRef.current,
+    ].filter(Boolean);
+
+    gsap.set(entranceTargets, { autoAlpha: 0, y: 28 });
+    gsap.set(heroFloatingCardsRef.current.filter(Boolean), { autoAlpha: 0, y: 18, scale: 0.96 });
+
+    const tl = gsap.timeline();
+
+    tl.to('.eco-loader-panel', {
+      autoAlpha: 0,
+      scale: 0.96,
+      duration: 0.55,
+      ease: 'power2.out'
+    })
+      .to(heroBadgeRef.current, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.65,
+        ease: 'power3.out'
+      }, '-=0.15')
+      .to(heroTitleRef.current, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.75,
+        ease: 'power3.out'
+      }, '-=0.25')
+      .to(heroCopyRef.current, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.6,
+        ease: 'power3.out'
+      }, '-=0.35')
+      .to(heroActionsRef.current, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.6,
+        ease: 'power3.out'
+      }, '-=0.3')
+      .to(heroVisualRef.current, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.85,
+        ease: 'power3.out'
+      }, '-=0.45')
+      .to(heroFloatingCardsRef.current.filter(Boolean), {
+        autoAlpha: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.55,
+        stagger: 0.12,
+        ease: 'back.out(1.7)'
+      }, '-=0.4')
+      .to(heroStatsRef.current, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.7,
+        ease: 'power3.out'
+      }, '-=0.35');
+
+  }, { scope: containerRef, dependencies: [isLoaderExiting], revertOnUpdate: true });
 
   return (
     <SmoothScroll>
     <main ref={containerRef} className="w-full font-sans bg-[#f4faf6] relative">
+      {isLoading && (
+        <div
+          className={`eco-loader-panel fixed inset-0 z-[200] flex items-center justify-center overflow-hidden bg-[#031509] text-white transition-all duration-700 ease-out ${isLoaderExiting ? 'opacity-0 scale-[0.985] pointer-events-none' : 'opacity-100'}`}
+        >
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -top-24 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#A1F069]/12 blur-[120px] animate-[pulse_4s_ease-in-out_infinite]"></div>
+            <div className="absolute bottom-[-8rem] right-[-2rem] h-72 w-72 rounded-full bg-[#2a8d41]/10 blur-[120px] animate-[pulse_6s_ease-in-out_infinite]"></div>
+            <div className="absolute left-10 top-16 h-24 w-24 rounded-full border border-[#A1F069]/25 animate-[spin_16s_linear_infinite]"></div>
+            <div className="absolute right-12 top-20 h-16 w-16 rounded-full border border-white/10 animate-[spin_10s_linear_infinite_reverse]"></div>
+            <Leaf className="absolute left-16 bottom-20 w-16 h-16 text-[#24502f] rotate-[-18deg] opacity-70 animate-[eco-loader-float_5s_ease-in-out_infinite]" />
+            <Leaf className="absolute right-16 bottom-28 w-12 h-12 text-[#A1F069] rotate-[22deg] opacity-70 animate-[eco-loader-float-reverse_6s_ease-in-out_infinite]" />
+          </div>
+
+          <div className="relative z-10 flex flex-col items-center gap-8 px-6 text-center">
+            <div className="relative flex h-36 w-36 items-center justify-center">
+              <div className="absolute inset-0 rounded-full border border-[#A1F069]/20"></div>
+              <div className="absolute inset-3 rounded-full border border-[#A1F069]/35 border-t-transparent animate-[spin_2.2s_linear_infinite]"></div>
+              <div className="absolute inset-8 rounded-full border border-[#A1F069]/50 border-b-transparent animate-[spin_3.5s_linear_infinite_reverse]"></div>
+              <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-[#0A2D19] shadow-[0_0_50px_rgba(161,240,105,0.15)]">
+                <Leaf className="h-10 w-10 text-[#A1F069]" />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-[0.65rem] uppercase tracking-[0.65em] text-white/50">Loading experience</p>
+              <h1 className="text-5xl md:text-7xl font-black tracking-[0.42em] text-white drop-shadow-[0_0_30px_rgba(161,240,105,0.18)]">
+                ECOFY
+              </h1>
+            </div>
+
+            <div className="w-64 max-w-[70vw] overflow-hidden rounded-full bg-white/10">
+              <div className="h-1 w-1/2 rounded-full bg-gradient-to-r from-transparent via-[#A1F069] to-transparent animate-[eco-loader-sweep_1.6s_ease-in-out_infinite]"></div>
+            </div>
+
+            <p className="max-w-sm text-sm text-white/55">
+              Preparing smarter waste management tools.
+            </p>
+          </div>
+        </div>
+      )}
       {/* --- TOP DARK SECTION --- */}
       <section className="relative w-full bg-[#031509] pt-24 pb-48 px-6 lg:px-16 overflow-hidden flex justify-center text-white">
         {/* Background decorative elements */}
@@ -77,21 +216,21 @@ export default function Hero() {
           
           {/* Left Text Content */}
           <div className="w-full lg:w-1/2 flex flex-col items-start pt-10">
-            <div className="flex items-center gap-2 bg-[#0A2D19] border border-[#164D2B] rounded-full px-4 py-1.5 mb-6">
+            <div ref={heroBadgeRef} className="flex items-center gap-2 bg-[#0A2D19] border border-[#164D2B] rounded-full px-4 py-1.5 mb-6">
               <Leaf className="w-4 h-4 text-[#A1F069]" />
               <span className="text-sm font-medium text-white/90">Smart Waste Management</span>
             </div>
             
-            <h1 className="text-5xl lg:text-7xl font-bold leading-[1.1] mb-6">
+            <h1 ref={heroTitleRef} className="text-5xl lg:text-7xl font-bold leading-[1.1] mb-6">
               Smart Waste.<br/>
               <span className="text-[#A1F069]">Smarter Future.</span>
             </h1>
             
-            <p className="text-lg text-gray-300 mb-10 max-w-lg leading-relaxed">
+            <p ref={heroCopyRef} className="text-lg text-gray-300 mb-10 max-w-lg leading-relaxed">
               Ecofy is a smart, web-based platform that bridges the gap between communities and waste collectors—making pickups smarter, greener, and more accountable.
             </p>
 
-            <div className="flex items-center gap-6 mb-12">
+            <div ref={heroActionsRef} className="flex items-center gap-6 mb-12">
               <a href="/dashboard" className="bg-[#A1F069] hover:bg-[#8ee155] text-[#051F10] px-8 py-3.5 rounded-full font-semibold flex items-center gap-2 transition-colors">
                 Open Dashboard <ArrowRight className="w-5 h-5" />
               </a>
@@ -103,7 +242,7 @@ export default function Hero() {
           </div>
 
           {/* Right Visual Content (Phone + Floating Cards) */}
-          <div className="w-full lg:w-1/2 relative flex justify-center lg:justify-end items-center h-[600px]">
+          <div ref={heroVisualRef} className="w-full lg:w-1/2 relative flex justify-center lg:justify-end items-center h-[600px]">
             
             {/* Center Group: Base Platform + Phone + Bin */}
             <div className="relative flex justify-center items-end mr-0 lg:mr-16">
@@ -166,7 +305,7 @@ export default function Hero() {
               </div>
 
             {/* Floating Card 1 */}
-            <div className="absolute top-[20%] right-[-5%] z-30 bg-white text-[#051F10] rounded-2xl p-4 flex items-center gap-4 shadow-xl animate-[bounce_4s_infinite]">
+            <div ref={(el) => { heroFloatingCardsRef.current[0] = el; }} className="absolute top-[20%] right-[-5%] z-30 bg-white text-[#051F10] rounded-2xl p-4 flex items-center gap-4 shadow-xl animate-[bounce_4s_infinite]">
                <div className="w-12 h-12 rounded-full bg-[#E8F8E3] flex items-center justify-center text-[#2B8B3F]">
                  <Recycle className="w-6 h-6" />
                </div>
@@ -177,7 +316,7 @@ export default function Hero() {
             </div>
 
             {/* Floating Card 2 */}
-            <div className="absolute top-[45%] right-[-10%] z-30 bg-white text-[#051F10] rounded-2xl p-4 flex items-center gap-4 shadow-xl animate-[bounce_5s_infinite]">
+            <div ref={(el) => { heroFloatingCardsRef.current[1] = el; }} className="absolute top-[45%] right-[-10%] z-30 bg-white text-[#051F10] rounded-2xl p-4 flex items-center gap-4 shadow-xl animate-[bounce_5s_infinite]">
                <div className="w-12 h-12 rounded-full bg-[#E8F8E3] flex items-center justify-center text-[#2B8B3F]">
                  <Leaf className="w-6 h-6" />
                </div>
@@ -278,7 +417,7 @@ export default function Hero() {
       </section>
 
       {/* --- FLOATING STATS BANNER --- */}
-      <div className="max-w-6xl mx-auto px-4 -mt-16 relative z-30 reveal-up">
+      <div ref={heroStatsRef} className="max-w-6xl mx-auto px-4 -mt-16 relative z-30 reveal-up">
         <div className="bg-[#0A2916] border border-[#164525] rounded-2xl p-8 flex flex-col md:flex-row justify-between items-center shadow-2xl divide-y md:divide-y-0 md:divide-x divide-[#164525]">
           
           <div className="flex items-center gap-4 py-4 md:py-0 px-6 w-full md:w-1/4 justify-center md:justify-start">
@@ -635,4 +774,4 @@ export default function Hero() {
     </main>
     </SmoothScroll>
   );
-}
+}
