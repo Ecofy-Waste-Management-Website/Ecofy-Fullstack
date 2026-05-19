@@ -46,7 +46,10 @@ export default function Blogs() {
                     <span>{article.comments} comments</span>
                   </div>
                   <h2 className="text-xl font-bold leading-tight text-[#0f1d33]">{article.title}</h2>
-                  <p className="text-sm leading-7 text-slate-600">{article.excerpt || 'Read the full story from the Ecofy content team.'}</p>
+                  <div 
+  className="text-sm leading-7 text-slate-600 truncate-lines-3"
+  dangerouslySetInnerHTML={{ __html: article.excerpt || 'Read the full story from the Ecofy content team.' }}
+/>
                   <div className="flex items-center justify-between border-t border-slate-100 pt-4 text-sm text-slate-500">
                     <span>By {article.author}</span>
                     <span className="rounded-full bg-green-50 px-3 py-1 font-semibold text-[#397239]">Published</span>
