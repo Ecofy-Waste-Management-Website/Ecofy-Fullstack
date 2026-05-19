@@ -12,29 +12,58 @@ export default function BlogDetail() {
     setArticle(found);
   }, [id]);
 
-  if (!article) return <div className="p-20 text-center">Article not found.</div>;
+  if (!article) {
+    return (
+      <div className="p-20 text-center">
+        Article not found.
+      </div>
+    );
+  }
 
   return (
     <main className="bg-white min-h-screen">
-      <article className="mx-auto max-w-3xl px-4 py-20">
-        <Link to="/blogs" className="text-[#397239] font-bold mb-8 inline-block hover:underline">
+      <article className="mx-auto max-w-4xl px-4 py-20">
+
+        <Link
+          to="/blogs"
+          className="text-[#397239] font-bold mb-8 inline-block hover:underline"
+        >
           ← Back to Articles
         </Link>
-        
+
         <header className="mb-10">
           <div className="text-xs font-semibold uppercase tracking-widest text-[#397239] mb-2">
             {article.category}
           </div>
-          <h1 className="text-4xl font-extrabold text-[#0f1d33] mb-4">{article.title}</h1>
+
+          <h1 className="text-4xl font-extrabold text-[#0f1d33] mb-4">
+            {article.title}
+          </h1>
+
           <div className="text-slate-500 text-sm">
             By {article.author} • {new Date().toLocaleDateString()}
           </div>
         </header>
 
-        <div className="prose prose-slate lg:prose-lg text-slate-700 leading-relaxed">
-          {/* This renders the content. If you have HTML content, use dangerouslySetInnerHTML */}
-          <p className="whitespace-pre-wrap">{article.content || article.excerpt}</p>
+        {/* FEATURED IMAGE */}
+        {article.featuredImage && (
+          <img
+            src={article.featuredImage}
+            alt={article.title}
+            className="mb-10 h-[420px] w-full rounded-2xl object-cover shadow-lg"
+          />
+        )}
+
+        {/* BLOG CONTENT */}
+        <div className="prose prose-slate lg:prose-lg max-w-none text-slate-700 leading-relaxed">
+          <div
+            className="whitespace-pre-wrap"
+            dangerouslySetInnerHTML={{
+              __html: article.content || article.excerpt,
+            }}
+          />
         </div>
+
       </article>
     </main>
   );
