@@ -31,10 +31,13 @@ export default function BlogDetail() {
           </div>
         </header>
 
-        <div className="prose prose-slate lg:prose-lg text-slate-700 leading-relaxed">
-          {/* This renders the content. If you have HTML content, use dangerouslySetInnerHTML */}
-          <p className="whitespace-pre-wrap">{article.content || article.excerpt}</p>
-        </div>
+      <div className="prose prose-slate lg:prose-lg text-slate-700 leading-relaxed">
+  {/* This correctly renders the rich text HTML content */}
+  <div 
+    className="whitespace-pre-wrap"
+    dangerouslySetInnerHTML={{ __html: article.content || article.excerpt }} 
+  />
+</div>
       </article>
     </main>
   );
