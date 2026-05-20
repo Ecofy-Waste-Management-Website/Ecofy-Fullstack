@@ -36,6 +36,15 @@ const formatDate = (isoDate) => {
   });
 };
 
+const getDisplayStatus = (staff) => staff.displayStatus || (staff.status === 'Activate' ? 'Active' : 'Inactive');
+
+const getStatusTone = (status) => {
+  if (status === 'Active') return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+  if (status === 'Suspended') return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+  if (status === 'Banned') return 'bg-rose-500/10 text-rose-600 border-rose-500/20';
+  return 'bg-slate-500/10 text-slate-600 border-slate-500/20';
+};
+
 const emptyEditForm = {
   id: '',
   firstName: '',
@@ -246,23 +255,23 @@ export default function Staff_creation_test() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
       {/* Creation Card */}
-      <div className="w-full rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-[40px] p-8 shadow-sm">
-        <div className="mb-8 flex items-center gap-5 border-b border-[#397234]/10 pb-6">
-          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[#397234]/10 text-[#397239] shadow-inner border border-[#397234]/10">
+      <div className="w-full rounded-3xl border border-white/20 bg-white/30 backdrop-blur-xl p-8 shadow-sm">
+        <div className="mb-8 flex items-center gap-5 border-b border-white/20 pb-6">
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-blue-50 to-blue-100/70 text-blue-600 shadow-inner border border-white/30">
             <Icons.UserPlus />
           </div>
           <div>
-            <h2 className="m-0 text-2xl font-black text-[#244c21] tracking-tight">Create New Staff</h2>
-            <p className="m-0 text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest mt-1">Onboard operational personnel to the platform</p>
+            <h2 className="m-0 text-2xl font-black text-gray-900 tracking-tight">Create New Staff</h2>
+            <p className="m-0 text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Onboard operational personnel to the platform</p>
           </div>
         </div>
 
         {/* Status Message Display */}
         {statusMessage && (
           <div className={`mb-8 rounded-2xl border p-5 text-xs font-bold shadow-xl transition-all animate-in fade-in slide-in-from-top-2 ${
-            statusMessage.includes('Success') ? 'border-green-400/20 bg-green-400/10 text-green-400' : 
-            statusMessage === 'Creating account...' ? 'border-blue-400/20 bg-blue-400/10 text-blue-400' : 
-            'border-red-400/20 bg-red-400/10 text-red-400'
+            statusMessage.includes('Success') ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600' : 
+            statusMessage === 'Creating account...' ? 'border-blue-500/20 bg-blue-500/10 text-blue-600' : 
+            'border-rose-500/20 bg-rose-500/10 text-rose-600'
           }`}>
             <span className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
@@ -275,67 +284,67 @@ export default function Staff_creation_test() {
         <form onSubmit={handleCreateStaff} className="flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#397239]/70">First Name</label>
+              <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-gray-500">First Name</label>
               <input
                 type="text"
                 name="firstName"
                 placeholder="e.g. Nimal"
                 value={formData.firstName}
                 onChange={handleInputChange}
-                className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-3.5 text-sm text-[#244c21] outline-none transition-all focus:border-[#397239] focus:bg-white placeholder:text-[#397239]/20"
+                className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
                 required
               />
             </div>
             <div>
-              <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#397239]/70">Last Name</label>
+              <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-gray-500">Last Name</label>
               <input
                 type="text"
                 name="lastName"
                 placeholder="e.g. Perera"
                 value={formData.lastName}
                 onChange={handleInputChange}
-                className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-3.5 text-sm text-[#244c21] outline-none transition-all focus:border-[#397239] focus:bg-white placeholder:text-[#397239]/20"
+                className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#397239]/70">Account Username</label>
+            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-gray-500">Account Username</label>
             <input
               type="text"
               name="username"
               placeholder="e.g. nimal.perera"
               value={formData.username}
               onChange={handleInputChange}
-              className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-3.5 text-sm text-[#244c21] outline-none transition-all focus:border-[#397239] focus:bg-white placeholder:text-[#397239]/20"
+              className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
               required
             />
-            <p className="mt-2 text-[10px] font-medium text-[#397239]/30 italic">Letters, numbers, dots, or hyphens only.</p>
+            <p className="mt-2 text-[10px] font-medium text-gray-500 italic">Letters, numbers, dots, or hyphens only.</p>
           </div>
 
           <div>
-            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#397239]/70">Corporate Email</label>
+            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-gray-500">Corporate Email</label>
             <input
               type="email"
               name="email"
               placeholder="staff@ecofy.lk"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-3.5 text-sm text-[#244c21] outline-none transition-all focus:border-[#397239] focus:bg-white placeholder:text-[#397239]/20"
+              className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
               required
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#397239]/70">Default Password</label>
+            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-gray-500">Default Password</label>
             <input
               type="password"
               name="password"
               placeholder="Min. 8 characters"
               value={formData.password}
               onChange={handleInputChange}
-              className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-3.5 text-sm text-[#244c21] outline-none transition-all focus:border-[#397239] focus:bg-white placeholder:text-[#397239]/20"
+              className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
               required
               minLength="8" 
             />
@@ -344,7 +353,7 @@ export default function Staff_creation_test() {
           <button
             type="submit"
             disabled={isLoading}
-            className="mt-6 w-full rounded-xl bg-[#397239] py-4 font-extrabold text-white shadow-lg shadow-[#397239]/10 transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-50 uppercase tracking-widest text-xs"
+            className="mt-6 w-full rounded-xl bg-blue-600 py-4 font-extrabold text-white shadow-lg shadow-blue-600/10 transition-all hover:bg-blue-700 hover:scale-[1.01] active:scale-95 disabled:opacity-50 uppercase tracking-widest text-xs"
           >
             {isLoading ? "Generating Secure Account..." : "Register New Personnel"}
           </button>
@@ -352,15 +361,15 @@ export default function Staff_creation_test() {
       </div>
 
       {/* Registry Table Card */}
-      <div className="w-full rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-[40px] p-8 shadow-sm">
+      <div className="w-full rounded-3xl border border-white/20 bg-white/30 backdrop-blur-xl p-8 shadow-sm">
         <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-2xl font-black text-[#244c21] tracking-tight">Staff Registry</h3>
-            <p className="text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest mt-1">Operational personnel directory</p>
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">Staff Registry</h3>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Operational personnel directory</p>
           </div>
 
           <div className="relative w-full sm:max-w-xs">
-            <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#397239]/40">
+            <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-400">
               <Icons.Search />
             </span>
             <input
@@ -368,15 +377,15 @@ export default function Staff_creation_test() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by name..."
-              className="w-full rounded-full border border-[#397234]/10 bg-[#D6E9CA]/50 py-3 pl-11 pr-4 text-sm text-[#244c21] shadow-inner outline-none transition focus:border-[#397239] focus:bg-white placeholder:text-[#397239]/20"
+              className="w-full rounded-full border border-gray-200 bg-white/70 py-3 pl-11 pr-4 text-sm text-gray-900 shadow-inner outline-none transition focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
             />
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-[#397234]/20 bg-white/40">
+        <div className="overflow-hidden rounded-2xl border border-white/20 bg-white/40">
           <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm text-[#244c21]">
-              <thead className="bg-[#397234]/10 text-[10px] uppercase tracking-widest font-black text-[#397239]">
+            <table className="min-w-full text-left text-sm text-gray-700">
+              <thead className="bg-white/50 text-[10px] uppercase tracking-widest font-black text-gray-600 backdrop-blur-xl">
                 <tr>
                   <th className="px-6 py-4">Full Name</th>
                   <th className="px-6 py-4 text-center">Role</th>
@@ -387,28 +396,24 @@ export default function Staff_creation_test() {
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-[#397239]/5">
+              <tbody className="divide-y divide-white/30">
                 {!isTableLoading && filteredStaff.length > 0 ? (
                   filteredStaff.map((staff) => (
-                    <tr key={staff._id} className="transition-colors hover:bg-[#397234]/5">
-                      <td className="px-6 py-5 font-black text-[#244c21]">{`${staff.firstName || ''} ${staff.lastName || ''}`.trim()}</td>
+                    <tr key={staff._id} className="transition-colors hover:bg-white/50">
+                      <td className="px-6 py-5 font-black text-gray-900">{`${staff.firstName || ''} ${staff.lastName || ''}`.trim()}</td>
                       <td className="px-6 py-5 text-center">
-                        <span className="rounded-lg bg-[#397234]/5 border border-[#397234]/5 px-2.5 py-1 text-[9px] font-extrabold uppercase text-[#397239] tracking-tighter">
+                        <span className="rounded-lg bg-blue-50 border border-blue-100 px-2.5 py-1 text-[9px] font-extrabold uppercase text-blue-600 tracking-tighter">
                           {staff.role}
                         </span>
                       </td>
-                      <td className="px-6 py-5 font-medium text-[#244c21]">{staff.email}</td>
-                      <td className="px-6 py-5 font-medium text-[#397239]/80">{formatDate(staff.createdAt)}</td>
+                      <td className="px-6 py-5 font-medium text-gray-700">{staff.email}</td>
+                      <td className="px-6 py-5 font-medium text-gray-500">{formatDate(staff.createdAt)}</td>
                       <td className="px-6 py-5">
                         <span
-                          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[9px] font-extrabold uppercase tracking-widest ${
-                            (staff.displayStatus || (staff.status === 'Activate' ? 'Active' : 'Inactive')) === 'Active'
-                              ? 'bg-green-400/20 text-green-400'
-                              : 'bg-rose-400/20 text-rose-400'
-                          }`}
+                          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[9px] font-extrabold uppercase tracking-widest ${getStatusTone(getDisplayStatus(staff))}`}
                         >
-                          <span className={`h-1.5 w-1.5 rounded-full ${ (staff.displayStatus || (staff.status === 'Activate' ? 'Active' : 'Inactive')) === 'Active' ? 'bg-green-400' : 'bg-rose-400' }`} />
-                          {staff.displayStatus || (staff.status === 'Activate' ? 'Active' : 'Inactive')}
+                          <span className={`h-1.5 w-1.5 rounded-full ${getDisplayStatus(staff) === 'Active' ? 'bg-emerald-500' : getDisplayStatus(staff) === 'Suspended' ? 'bg-amber-500' : 'bg-rose-500'}`} />
+                          {getDisplayStatus(staff)}
                         </span>
                       </td>
                       <td className="px-6 py-5">
@@ -416,7 +421,7 @@ export default function Staff_creation_test() {
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(staff)}
-                            className="flex items-center gap-2 rounded-xl bg-[#397234]/5 px-4 py-2 text-[10px] font-bold text-[#397239] uppercase tracking-widest transition-all hover:bg-[#397234]/10 border border-[#397234]/10"
+                            className="flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2 text-[10px] font-bold text-blue-600 uppercase tracking-widest transition-all hover:bg-blue-100 border border-blue-100"
                           >
                             <Icons.Edit /> Edit
                           </button>
@@ -424,7 +429,7 @@ export default function Staff_creation_test() {
                             type="button"
                             onClick={() => handleDeleteStaff(staff._id, `${staff.firstName || ''} ${staff.lastName || ''}`.trim() || 'this staff member')}
                             disabled={deletingStaffId === staff._id}
-                            className="flex items-center gap-2 rounded-xl bg-red-400/10 px-4 py-2 text-[10px] font-bold text-red-400 uppercase tracking-widest transition-all hover:bg-red-400/20 border border-red-400/20 disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-2 text-[10px] font-bold text-rose-600 uppercase tracking-widest transition-all hover:bg-rose-100 border border-rose-100 disabled:opacity-50"
                           >
                             <Icons.Delete /> {deletingStaffId === staff._id ? '...' : 'Del'}
                           </button>
@@ -455,70 +460,71 @@ export default function Staff_creation_test() {
       </div>
 
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 backdrop-blur-md">
-          <div className="w-full max-w-lg rounded-3xl bg-white border border-[#397234]/20 p-10 shadow-2xl animate-in zoom-in-95 duration-200">
-            <h4 className="m-0 text-2xl font-black text-[#244c21] tracking-tight">Edit Profile</h4>
-            <p className="mt-1 text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Update permissions & details</p>
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 px-4 backdrop-blur-md">
+          <div className="w-full max-w-lg rounded-3xl bg-white border border-white/20 p-10 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h4 className="m-0 text-2xl font-black text-gray-900 tracking-tight">Edit Profile</h4>
+            <p className="mt-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Update permissions & details</p>
 
             <form onSubmit={handleUpdateStaff} className="mt-8 space-y-6">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#397239]/70">First Name</label>
+                  <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-gray-500">First Name</label>
                   <input
                     type="text"
                     name="firstName"
                     value={editForm.firstName}
                     onChange={handleEditInputChange}
-                    className="w-full rounded-xl border border-[#112A0F]/10 bg-white p-3.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all"
+                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-blue-500 transition-all"
                     required
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#397239]/70">Last Name</label>
+                  <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-gray-500">Last Name</label>
                   <input
                     type="text"
                     name="lastName"
                     value={editForm.lastName}
                     onChange={handleEditInputChange}
-                    className="w-full rounded-xl border border-[#112A0F]/10 bg-white p-3.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all"
+                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-blue-500 transition-all"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#397239]/70">Email (Fixed)</label>
+                <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-gray-500">Email (Fixed)</label>
                 <input
                   type="email"
                   name="email"
                   value={editForm.email}
-                  className="w-full rounded-xl border border-[#397239]/5 bg-[#112A0F]/5 px-4 py-3.5 text-sm text-[#397239]/40 outline-none cursor-not-allowed"
+                  className="w-full rounded-xl border border-gray-200 bg-slate-50 px-4 py-3.5 text-sm text-gray-400 outline-none cursor-not-allowed"
                   disabled
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#397239]/70">Role</label>
+                  <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-gray-500">Role</label>
                   <select
                     name="role"
                     value={editForm.role}
                     onChange={handleEditInputChange}
-                    className="w-full rounded-xl border border-[#112A0F]/10 bg-white p-3.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all"
+                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-blue-500 transition-all"
                   >
                     <option value="Staff" className="bg-white">Staff</option>
                   </select>
                 </div>
                 <div>
-                  <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#397239]/70">Account Status</label>
+                  <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-gray-500">Account Status</label>
                   <select
                     name="status"
                     value={editForm.status}
                     onChange={handleEditInputChange}
-                    className="w-full rounded-xl border border-[#112A0F]/10 bg-white p-3.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all"
+                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-blue-500 transition-all"
                   >
                     <option value="Activate" className="bg-white">Active</option>
                     <option value="Suspended" className="bg-white">Inactive</option>
+                    <option value="Banned" className="bg-white">Banned</option>
                   </select>
                 </div>
               </div>
@@ -527,14 +533,14 @@ export default function Staff_creation_test() {
                 <button
                   type="button"
                   onClick={handleCloseEditModal}
-                  className="flex-1 rounded-xl border border-white/10 py-4 text-[10px] font-bold text-white/60 uppercase tracking-widest transition hover:bg-white/5"
+                  className="flex-1 rounded-xl border border-gray-200 bg-white py-4 text-[10px] font-bold text-gray-600 uppercase tracking-widest transition hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isUpdatingStaff}
-                  className="flex-1 rounded-xl bg-[#397239] py-4 text-[10px] font-extrabold text-white shadow-lg shadow-[#397239]/10 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 uppercase tracking-widest"
+                  className="flex-1 rounded-xl bg-blue-600 py-4 text-[10px] font-extrabold text-white shadow-lg shadow-blue-600/10 transition-all hover:bg-blue-700 hover:scale-105 active:scale-95 disabled:opacity-50 uppercase tracking-widest"
                 >
                   {isUpdatingStaff ? 'Updating...' : 'Save Profile'}
                 </button>

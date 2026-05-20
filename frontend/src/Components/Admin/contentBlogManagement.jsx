@@ -1,7 +1,5 @@
-import ReactQuill from "react-quill-new";
-import "react-quill-new/dist/quill.snow.css";
-
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   createArticle,
@@ -40,7 +38,25 @@ export default function ContentBlogManagement() {
   const [posts, setPosts] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [editingPostId, setEditingPostId] = useState(null);
+  const [editorForm, setEditorForm] = useState(null);
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+
+  const hydrateEditorForm = (post) => {
+    if (!post) return null;
+
+    return {
+      title: post.title || "",
+      category: post.category || "Recycling Tips",
+      author: post.author || "Admin",
+      thumbnail: post.thumbnail || "bottle",
+      excerpt: post.excerpt || "",
+      content: post.content || "",
+      featuredImage: post.featuredImage || "",
+      comments: post.comments || 0,
+    };
+  };
 
   useEffect(() => {
     const loadArticles = () => {
@@ -48,9 +64,13 @@ export default function ContentBlogManagement() {
 
       setPosts(storedPosts);
 
-      setEditingPostId(
-        (current) => current || storedPosts[0]?.id || null
-      );
+      const nextSelectedId =
+        editingPostId || storedPosts[0]?.id || null;
+
+      setEditingPostId(nextSelectedId);
+      setEditorForm(hydrateEditorForm(
+        storedPosts.find((post) => post.id === nextSelectedId) || storedPosts[0] || null
+      ));
     };
 
     loadArticles();
@@ -65,15 +85,9 @@ export default function ContentBlogManagement() {
         "ecofy-articles-updated",
         loadArticles
       );
-  }, []);
+  }, [editingPostId]);
 
   const refreshPosts = (next) => setPosts(next);
-
-  const handlePublishPost = (id) =>
-    refreshPosts(setArticleStatus(id, "Published"));
-
-  const handleSaveDraft = (id) =>
-    refreshPosts(setArticleStatus(id, "Draft"));
 
   const handleDeletePost = (id) =>
     refreshPosts(deleteArticle(id));
@@ -95,6 +109,34 @@ export default function ContentBlogManagement() {
     (p) => p.id === editingPostId
   );
 
+  useEffect(() => {
+    setEditorForm(hydrateEditorForm(editingPost));
+  }, [editingPostId, editingPost]);
+
+  const commitPost = (status) => {
+    if (!editingPost || !editorForm) return;
+
+    const normalizedStatus = status === "Published" ? "Published" : "Draft";
+
+    const nextPosts = updateArticle(editingPost.id, {
+      ...editorForm,
+      status: normalizedStatus,
+      publishedAt: normalizedStatus === "Published" ? new Date().toISOString() : null,
+    });
+
+    refreshPosts(nextPosts);
+    setError(null);
+    setMessage(
+      normalizedStatus === "Published"
+        ? "Published successfully. Redirecting to the blog page."
+        : "Draft saved successfully."
+    );
+
+    if (normalizedStatus === "Published") {
+      navigate("/blogs");
+    }
+  };
+
   const handleCreateNewPost = () => {
     const next = createArticle({
       title: "Untitled Article",
@@ -111,16 +153,7 @@ export default function ContentBlogManagement() {
     refreshPosts(next);
 
     setEditingPostId(next[0]?.id || null);
-  };
-
-  const updateEditingPostField = (field, value) => {
-    if (!editingPost) return;
-
-    refreshPosts(
-      updateArticle(editingPost.id, {
-        [field]: value,
-      })
-    );
+    setEditorForm(hydrateEditorForm(next[0] || null));
   };
 
   return (
@@ -139,6 +172,7 @@ export default function ContentBlogManagement() {
         />
 
         <button
+          type="button"
           onClick={handleCreateNewPost}
           className="bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
         >
@@ -153,6 +187,12 @@ export default function ContentBlogManagement() {
         </div>
       )}
 
+      {message && (
+        <div className="mb-6 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-[#397239]">
+          {message}
+        </div>
+      )}
+
       <div className="flex flex-col gap-6 lg:flex-row items-start">
 
         {/* POSTS LIST */}
@@ -161,7 +201,10 @@ export default function ContentBlogManagement() {
           {filteredPosts.map((post) => (
             <div
               key={post.id}
-              onClick={() => setEditingPostId(post.id)}
+              onClick={() => {
+                setEditingPostId(post.id);
+                setEditorForm(hydrateEditorForm(post));
+              }}
               className={`p-4 border rounded-xl cursor-pointer transition ${
                 editingPostId === post.id
                   ? "bg-green-100"
@@ -177,6 +220,7 @@ export default function ContentBlogManagement() {
               </p>
 
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDeletePost(post.id);
@@ -213,22 +257,22 @@ export default function ContentBlogManagement() {
 
                   <input
                     type="text"
-                    value={editingPost.title}
+                    value={editorForm?.title || ""}
                     onChange={(e) =>
-                      updateEditingPostField(
-                        "title",
-                        e.target.value
-                      )
+                      setEditorForm((current) => ({
+                        ...(current || hydrateEditorForm(editingPost)),
+                        title: e.target.value,
+                      }))
                     }
                     className="w-full border rounded-lg px-4 py-3"
                   />
                 </div>
 
                 {/* IMAGE PREVIEW */}
-                {editingPost.featuredImage && (
+                {editorForm?.featuredImage && (
                   <div>
                     <img
-                      src={editingPost.featuredImage}
+                      src={editorForm.featuredImage}
                       alt="Preview"
                       className="h-64 w-full rounded-xl object-cover border"
                     />
@@ -241,33 +285,17 @@ export default function ContentBlogManagement() {
                     Content
                   </label>
 
-             <ReactQuill
-  theme="snow"
-  value={editingPost.content || ""}
-  onChange={(val) =>
-    updateEditingPostField("content", val)
-  }
-  style={{ height: "400px" }}
-  modules={{
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ["bold", "italic", "underline"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link", "image"],
-      ["clean"],
-    ],
-  }}
-  formats={[
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "list",
-    "bullet",
-    "link",
-    "image",
-  ]}
-/>
+                  <textarea
+                    value={editorForm?.content || ""}
+                    onChange={(e) =>
+                      setEditorForm((current) => ({
+                        ...(current || hydrateEditorForm(editingPost)),
+                        content: e.target.value,
+                      }))
+                    }
+                    placeholder="Write the article content here..."
+                    className="min-h-[400px] w-full rounded-lg border px-4 py-3 leading-7 outline-none focus:border-green-600"
+                  />
                 </div>
 
                 <div className="h-16"></div>
@@ -292,10 +320,10 @@ export default function ContentBlogManagement() {
                       const reader = new FileReader();
 
                       reader.onloadend = () => {
-                        updateEditingPostField(
-                          "featuredImage",
-                          reader.result
-                        );
+                        setEditorForm((current) => ({
+                          ...(current || hydrateEditorForm(editingPost)),
+                          featuredImage: reader.result,
+                        }));
                       };
 
                       reader.readAsDataURL(file);
@@ -314,8 +342,9 @@ export default function ContentBlogManagement() {
                 <div className="flex gap-3">
 
                   <button
+                    type="button"
                     onClick={() =>
-                      handleSaveDraft(editingPost.id)
+                      commitPost("Draft")
                     }
                     className="px-4 py-2 border rounded-lg"
                   >
@@ -323,8 +352,9 @@ export default function ContentBlogManagement() {
                   </button>
 
                   <button
+                    type="button"
                     onClick={() =>
-                      handlePublishPost(editingPost.id)
+                      commitPost("Published")
                     }
                     className="px-4 py-2 bg-green-700 text-white rounded-lg"
                   >

@@ -42,7 +42,11 @@ export const getArticles = () => readStoredArticles();
 
 export const getPublishedArticles = () =>
   readStoredArticles()
-    .filter((article) => article.status === "Published")
+    .filter((article) =>
+      String(article.status || "")
+        .trim()
+        .toLowerCase() === "published"
+    )
     .sort((a, b) => {
       const dateA = new Date(a.publishedAt || a.createdAt || 0).getTime();
       const dateB = new Date(b.publishedAt || b.createdAt || 0).getTime();
@@ -87,13 +91,22 @@ export const createArticle = (article) => {
     category: article.category || "General",
     author: article.author || "Admin",
     comments: 0,
-    status: article.status || "Draft",
+    status:
+      String(article.status || "Draft")
+        .trim()
+        .toLowerCase() === "published"
+        ? "Published"
+        : "Draft",
     thumbnail: article.thumbnail || "bottle",
     excerpt: article.excerpt || "",
     content: article.content || "",
     createdAt: new Date().toISOString(),
     publishedAt:
-      article.status === "Published" ? new Date().toISOString() : null,
+      String(article.status || "")
+        .trim()
+        .toLowerCase() === "published"
+        ? new Date().toISOString()
+        : null,
   };
 
   const updated = [newArticle, ...current];
@@ -104,11 +117,16 @@ export const createArticle = (article) => {
 
    //SET STATUS (PUBLISH / DRAFT)
 export const setArticleStatus = (articleId, status) => {
+  const normalizedStatus =
+    String(status || "Draft").trim().toLowerCase() === "published"
+      ? "Published"
+      : "Draft";
+
   const publishedAt =
-    status === "Published" ? new Date().toISOString() : null;
+    normalizedStatus === "Published" ? new Date().toISOString() : null;
 
   return updateArticle(articleId, {
-    status,
+    status: normalizedStatus,
     publishedAt,
   });
 };
