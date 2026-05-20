@@ -1,4 +1,5 @@
-const User = require("../Model/UserModule");
+const User = require("../Model/User.js");
+const LegacyUser = require("../Model/UserModule");
 
 const jwt = require("jsonwebtoken");
 
@@ -62,7 +63,10 @@ const createUser = async (req, res) => {
 // Get single user profile by clerkId
 const getUserByClerkId = async (req, res) => {
   try {
-    const user = await User.findOne({ clerkId: req.params.clerkId });
+    const user =
+      (await User.findOne({ clerkId: req.params.clerkId })) ||
+      (await LegacyUser.findOne({ clerkId: req.params.clerkId }));
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
