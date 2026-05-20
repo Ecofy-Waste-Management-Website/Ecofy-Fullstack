@@ -548,12 +548,15 @@ export default function AdminDashboard() {
             {menuItems.map((item) => (
               <div key={item.key} className="flex flex-col">
                 <button
+                  type="button"
                   className={`flex justify-between items-center text-left text-sm font-500 px-4 py-3 rounded-2xl transition-all duration-200 ${
                     activeTab === item.key && !item.hasSubmenu
                       ? "bg-blue-500/10 text-blue-600 border-l-3 border-blue-500"
                       : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/30"
                   }`}
-                  onClick={() => {
+                  onClick={(event) => {
+                    event.preventDefault();
+
                     if (item.hasSubmenu) {
                       toggleSubmenu(item.key);
                       const firstSub = item.subItems && item.subItems[0];
@@ -578,12 +581,16 @@ export default function AdminDashboard() {
                     {item.subItems.map((sub) => (
                       <button
                         key={sub.key}
+                        type="button"
                         className={`text-left text-xs px-4 py-2 rounded-lg transition-colors font-500 ${
                           activeTab === sub.key
                             ? "bg-blue-500/10 text-blue-600"
                             : "text-gray-500 hover:text-gray-700 hover:bg-gray-100/30"
                         }`}
-                        onClick={() => handleSelectTab(sub.key)}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          handleSelectTab(sub.key);
+                        }}
                       >
                         {sub.label}
                       </button>
@@ -599,7 +606,7 @@ export default function AdminDashboard() {
             <div className="min-w-0 flex-1">
               <p className="m-0 text-xs font-600 uppercase tracking-wider text-gray-600">Admin</p>
               <p className="m-0 text-sm font-500 truncate text-gray-900">{adminName}</p>
-              <button className="mt-1 cursor-pointer border-none bg-transparent p-0 text-xs font-500 text-blue-600 hover:text-blue-700 transition-all" onClick={() => setShowLogoutModal(true)}>Logout</button>
+              <button type="button" className="mt-1 cursor-pointer border-none bg-transparent p-0 text-xs font-500 text-blue-600 hover:text-blue-700 transition-all" onClick={() => setShowLogoutModal(true)}>Logout</button>
             </div>
           </div>
         </aside>
@@ -621,7 +628,7 @@ export default function AdminDashboard() {
               <NotificationBell target="admin" />
               <div className="rounded-lg border border-gray-300 bg-white/60 px-3 py-2 text-xs font-600 text-gray-700 shadow-sm">Admin</div>
               {!roleLoading && role === "Admin" && (
-                <button onClick={handleSwitchDashboard} className="rounded-full bg-blue-500 px-5 py-2 text-xs font-600 text-white transition-all hover:bg-blue-600 shadow-md hover:shadow-lg">Switch to Staff</button>
+                <button type="button" onClick={handleSwitchDashboard} className="rounded-full bg-blue-500 px-5 py-2 text-xs font-600 text-white transition-all hover:bg-blue-600 shadow-md hover:shadow-lg">Switch to Staff</button>
               )}
             </div>
           </header>
@@ -641,31 +648,37 @@ export default function AdminDashboard() {
       <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/20 bg-white/80 backdrop-blur-xl px-4 py-3 text-gray-900 lg:hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0"><h2 className="truncate text-base font-600 leading-tight">{getPageTitle()}</h2></div>
-          <button onClick={handleToggleMobileMenu} className="grid h-9 w-9 place-items-center rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"><Icons.Menu /></button>
+          <button type="button" onClick={handleToggleMobileMenu} className="grid h-9 w-9 place-items-center rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"><Icons.Menu /></button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <button className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
+          <button type="button" className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
           <aside className="absolute left-4 top-4 bottom-4 flex w-[86%] max-w-xs flex-col gap-4 overflow-y-auto bg-white/95 backdrop-blur-xl p-5 text-gray-900 shadow-2xl border border-white/50 rounded-3xl">
             <div className="flex items-center justify-between gap-2 pb-3">
               <div className="flex items-center gap-3"><h1 className="m-0 text-lg font-600">Ecofy</h1></div>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 text-xs font-600 hover:text-gray-700">✕</button>
+              <button type="button" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 text-xs font-600 hover:text-gray-700">✕</button>
             </div>
             <nav className="flex flex-col gap-1">
               {menuItems.map((item) => (
                 item.hasSubmenu ? (
                   item.subItems.map((sub) => (
-                    <button key={sub.key} onClick={() => handleSelectTab(sub.key)} className={`text-left text-sm font-500 px-4 py-3 rounded-lg transition-all ${activeTab === sub.key ? "bg-blue-500/10 text-blue-600" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"}`}>{sub.label}</button>
+                    <button type="button" key={sub.key} onClick={(event) => {
+                      event.preventDefault();
+                      handleSelectTab(sub.key);
+                    }} className={`text-left text-sm font-500 px-4 py-3 rounded-lg transition-all ${activeTab === sub.key ? "bg-blue-500/10 text-blue-600" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"}`}>{sub.label}</button>
                   ))
                 ) : (
-                  <button key={item.key} onClick={() => handleSelectTab(item.key)} className={`text-left text-sm font-500 px-4 py-3 rounded-lg transition-all ${activeTab === item.key ? "bg-blue-500/10 text-blue-600" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"}`}>{item.label}</button>
+                  <button type="button" key={item.key} onClick={(event) => {
+                    event.preventDefault();
+                    handleSelectTab(item.key);
+                  }} className={`text-left text-sm font-500 px-4 py-3 rounded-lg transition-all ${activeTab === item.key ? "bg-blue-500/10 text-blue-600" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"}`}>{item.label}</button>
                 )
               ))}
             </nav>
-            <button onClick={handleSwitchDashboard} className="mt-auto w-full rounded-full bg-blue-500 py-3 text-xs font-600 text-white hover:bg-blue-600 transition-all">Switch to Staff</button>
+            <button type="button" onClick={handleSwitchDashboard} className="mt-auto w-full rounded-full bg-blue-500 py-3 text-xs font-600 text-white hover:bg-blue-600 transition-all">Switch to Staff</button>
           </aside>
         </div>
       )}
@@ -682,8 +695,8 @@ export default function AdminDashboard() {
             <h3 className="mb-2 text-lg font-600 text-gray-900">Sign Out?</h3>
             <p className="mb-6 text-xs font-500 text-gray-600 uppercase tracking-wider">Are you sure you want to exit the portal?</p>
             <div className="flex gap-3">
-              <button onClick={() => setShowLogoutModal(false)} className="flex-1 rounded-full border border-gray-300 bg-white py-3 text-xs font-600 text-gray-900 uppercase tracking-widest transition-all hover:bg-gray-50">Stay Here</button>
-              <button onClick={handleSignOut} className="flex-1 rounded-full bg-red-500 py-3 text-xs font-600 text-white shadow-md transition-all hover:bg-red-600 uppercase tracking-widest">Sign Out</button>
+              <button type="button" onClick={() => setShowLogoutModal(false)} className="flex-1 rounded-full border border-gray-300 bg-white py-3 text-xs font-600 text-gray-900 uppercase tracking-widest transition-all hover:bg-gray-50">Stay Here</button>
+              <button type="button" onClick={handleSignOut} className="flex-1 rounded-full bg-red-500 py-3 text-xs font-600 text-white shadow-md transition-all hover:bg-red-600 uppercase tracking-widest">Sign Out</button>
             </div>
           </div>
         </div>
