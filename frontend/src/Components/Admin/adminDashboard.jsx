@@ -127,12 +127,12 @@ Close: () => (
 
 // ─── DATA & CONFIGURATION ──────────────────────────────────────────────────
 
-const stats = [
-  { label: "Orders", value: "120", icon: <Icons.Orders /> },
-  { label: "Completed Orders", value: "92", icon: <Icons.Completed /> },
-  { label: "Cancelled / Delayed", value: "7", icon: <Icons.Cancelled /> },
-  { label: "Pending", value: "41", icon: <Icons.Pending /> },
-  { label: "Active Staff", value: "18", icon: <Icons.Staff /> },
+const statCards = [
+  { key: "orders", label: "Orders", icon: <Icons.Orders /> },
+  { key: "completedOrders", label: "Completed Orders", icon: <Icons.Completed /> },
+  { key: "cancelledDelayed", label: "Cancelled / Delayed", icon: <Icons.Cancelled /> },
+  { key: "pending", label: "Pending", icon: <Icons.Pending /> },
+  { key: "activeStaff", label: "Active Staff", icon: <Icons.Staff /> },
 ];
 
 const WASTE_COLORS = ['#ef4444', '#fbbf24', '#9ca3af', '#2563eb'];
@@ -463,6 +463,13 @@ function DashboardHome() {
   const [salesLoading, setSalesLoading] = useState(true);
   const [salesError, setSalesError] = useState(null);
   const [wasteData, setWasteData] = useState([]);
+  const [dashboardMetrics, setDashboardMetrics] = useState({
+    orders: 0,
+    completedOrders: 0,
+    cancelledDelayed: 0,
+    pending: 0,
+    activeStaff: 0,
+  });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -478,12 +485,26 @@ function DashboardHome() {
           return response.json();
         };
 
-        const salesPayload = await fetchJson(`${API_BASE_URL}/analytics/sales-by-date?days=5`);
+        const [salesPayload, slaPayload, staffPayload] = await Promise.all([
+          fetchJson(`${API_BASE_URL}/analytics/sales-by-date?days=5`),
+          fetchJson(`${API_BASE_URL}/sla-analytics`),
+          fetchJson(`${API_BASE_URL}/admin/staff`),
+        ]);
+
+        const overview = slaPayload?.overview || {};
+        const staffList = Array.isArray(staffPayload?.staff) ? staffPayload.staff : [];
+
+        setDashboardMetrics({
+          orders: Number(overview.total || 0),
+          completedOrders: Number(overview.completed || 0),
+          cancelledDelayed: Number(overview.delayed || 0),
+          pending: Number(overview.pending || 0),
+          activeStaff: staffList.filter((staff) => staff.displayStatus === "Active" || staff.status === "Activate").length,
+        });
 
         if (salesPayload?.data && Array.isArray(salesPayload.data)) {
           setSalesData(salesPayload.data);
         } else {
-          const slaPayload = await fetchJson(`${API_BASE_URL}/sla-analytics`);
           const fallbackData = Array.isArray(slaPayload?.dailyCompletion)
             ? slaPayload.dailyCompletion.map((entry) => ({
                 date: entry.date,
@@ -494,9 +515,8 @@ function DashboardHome() {
           setSalesData(fallbackData);
         }
 
-        const slaForWaste = await fetchJson(`${API_BASE_URL}/sla-analytics`);
-        const chartWasteData = Array.isArray(slaForWaste?.wasteCategories)
-          ? slaForWaste.wasteCategories.map((item) => ({
+        const chartWasteData = Array.isArray(slaPayload?.wasteCategories)
+          ? slaPayload.wasteCategories.map((item) => ({
               name: item.name,
               value: item.value,
             }))
@@ -524,9 +544,9 @@ function DashboardHome() {
   <div className="flex flex-col h-full gap-6">
     {/* Stats Grid - Apple Style */}
     <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      {stats.map((stat) => (
+      {statCards.map((stat) => (
         <article
-          key={stat.label}
+          key={stat.key}
           className="flex items-start gap-4 rounded-3xl bg-white/30 backdrop-blur-xl border border-white/20 p-6 shadow-sm transition-all duration-200 hover:bg-white/40 hover:shadow-md"
         >
           <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 shadow-sm">
@@ -534,7 +554,7 @@ function DashboardHome() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="m-0 text-xs font-600 text-gray-600 uppercase tracking-wider mb-2">{stat.label}</p>
-            <h3 className="m-0 text-3xl font-600 text-gray-900">{stat.value}</h3>
+            <h3 className="m-0 text-3xl font-600 text-gray-900">{dashboardMetrics[stat.key] ?? 0}</h3>
           </div>
         </article>
       ))}
