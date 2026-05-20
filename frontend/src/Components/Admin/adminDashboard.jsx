@@ -135,24 +135,7 @@ const stats = [
   { label: "Active Staff", value: "18", icon: <Icons.Staff /> },
 ];
 
-// Sample waste type data (percentages)
-const wasteData = [
-  { name: 'Household', value: 43 },
-  { name: 'Electronic', value: 28 },
-  { name: 'Construction', value: 15 },
-  { name: 'Medical', value: 14 },
-];
-
 const WASTE_COLORS = ['#ef4444', '#fbbf24', '#9ca3af', '#2563eb'];
-
-// Sample sales data for the bar chart (date -> number of sales)
-const salesData = [
-  { date: '2026-05-01', sales: 75 },
-  { date: '2026-05-02', sales: 2 },
-  { date: '2026-05-03', sales: 25 },
-  { date: '2026-05-04', sales: 50 },
-  { date: '2026-05-05', sales: 25 },
-];
 
 
 
@@ -475,7 +458,69 @@ const ServiceManagement = () => {
 };
 
 // ─── DASHBOARD HOME COMPONENT ──────────────────────────────────────────────
-const DashboardHome = () => (
+function DashboardHome() {
+  const [salesData, setSalesData] = useState([]);
+  const [salesLoading, setSalesLoading] = useState(true);
+  const [salesError, setSalesError] = useState(null);
+  const [wasteData, setWasteData] = useState([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadSales = async () => {
+      try {
+        setSalesLoading(true);
+        setSalesError(null);
+
+        const fetchJson = async (url) => {
+          const response = await fetch(url, { signal: controller.signal });
+          if (!response.ok) return null;
+          return response.json();
+        };
+
+        const salesPayload = await fetchJson(`${API_BASE_URL}/analytics/sales-by-date?days=5`);
+
+        if (salesPayload?.data && Array.isArray(salesPayload.data)) {
+          setSalesData(salesPayload.data);
+        } else {
+          const slaPayload = await fetchJson(`${API_BASE_URL}/sla-analytics`);
+          const fallbackData = Array.isArray(slaPayload?.dailyCompletion)
+            ? slaPayload.dailyCompletion.map((entry) => ({
+                date: entry.date,
+                sales: entry.total ?? entry.completed ?? 0,
+              }))
+            : [];
+
+          setSalesData(fallbackData);
+        }
+
+        const slaForWaste = await fetchJson(`${API_BASE_URL}/sla-analytics`);
+        const chartWasteData = Array.isArray(slaForWaste?.wasteCategories)
+          ? slaForWaste.wasteCategories.map((item) => ({
+              name: item.name,
+              value: item.value,
+            }))
+          : [];
+
+        setWasteData(chartWasteData);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          setSalesError("Sales chart unavailable right now.");
+          setSalesData([]);
+          setWasteData([]);
+          console.error("Sales analytics fetch error:", error);
+        }
+      } finally {
+        setSalesLoading(false);
+      }
+    };
+
+    loadSales();
+
+    return () => controller.abort();
+  }, []);
+
+  return (
   <div className="flex flex-col h-full gap-6">
     {/* Stats Grid - Apple Style */}
     <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -518,6 +563,11 @@ const DashboardHome = () => (
       {/* Right: Placeholder for additional dashboard widgets */}
       <div className="rounded-3xl border border-white/30 bg-white/30 backdrop-blur-xl p-6 shadow-sm min-h-[420px]">
         <h3 className="text-lg font-600 mb-4 text-gray-700">Average Daily Sales</h3>
+        {salesLoading ? (
+          <div className="flex h-[330px] items-center justify-center text-sm text-gray-500">Loading sales data...</div>
+        ) : salesError ? (
+          <div className="flex h-[330px] items-center justify-center text-sm text-red-500">{salesError}</div>
+        ) : (
         <div className="w-full h-[330px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={salesData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
@@ -529,10 +579,12 @@ const DashboardHome = () => (
             </BarChart>
           </ResponsiveContainer>
         </div>
+        )}
       </div>
     </section>
   </div>
-);
+  );
+}
 
 // ─── MAIN ADMIN DASHBOARD COMPONENT ─────────────────────────────────────────
 
