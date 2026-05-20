@@ -12,7 +12,7 @@ import NotificationBell from "./NotificationBell";
 // Assuming you have UserManagement, otherwise this is a placeholder
 // import UserManagement from "./UserManagement"; 
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // ─── ICONS ──────────────────────────────────────────────────────────────────
 
