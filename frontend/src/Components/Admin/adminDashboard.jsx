@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import ServiceRequests from "./ServiceRequests";
@@ -50,6 +51,21 @@ const Icons = {
   Timer: () => (
     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  ),
+  Orders: () => (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.2 6.4A1 1 0 007 21h10a1 1 0 001-.9L19 13M7 13H5" />
+    </svg>
+  ),
+  Completed: () => (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M12 22a10 10 0 100-20 10 10 0 000 20z" />
+    </svg>
+  ),
+  Cancelled: () => (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),
   Menu: () => (
@@ -112,8 +128,30 @@ Close: () => (
 // ─── DATA & CONFIGURATION ──────────────────────────────────────────────────
 
 const stats = [
+  { label: "Orders", value: "120", icon: <Icons.Orders /> },
+  { label: "Completed Orders", value: "92", icon: <Icons.Completed /> },
+  { label: "Cancelled / Delayed", value: "7", icon: <Icons.Cancelled /> },
   { label: "Pending", value: "41", icon: <Icons.Pending /> },
   { label: "Active Staff", value: "18", icon: <Icons.Staff /> },
+];
+
+// Sample waste type data (percentages)
+const wasteData = [
+  { name: 'Household', value: 43 },
+  { name: 'Electronic', value: 28 },
+  { name: 'Construction', value: 15 },
+  { name: 'Medical', value: 14 },
+];
+
+const WASTE_COLORS = ['#ef4444', '#fbbf24', '#9ca3af', '#2563eb'];
+
+// Sample sales data for the bar chart (date -> number of sales)
+const salesData = [
+  { date: '2026-05-01', sales: 75 },
+  { date: '2026-05-02', sales: 2 },
+  { date: '2026-05-03', sales: 25 },
+  { date: '2026-05-04', sales: 50 },
+  { date: '2026-05-05', sales: 25 },
 ];
 
 
@@ -440,7 +478,7 @@ const ServiceManagement = () => {
 const DashboardHome = () => (
   <div className="flex flex-col h-full gap-6">
     {/* Stats Grid - Apple Style */}
-    <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       {stats.map((stat) => (
         <article
           key={stat.label}
@@ -458,8 +496,40 @@ const DashboardHome = () => (
     </section>
 
     {/* Main Content Grid */}
-    <section className="grid grid-cols-1 gap-6 flex-1 min-h-0">
-      {/* Dashboard content only (no Task Management) */}
+    <section className="grid grid-cols-1 gap-6 flex-1 min-h-0 lg:grid-cols-2">
+      {/* Left: Waste Types Pie Chart */}
+      <div className="rounded-3xl border border-white/30 bg-white/30 backdrop-blur-xl p-6 shadow-sm min-h-[420px]">
+        <h3 className="text-lg font-600 mb-4 text-gray-700">Waste Types</h3>
+        <div className="w-full h-[380px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={wasteData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label>
+                {wasteData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={WASTE_COLORS[index % WASTE_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend verticalAlign="bottom" />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Right: Placeholder for additional dashboard widgets */}
+      <div className="rounded-3xl border border-white/30 bg-white/30 backdrop-blur-xl p-6 shadow-sm min-h-[420px]">
+        <h3 className="text-lg font-600 mb-4 text-gray-700">Average Daily Sales</h3>
+        <div className="w-full h-[330px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={salesData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+              <YAxis />
+              <Tooltip formatter={(value) => [value, 'Sales']} />
+              <Bar dataKey="sales" fill="#3b82f6" radius={[6,6,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </section>
   </div>
 );
