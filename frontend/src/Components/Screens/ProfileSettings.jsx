@@ -143,7 +143,7 @@ export default function ProfileSettings() {
         </div>
 
         {saveStatus.text && (
-          <p className={`text-sm mt-4 ${saveStatus.type === "success" ? "text-green-600" : "text-red-500"}`}>
+          <p className={`text-sm mt-4 ${saveStatus.type === "success" ? "text-[#66c45e]" : "text-red-500"}`}>
             {saveStatus.type === "success" ? "✓" : "✕"} {saveStatus.text}
           </p>
         )}

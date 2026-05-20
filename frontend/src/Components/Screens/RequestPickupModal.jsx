@@ -69,6 +69,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
           user?.username ||
           "Ecofy Customer",
         customer_email: user?.primaryEmailAddress?.emailAddress || "",
+        clerkId: user?.id,
         ...form,
       });
 
@@ -112,7 +113,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
           {/* Title Row */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
-              <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-100/70 backdrop-blur-sm text-xl text-emerald-800 shadow-sm border border-emerald-200/50">
+              <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-green-100/70 backdrop-blur-sm text-xl text-green-800 shadow-sm border border-green-200/50">
                 <svg className="w-[60%] h-[60%] text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="1" y="3" width="15" height="13" rx="2" ry="2"></rect>
                   <path d="M16 8h4l3 3v5h-7V8z"></path>
@@ -146,7 +147,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
                   name="service_type"
                   value={form.service_type}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-emerald-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-emerald-950 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                  className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
                 >
                   <option value="">Select type</option>
                   {SERVICE_TYPES.map((t) => (
@@ -163,7 +164,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
                   name="waste_category"
                   value={form.waste_category}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-emerald-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-emerald-950 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                  className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
                 >
                   <option value="">Select category</option>
                   {WASTE_CATEGORIES.map((c) => (
@@ -184,7 +185,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
                 value={form.location}
                 onChange={handleChange}
                 placeholder="e.g. 123 Main Street, Colombo"
-                className="w-full rounded-lg border border-emerald-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-emerald-950 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
               />
             </div>
 
@@ -199,7 +200,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
                 value={form.scheduled_date}
                 onChange={handleChange}
                 min={minDate}
-                className="w-full rounded-lg border border-emerald-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-emerald-950 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
               />
             </div>
 
@@ -214,7 +215,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
                 onChange={handleChange}
                 rows={3}
                 placeholder="Any special instructions for the pickup crew..."
-                className="w-full rounded-lg border border-emerald-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-emerald-950 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition resize-none"
+                className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition resize-none"
               />
             </div>
 
@@ -223,7 +224,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
               <div
                 className={`rounded-lg px-4 py-2.5 text-sm font-medium ${
                   status.type === "success"
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    ? "bg-green-50 text-green-700 border border-green-200"
                     : "bg-red-50 text-red-700 border border-red-200"
                 }`}
               >
@@ -243,7 +244,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-lg bg-linear-to-r from-emerald-600 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-emerald-700 hover:to-teal-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                className="rounded-lg bg-linear-to-r from-green-600 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-green-700 hover:to-teal-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {submitting ? (
                   <span className="flex items-center gap-2">

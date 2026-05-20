@@ -16,7 +16,7 @@ const TYPE_STYLES = {
   Alert:   "bg-red-100 text-red-800",
   Warning: "bg-amber-100 text-amber-800",
   Info:    "bg-blue-100 text-blue-800",
-  Success: "bg-emerald-100 text-emerald-800",
+  Success: "bg-green-100 text-green-800",
 };
 
 export default function NotificationBell({ target = "user" }) {
@@ -86,7 +86,7 @@ export default function NotificationBell({ target = "user" }) {
       {/* Bell Button */}
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="relative grid h-9 w-9 place-items-center rounded-full bg-white border border-emerald-100 text-emerald-600 hover:bg-emerald-50 transition-colors shadow-sm"
+        className="relative grid h-9 w-9 place-items-center rounded-full bg-white border border-green-100 text-green-600 hover:bg-green-50 transition-colors shadow-sm"
         aria-label="Notifications"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -101,13 +101,13 @@ export default function NotificationBell({ target = "user" }) {
 
       {/* Dropdown Panel */}
       {open && (
-        <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-[360px] rounded-2xl border border-emerald-100 bg-white shadow-xl shadow-emerald-900/10 overflow-hidden">
+        <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-[360px] rounded-2xl border border-green-100 bg-white shadow-xl shadow-green-900/10 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-emerald-50">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-green-50">
             <p className="text-sm font-bold text-gray-800 m-0">
               Notifications{" "}
               {unreadCount > 0 && (
-                <span className="ml-1 text-xs font-semibold text-emerald-600">
+                <span className="ml-1 text-xs font-semibold text-green-600">
                   {unreadCount} unread
                 </span>
               )}
@@ -115,7 +115,7 @@ export default function NotificationBell({ target = "user" }) {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-xs text-emerald-600 hover:underline bg-transparent border-none cursor-pointer p-0"
+                className="text-xs text-green-600 hover:underline bg-transparent border-none cursor-pointer p-0"
               >
                 Mark all read
               </button>
@@ -131,14 +131,14 @@ export default function NotificationBell({ target = "user" }) {
                 <div
                   key={item._id}
                   className={`flex gap-3 px-4 py-3 border-b border-gray-50 last:border-0 transition-colors ${
-                    item.isRead ? "bg-white" : "bg-emerald-50/50"
+                    item.isRead ? "bg-white" : "bg-green-50/50"
                   }`}
                 >
                   {/* Unread dot */}
                   <div className="pt-1.5 shrink-0">
                     <span
                       className={`block h-2 w-2 rounded-full ${
-                        item.isRead ? "bg-transparent" : "bg-emerald-500"
+                        item.isRead ? "bg-transparent" : "bg-green-500"
                       }`}
                     />
                   </div>
@@ -155,7 +155,7 @@ export default function NotificationBell({ target = "user" }) {
                       {!item.isRead && (
                         <button
                           onClick={(e) => handleMarkAsRead(item._id, e)}
-                          className="ml-auto text-[0.65rem] text-gray-400 hover:text-emerald-600 hover:underline bg-transparent border-none cursor-pointer p-0"
+                          className="ml-auto text-[0.65rem] text-gray-400 hover:text-green-600 hover:underline bg-transparent border-none cursor-pointer p-0"
                         >
                           mark read
                         </button>
