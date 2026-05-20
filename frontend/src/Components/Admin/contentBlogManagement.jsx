@@ -241,17 +241,33 @@ export default function ContentBlogManagement() {
                     Content
                   </label>
 
-                  <ReactQuill
-                    theme="snow"
-                    value={editingPost.content || ""}
-                    onChange={(val) =>
-                      updateEditingPostField(
-                        "content",
-                        val
-                      )
-                    }
-                    style={{ height: "400px" }}
-                  />
+             <ReactQuill
+  theme="snow"
+  value={editingPost.content || ""}
+  onChange={(val) =>
+    updateEditingPostField("content", val)
+  }
+  style={{ height: "400px" }}
+  modules={{
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link", "image"],
+      ["clean"],
+    ],
+  }}
+  formats={[
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "list",
+    "bullet",
+    "link",
+    "image",
+  ]}
+/>
                 </div>
 
                 <div className="h-16"></div>

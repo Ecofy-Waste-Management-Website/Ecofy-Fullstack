@@ -21,8 +21,8 @@ export default function BlogDetail() {
   }
 
   return (
-    <main className="bg-white min-h-screen">
-      <article className="mx-auto max-w-4xl px-4 py-20">
+    <main className="bg-white min-h-screen overflow-x-hidden">
+    <article className="mx-auto w-full max-w-4xl overflow-hidden px-4 py-20">
 
         <Link
           to="/blogs"
@@ -54,16 +54,32 @@ export default function BlogDetail() {
           />
         )}
 
-        {/* BLOG CONTENT */}
-        <div className="prose prose-slate lg:prose-lg max-w-none text-slate-700 leading-relaxed">
-          <div
-            className="whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{
-              __html: article.content || article.excerpt,
-            }}
-          />
-        </div>
+      {/* BLOG CONTENT */}
+<div className="mt-10 overflow-hidden">
+  <div
+    className="
+      prose
+      prose-slate
+      lg:prose-lg
+      max-w-none
+      break-words
+      overflow-hidden
 
+      prose-img:rounded-2xl
+      prose-img:w-full
+      prose-img:max-w-full
+
+      prose-p:text-slate-700
+      prose-p:leading-8
+
+      prose-pre:overflow-x-auto
+      prose-code:break-words
+    "
+    dangerouslySetInnerHTML={{
+      __html: article.content || article.excerpt,
+    }}
+  />
+</div>
       </article>
     </main>
   );

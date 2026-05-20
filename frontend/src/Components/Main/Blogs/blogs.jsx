@@ -79,16 +79,14 @@ export default function Blogs() {
                     <h2 className="text-xl font-bold leading-tight text-[#0f1d33]">
                       {article.title}
                     </h2>
-
-                    <div
-                      className="text-sm leading-7 text-slate-600 line-clamp-3"
-                      dangerouslySetInnerHTML={{
-                        __html:
-                          article.excerpt ||
-                          'Read the full story from the Ecofy content team.',
-                      }}
-                    />
-
+             <div
+  className="text-sm leading-7 text-slate-600 line-clamp-3 break-words overflow-hidden"
+  dangerouslySetInnerHTML={{
+    __html:
+      article.excerpt ||
+      "Read the full story from the Ecofy content team.",
+  }}
+/>
                     <div className="flex items-center justify-between border-t border-slate-100 pt-4 text-sm text-slate-500">
                       <span>By {article.author}</span>
 
