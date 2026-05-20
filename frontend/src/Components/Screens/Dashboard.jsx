@@ -256,6 +256,7 @@ export default function Dashboard() {
       try {
         setSendingInquiry(true);
         await submitInquiry({
+          clerkId: user?.id || "",
           userName: `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || user?.username || "Ecofy User",
           userEmail: user?.primaryEmailAddress?.emailAddress || "",
           subject: inquiry.subject || "General Inquiry",
