@@ -3,7 +3,7 @@ import { useUser, useClerk } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const STATUS_STYLES = {
   Pending: "bg-amber-100 text-amber-700",

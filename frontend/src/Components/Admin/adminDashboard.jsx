@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import ServiceRequests from "./ServiceRequests";
@@ -27,7 +28,7 @@ const COLORS = {
   error: "#FF3B30",
 };
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // ─── ICONS ──────────────────────────────────────────────────────────────────
 
@@ -50,6 +51,21 @@ const Icons = {
   Timer: () => (
     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  ),
+  Orders: () => (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.2 6.4A1 1 0 007 21h10a1 1 0 001-.9L19 13M7 13H5" />
+    </svg>
+  ),
+  Completed: () => (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M12 22a10 10 0 100-20 10 10 0 000 20z" />
+    </svg>
+  ),
+  Cancelled: () => (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),
   Menu: () => (
@@ -111,10 +127,15 @@ Close: () => (
 
 // ─── DATA & CONFIGURATION ──────────────────────────────────────────────────
 
-const stats = [
-  { label: "Pending", value: "41", icon: <Icons.Pending /> },
-  { label: "Active Staff", value: "18", icon: <Icons.Staff /> },
+const statCards = [
+  { key: "orders", label: "Orders", icon: <Icons.Orders /> },
+  { key: "completedOrders", label: "Completed Orders", icon: <Icons.Completed /> },
+  { key: "cancelledDelayed", label: "Cancelled / Delayed", icon: <Icons.Cancelled /> },
+  { key: "pending", label: "Pending", icon: <Icons.Pending /> },
+  { key: "activeStaff", label: "Active Staff", icon: <Icons.Staff /> },
 ];
+
+const WASTE_COLORS = ['#ef4444', '#fbbf24', '#9ca3af', '#2563eb'];
 
 
 
@@ -437,13 +458,95 @@ const ServiceManagement = () => {
 };
 
 // ─── DASHBOARD HOME COMPONENT ──────────────────────────────────────────────
-const DashboardHome = () => (
+function DashboardHome() {
+  const [salesData, setSalesData] = useState([]);
+  const [salesLoading, setSalesLoading] = useState(true);
+  const [salesError, setSalesError] = useState(null);
+  const [wasteData, setWasteData] = useState([]);
+  const [dashboardMetrics, setDashboardMetrics] = useState({
+    orders: 0,
+    completedOrders: 0,
+    cancelledDelayed: 0,
+    pending: 0,
+    activeStaff: 0,
+  });
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadSales = async () => {
+      try {
+        setSalesLoading(true);
+        setSalesError(null);
+
+        const fetchJson = async (url) => {
+          const response = await fetch(url, { signal: controller.signal });
+          if (!response.ok) return null;
+          return response.json();
+        };
+
+        const [salesPayload, slaPayload, staffPayload] = await Promise.all([
+          fetchJson(`${API_BASE_URL}/analytics/sales-by-date?days=5`),
+          fetchJson(`${API_BASE_URL}/sla-analytics`),
+          fetchJson(`${API_BASE_URL}/admin/staff`),
+        ]);
+
+        const overview = slaPayload?.overview || {};
+        const staffList = Array.isArray(staffPayload?.staff) ? staffPayload.staff : [];
+
+        setDashboardMetrics({
+          orders: Number(overview.total || 0),
+          completedOrders: Number(overview.completed || 0),
+          cancelledDelayed: Number(overview.delayed || 0),
+          pending: Number(overview.pending || 0),
+          activeStaff: staffList.filter((staff) => staff.displayStatus === "Active" || staff.status === "Activate").length,
+        });
+
+        if (salesPayload?.data && Array.isArray(salesPayload.data)) {
+          setSalesData(salesPayload.data);
+        } else {
+          const fallbackData = Array.isArray(slaPayload?.dailyCompletion)
+            ? slaPayload.dailyCompletion.map((entry) => ({
+                date: entry.date,
+                sales: entry.total ?? entry.completed ?? 0,
+              }))
+            : [];
+
+          setSalesData(fallbackData);
+        }
+
+        const chartWasteData = Array.isArray(slaPayload?.wasteCategories)
+          ? slaPayload.wasteCategories.map((item) => ({
+              name: item.name,
+              value: item.value,
+            }))
+          : [];
+
+        setWasteData(chartWasteData);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          setSalesError("Sales chart unavailable right now.");
+          setSalesData([]);
+          setWasteData([]);
+          console.error("Sales analytics fetch error:", error);
+        }
+      } finally {
+        setSalesLoading(false);
+      }
+    };
+
+    loadSales();
+
+    return () => controller.abort();
+  }, []);
+
+  return (
   <div className="flex flex-col h-full gap-6">
     {/* Stats Grid - Apple Style */}
-    <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {stats.map((stat) => (
+    <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {statCards.map((stat) => (
         <article
-          key={stat.label}
+          key={stat.key}
           className="flex items-start gap-4 rounded-3xl bg-white/30 backdrop-blur-xl border border-white/20 p-6 shadow-sm transition-all duration-200 hover:bg-white/40 hover:shadow-md"
         >
           <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 shadow-sm">
@@ -451,18 +554,57 @@ const DashboardHome = () => (
           </div>
           <div className="min-w-0 flex-1">
             <p className="m-0 text-xs font-600 text-gray-600 uppercase tracking-wider mb-2">{stat.label}</p>
-            <h3 className="m-0 text-3xl font-600 text-gray-900">{stat.value}</h3>
+            <h3 className="m-0 text-3xl font-600 text-gray-900">{dashboardMetrics[stat.key] ?? 0}</h3>
           </div>
         </article>
       ))}
     </section>
 
     {/* Main Content Grid */}
-    <section className="grid grid-cols-1 gap-6 flex-1 min-h-0">
-      {/* Dashboard content only (no Task Management) */}
+    <section className="grid grid-cols-1 gap-6 flex-1 min-h-0 lg:grid-cols-2">
+      {/* Left: Waste Types Pie Chart */}
+      <div className="rounded-3xl border border-white/30 bg-white/30 backdrop-blur-xl p-6 shadow-sm min-h-[420px]">
+        <h3 className="text-lg font-600 mb-4 text-gray-700">Waste Types</h3>
+        <div className="w-full h-[380px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={wasteData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label>
+                {wasteData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={WASTE_COLORS[index % WASTE_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend verticalAlign="bottom" />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Right: Placeholder for additional dashboard widgets */}
+      <div className="rounded-3xl border border-white/30 bg-white/30 backdrop-blur-xl p-6 shadow-sm min-h-[420px]">
+        <h3 className="text-lg font-600 mb-4 text-gray-700">Average Daily Sales</h3>
+        {salesLoading ? (
+          <div className="flex h-[330px] items-center justify-center text-sm text-gray-500">Loading sales data...</div>
+        ) : salesError ? (
+          <div className="flex h-[330px] items-center justify-center text-sm text-red-500">{salesError}</div>
+        ) : (
+        <div className="w-full h-[330px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={salesData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+              <YAxis />
+              <Tooltip formatter={(value) => [value, 'Sales']} />
+              <Bar dataKey="sales" fill="#3b82f6" radius={[6,6,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        )}
+      </div>
     </section>
   </div>
-);
+  );
+}
 
 // ─── MAIN ADMIN DASHBOARD COMPONENT ─────────────────────────────────────────
 
