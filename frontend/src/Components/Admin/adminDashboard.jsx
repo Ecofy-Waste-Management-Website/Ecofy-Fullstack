@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import SLAAnalytics from "./SLAAnalytics";
 import ServiceRequests from "./ServiceRequests";
 import ContentBlogManagement from "./contentBlogManagement";
 import StaffAccountCreation from "./StaffAccountCreation";
@@ -117,17 +116,7 @@ const stats = [
   { label: "Active Staff", value: "18", icon: <Icons.Staff /> },
 ];
 
-const taskRows = [
-  { requestId: "#REQ102", customer: "Bandara Y.", location: "Kandy", status: "Pending", assignedStaff: "Select Staff" },
-  { requestId: "#REQ101", customer: "Pathirana P.", location: "Colombo", status: "In-Progress", assignedStaff: "Banuka J." },
-  { requestId: "#REQ100", customer: "Mohamed A.", location: "Colombo", status: "Completed", assignedStaff: "Priyantha S." },
-];
 
-const escalations = [
-  { title: "Admin Escalation", customer: "Customer: Bandara Y.", summary: "Summary pending pickup confirmation.", time: "3 sec ago" },
-  { title: "Admin Escalation", customer: "Customer: Pathirana P.", summary: "Summary late route update and follow-up.", time: "3 sec ago" },
-  { title: "Admin Escalation", customer: "Customer: Priyantha S.", summary: "Summary delayed escalation closure.", time: "1m ago" },
-];
 
 const menuItems = [
   { label: "Dashboard", key: "DASHBOARD", hasSubmenu: false },
@@ -139,7 +128,7 @@ const menuItems = [
     subItems: [
       { label: "User Management", key: "USER_MGMT", path: "/admins" },
       { label: "Monitor Requests", key: "SERVICE_REQ", path: "/" },
-      { label: "Performance", key: "SLA_ANALYTICS", path: "/admins/logs" }
+      
     ] 
   },
   { label: "Content/Blog", key: "CONTENT_BLOG", hasSubmenu: false },
@@ -469,81 +458,8 @@ const DashboardHome = () => (
     </section>
 
     {/* Main Content Grid */}
-    <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
-      {/* Analytics Panel */}
-      <article className="flex flex-col rounded-3xl bg-white/30 backdrop-blur-xl border border-white/20 p-6 shadow-sm overflow-hidden">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="m-0 text-lg font-600 text-gray-900">SLA & Analytics</h3>
-          <button className="text-gray-500 hover:text-gray-700 transition-colors"><Icons.More /></button>
-        </div>
-        <div className="flex-1 overflow-y-auto no-scrollbar space-y-5">
-          <div>
-            <h4 className="mb-3 text-sm font-600 text-gray-700 uppercase tracking-wider">Pickup Trend</h4>
-            <div className="relative h-24 overflow-hidden rounded-2xl bg-white/40 backdrop-blur-sm border border-white/30 p-2">
-              <div className="absolute inset-0 flex items-end px-1 gap-1">
-                 {[40, 70, 45, 90, 65, 80, 55].map((h, i) => (
-                   <div key={i} className="flex-1 bg-gray-200 rounded-t relative group cursor-pointer" style={{ height: `${h}%` }}>
-                     <div className="absolute inset-0 bg-blue-500 rounded-t opacity-20 group-hover:opacity-40 transition-opacity" />
-                   </div>
-                 ))}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="mb-3 text-sm font-600 text-gray-700 uppercase tracking-wider">Waste Categories</h4>
-            <div className="flex items-center justify-center py-3">
-              <div className="relative h-28 w-28 rounded-full" style={{ background: "conic-gradient(#0071E3 0 65%, #E5E5EA 65% 100%)" }}>
-                <div className="absolute inset-6 rounded-full bg-white/60 backdrop-blur-md flex items-center justify-center text-xs font-600 text-gray-900">ECOFY</div>
-              </div>
-            </div>
-            <div className="flex justify-center gap-4 text-xs font-500 text-gray-600">
-              <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-blue-500" /> Household</span>
-              <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-gray-300" /> Industrial</span>
-            </div>
-          </div>
-        </div>
-      </article>
-
-      {/* Tasks Panel */}
-      <article className="flex flex-col rounded-3xl bg-white/30 backdrop-blur-xl border border-white/20 p-6 shadow-sm overflow-hidden">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="m-0 text-lg font-600 text-gray-900">Task Management</h3>
-          <button className="text-gray-500 hover:text-gray-700 transition-colors"><Icons.More /></button>
-        </div>
-        <div className="flex-1 overflow-x-auto rounded-2xl border border-white/30 bg-white/20">
-          <table className="w-full text-left text-sm text-gray-700">
-            <thead className="sticky top-0 bg-white/40 backdrop-blur-xl font-600 text-gray-900 uppercase tracking-wider text-xs">
-              <tr>
-                <th className="p-4">ID</th>
-                <th className="p-4">Customer</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/20">
-              {taskRows.map((row) => (
-                <tr key={row.requestId} className="hover:bg-white/20 transition-colors">
-                  <td className="p-4 font-600 text-gray-900">{row.requestId}</td>
-                  <td className="p-4 text-gray-600">{row.customer}</td>
-                  <td className="p-4">
-                    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-600 ${
-                      row.status === "Pending" ? "bg-orange-100 text-orange-700" :
-                      row.status === "In-Progress" ? "bg-blue-100 text-blue-700" :
-                      "bg-green-100 text-green-700"
-                    }`}>
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <button className="rounded-full bg-blue-500 px-4 py-1.5 text-xs font-600 text-white hover:bg-blue-600 transition-all shadow-sm">Assign</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </article>
+    <section className="grid grid-cols-1 gap-6 flex-1 min-h-0">
+      {/* Dashboard content only (no Task Management) */}
     </section>
   </div>
 );
@@ -600,7 +516,6 @@ export default function AdminDashboard() {
     DASHBOARD: <DashboardHome />,
     STAFF_CREATE: <StaffAccountCreation />,
     SERVICE_REQ: <ServiceRequests />,
-    SLA_ANALYTICS: <SLAAnalytics />,
     CONTENT_BLOG: <ContentBlogManagement />,
     INQUIRY: <InquiryManagement />,
     SERVICE_MGMT: <ServiceManagement />
@@ -638,7 +553,17 @@ export default function AdminDashboard() {
                       ? "bg-blue-500/10 text-blue-600 border-l-3 border-blue-500"
                       : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/30"
                   }`}
-                  onClick={() => item.hasSubmenu ? toggleSubmenu(item.key) : handleSelectTab(item.key)}
+                  onClick={() => {
+                    if (item.hasSubmenu) {
+                      toggleSubmenu(item.key);
+                      const firstSub = item.subItems && item.subItems[0];
+                      if (firstSub && !item.subItems.some(s => s.key === activeTab)) {
+                        handleSelectTab(firstSub.key);
+                      }
+                    } else {
+                      handleSelectTab(item.key);
+                    }
+                  }}
                 >
                   <span className="truncate">{item.label}</span>
                   {item.hasSubmenu && (
@@ -731,7 +656,13 @@ export default function AdminDashboard() {
             </div>
             <nav className="flex flex-col gap-1">
               {menuItems.map((item) => (
-                <button key={item.key} onClick={() => handleSelectTab(item.key)} className={`text-left text-sm font-500 px-4 py-3 rounded-lg transition-all ${activeTab === item.key ? "bg-blue-500/10 text-blue-600" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"}`}>{item.label}</button>
+                item.hasSubmenu ? (
+                  item.subItems.map((sub) => (
+                    <button key={sub.key} onClick={() => handleSelectTab(sub.key)} className={`text-left text-sm font-500 px-4 py-3 rounded-lg transition-all ${activeTab === sub.key ? "bg-blue-500/10 text-blue-600" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"}`}>{sub.label}</button>
+                  ))
+                ) : (
+                  <button key={item.key} onClick={() => handleSelectTab(item.key)} className={`text-left text-sm font-500 px-4 py-3 rounded-lg transition-all ${activeTab === item.key ? "bg-blue-500/10 text-blue-600" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"}`}>{item.label}</button>
+                )
               ))}
             </nav>
             <button onClick={handleSwitchDashboard} className="mt-auto w-full rounded-full bg-blue-500 py-3 text-xs font-600 text-white hover:bg-blue-600 transition-all">Switch to Staff</button>
