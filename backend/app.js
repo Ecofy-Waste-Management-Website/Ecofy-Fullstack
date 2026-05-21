@@ -22,6 +22,7 @@ const serviceMonitoringRouter = require("./Route/serviceMonitoringRoute");
 const authTestRouter = require("./Route/authTestRoute");
 const stripeRoute = require("./Route/stripe.route");
 const chatbotRouter = require("./Route/chatbotRoute");
+const blogRoute = require("./Route/ContentBlogRoute");
 const app = express();
 
 
@@ -63,7 +64,6 @@ if (clerkSecretKey) {
 }
 
 app.use("/users",userRouter);
-
 app.use("/service-history", serviceHistoryRouter);
 app.use("/payment-history", paymentHistoryRouter);
 app.use("/notifications", notificationRouter);
@@ -77,7 +77,7 @@ app.use("/staff", staffRouter);
 app.use("/auth-test", authTestRouter);
 app.use("/api/stripe", stripeRoute);
 app.use("/chatbot", chatbotRouter);
-
+app.use("/blog", blogRoute);
 
 mongoose.connect(process.env.MONGO_URI, {
   family: 4,                        // Force IPv4 – avoids SRV/DNS lookup failures

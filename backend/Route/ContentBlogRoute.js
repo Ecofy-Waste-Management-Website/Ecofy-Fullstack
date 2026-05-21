@@ -10,10 +10,10 @@ const {
 
 const router = express.Router();
 
-router.use(isAuthenticated, isAdmin);
+//router.use(isAuthenticated, isAdmin);
 
 router.get('/', listBlogPosts);
-router.post('/', createBlogPost);
+router.post('/', createBlogPost, isAuthenticated, isAdmin);
 router.get('/:id', getBlogPostById);
 router.patch('/:id', updateBlogPost);
 router.delete('/:id', deleteBlogPost);
