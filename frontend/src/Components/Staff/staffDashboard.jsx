@@ -86,6 +86,12 @@ const Icons = {
     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
+  ),
+  Settings: () => (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.591 1.066c1.527-.94 3.31.842 2.37 2.37a1.724 1.724 0 001.065 2.591c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.591c.94 1.527-.842 3.31-2.37 2.37a1.724 1.724 0 00-2.591 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.591-1.065c-1.527.94-3.31-.842-2.37-2.37a1.724 1.724 0 00-1.065-2.591c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.591c-.94-1.527.842-3.31 2.37-2.37.95.588 2.18.07 2.591-1.066z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
   )
 };
 
@@ -109,8 +115,20 @@ export default function StaffDashboard() {
   const [pickupPin, setPickupPin] = useState('');
   const [pickupPinError, setPickupPinError] = useState('');
   const [deniedOrderIds, setDeniedOrderIds] = useState([]);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsStatus, setSettingsStatus] = useState({ type: '', text: '' });
+  const [displayName, setDisplayName] = useState('Staff Member');
+  const [staffSettings, setStaffSettings] = useState({
+    firstName: '',
+    lastName: '',
+    availabilityStatus: 'Available',
+    bankAccountName: '',
+    bankName: '',
+    bankAccountNumber: '',
+    bankBranch: '',
+  });
 
-  const staffName = user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Staff Member";
+  const staffName = displayName || (user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Staff Member");
   const staffInitials = staffName.split(" ").map(n => n[0] || "").join("").toUpperCase();
 
   // Fetch tasks and role
@@ -123,6 +141,16 @@ export default function StaffDashboard() {
         if (response.ok) {
           const data = await response.json();
           setRole(data.user.role);
+          setDisplayName(`${data.user.firstName || ''} ${data.user.lastName || ''}`.trim() || 'Staff Member');
+          setStaffSettings({
+            firstName: data.user.firstName || '',
+            lastName: data.user.lastName || '',
+            availabilityStatus: data.user.availabilityStatus || 'Available',
+            bankAccountName: data.user.bankAccountName || '',
+            bankName: data.user.bankName || '',
+            bankAccountNumber: data.user.bankAccountNumber || '',
+            bankBranch: data.user.bankBranch || '',
+          });
         }
       } catch (error) {
         console.error('Failed to fetch staff role:', error);
@@ -169,6 +197,51 @@ export default function StaffDashboard() {
   };
 
   const visiblePendingOrders = pendingOrders.filter((order) => !deniedOrderIds.includes(order._id));
+
+  const handleSettingsSave = async (event) => {
+    event.preventDefault();
+    if (!user?.id) return;
+
+    try {
+      setSettingsSaving(true);
+      setSettingsStatus({ type: '', text: '' });
+
+      const response = await fetch(`${API_BASE_URL}/users/${user.id}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(staffSettings),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update settings');
+      }
+
+      setStaffSettings({
+        firstName: data.user.firstName || '',
+        lastName: data.user.lastName || '',
+        availabilityStatus: data.user.availabilityStatus || 'Available',
+        bankAccountName: data.user.bankAccountName || '',
+        bankName: data.user.bankName || '',
+        bankAccountNumber: data.user.bankAccountNumber || '',
+        bankBranch: data.user.bankBranch || '',
+      });
+      setDisplayName(`${data.user.firstName || ''} ${data.user.lastName || ''}`.trim() || 'Staff Member');
+      setSettingsStatus({ type: 'success', text: 'Settings saved successfully.' });
+      setRoleLoading(true);
+      const refresh = await fetch(`${API_BASE_URL}/users/${user.id}`);
+      if (refresh.ok) {
+        const refreshed = await refresh.json();
+        setRole(refreshed.user.role);
+        setDisplayName(`${refreshed.user.firstName || ''} ${refreshed.user.lastName || ''}`.trim() || 'Staff Member');
+      }
+    } catch (error) {
+      setSettingsStatus({ type: 'error', text: error.message || 'Failed to save settings.' });
+    } finally {
+      setSettingsSaving(false);
+      setRoleLoading(false);
+    }
+  };
 
   const updateTaskStatus = async (taskId, newStatus) => {
     if (updatingTask === taskId) return;
@@ -305,9 +378,122 @@ export default function StaffDashboard() {
     { label: 'Pending Tasks', key: 'pending', icon: <Icons.PendingTasks />, count: pendingTasks.length },
     { label: 'Active Tasks', key: 'active', icon: <Icons.ActiveTasks />, count: ongoingTasks.length },
     { label: 'Completed Today', key: 'completed', icon: <Icons.CompletedTasks />, count: completedTasks.length },
+    { label: 'Settings', key: 'settings', icon: <Icons.Settings />, count: 0 },
   ];
 
   const getPageTitle = () => menuItems.find(m => m.key === activeTab)?.label || "Staff Dashboard";
+
+  const StaffSettingsPanel = () => (
+    <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-5 shadow-sm">
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-black text-[#244c21]">Staff Settings</h3>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Update your name, availability, and bank details</p>
+        </div>
+        <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">Profile</span>
+      </div>
+
+      <form onSubmit={handleSettingsSave} className="space-y-4 rounded-3xl border border-[#397234]/10 bg-white/70 p-5 shadow-inner">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <label className="space-y-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/70">First Name</span>
+            <input
+              type="text"
+              value={staffSettings.firstName}
+              onChange={(e) => setStaffSettings((prev) => ({ ...prev, firstName: e.target.value }))}
+              className="w-full rounded-2xl border border-[#397234]/20 bg-white px-4 py-3 text-sm font-semibold text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="First name"
+            />
+          </label>
+          <label className="space-y-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/70">Last Name</span>
+            <input
+              type="text"
+              value={staffSettings.lastName}
+              onChange={(e) => setStaffSettings((prev) => ({ ...prev, lastName: e.target.value }))}
+              className="w-full rounded-2xl border border-[#397234]/20 bg-white px-4 py-3 text-sm font-semibold text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Last name"
+            />
+          </label>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <label className="space-y-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/70">Availability Status</span>
+            <select
+              value={staffSettings.availabilityStatus}
+              onChange={(e) => setStaffSettings((prev) => ({ ...prev, availabilityStatus: e.target.value }))}
+              className="w-full rounded-2xl border border-[#397234]/20 bg-white px-4 py-3 text-sm font-semibold text-[#244c21] outline-none focus:border-[#397239]"
+            >
+              <option value="Available">Available</option>
+              <option value="Busy">Busy</option>
+              <option value="Unavailable">Unavailable</option>
+            </select>
+          </label>
+          <label className="space-y-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/70">Account Holder Name</span>
+            <input
+              type="text"
+              value={staffSettings.bankAccountName}
+              onChange={(e) => setStaffSettings((prev) => ({ ...prev, bankAccountName: e.target.value }))}
+              className="w-full rounded-2xl border border-[#397234]/20 bg-white px-4 py-3 text-sm font-semibold text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Name on account"
+            />
+          </label>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <label className="space-y-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/70">Bank Name</span>
+            <input
+              type="text"
+              value={staffSettings.bankName}
+              onChange={(e) => setStaffSettings((prev) => ({ ...prev, bankName: e.target.value }))}
+              className="w-full rounded-2xl border border-[#397234]/20 bg-white px-4 py-3 text-sm font-semibold text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Bank name"
+            />
+          </label>
+          <label className="space-y-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/70">Bank Branch</span>
+            <input
+              type="text"
+              value={staffSettings.bankBranch}
+              onChange={(e) => setStaffSettings((prev) => ({ ...prev, bankBranch: e.target.value }))}
+              className="w-full rounded-2xl border border-[#397234]/20 bg-white px-4 py-3 text-sm font-semibold text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Branch"
+            />
+          </label>
+        </div>
+
+        <label className="space-y-2 block">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/70">Bank Account Number</span>
+          <input
+            type="text"
+            value={staffSettings.bankAccountNumber}
+            onChange={(e) => setStaffSettings((prev) => ({ ...prev, bankAccountNumber: e.target.value }))}
+            className="w-full rounded-2xl border border-[#397234]/20 bg-white px-4 py-3 text-sm font-semibold text-[#244c21] outline-none focus:border-[#397239]"
+            placeholder="Account number"
+          />
+        </label>
+
+        {settingsStatus.text && (
+          <p className={`text-sm font-bold ${settingsStatus.type === 'success' ? 'text-[#397239]' : 'text-red-600'}`}>
+            {settingsStatus.text}
+          </p>
+        )}
+
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={settingsSaving}
+            className="rounded-2xl bg-[#397239] px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-md transition hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {settingsSaving ? 'Saving...' : 'Save Settings'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 
   const renderTaskCard = (task, isCompleted = false) => (
     <div key={task._id} className={`bg-[#D6E9CA]/50 backdrop-blur-[40px] rounded-3xl p-6 border border-[#397234]/20 shadow-sm transition-all hover:shadow-md hover:border-[#397239]/30 ${isCompleted ? 'opacity-80' : ''}`}>
@@ -618,6 +804,12 @@ export default function StaffDashboard() {
                   ) : (
                     completedTasks.map((task) => renderTaskCard(task, true))
                   )
+                )}
+
+                {activeTab === 'settings' && (
+                  <div className="col-span-full">
+                    <StaffSettingsPanel />
+                  </div>
                 )}
               </div>
               <footer className="mt-8 text-[0.75rem] text-[#397239]/40 pb-6 text-center">&copy; 2026 Ecofy Waste Management</footer>
