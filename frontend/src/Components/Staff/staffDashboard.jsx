@@ -16,6 +16,9 @@ const SERVICE_PRICES = {
 const BALANGODA_MAP_SRC =
   "https://www.google.com/maps?q=Balangoda%2C%20Sri%20Lanka&z=14&output=embed";
 
+const buildMapSrc = (location = "") =>
+  `https://www.google.com/maps?q=${encodeURIComponent(location || "Balangoda, Sri Lanka")}&z=16&output=embed`;
+
 const STATUS_STYLES = {
   Pending: "bg-amber-100 text-amber-700",
   Assigned: "bg-blue-100 text-blue-700",
@@ -59,6 +62,11 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   ),
+  Phone: () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h2.28a1 1 0 01.95.68l1.26 3.79a1 1 0 01-.45 1.18l-1.58.9a11.04 11.04 0 005.52 5.52l.9-1.58a1 1 0 011.18-.45l3.79 1.26a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C10.8 21 3 13.2 3 5V5z" />
+    </svg>
+  ),
   Notes: () => (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -97,6 +105,10 @@ export default function StaffDashboard() {
   const [notification, setNotification] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [pickupPin, setPickupPin] = useState('');
+  const [pickupPinError, setPickupPinError] = useState('');
+  const [deniedOrderIds, setDeniedOrderIds] = useState([]);
 
   const staffName = user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Staff Member";
   const staffInitials = staffName.split(" ").map(n => n[0] || "").join("").toUpperCase();
@@ -156,6 +168,8 @@ export default function StaffDashboard() {
     setTimeout(() => setNotification(null), 3000);
   };
 
+  const visiblePendingOrders = pendingOrders.filter((order) => !deniedOrderIds.includes(order._id));
+
   const updateTaskStatus = async (taskId, newStatus) => {
     if (updatingTask === taskId) return;
     setUpdatingTask(taskId);
@@ -188,15 +202,35 @@ export default function StaffDashboard() {
     }
   };
 
-  const confirmPickup = async (order) => {
-    if (!user?.id || confirmingOrderId === order._id) return;
+  const confirmPickup = (order) => {
+    setSelectedOrder(order);
+    setPickupPin('');
+    setPickupPinError('');
+  };
 
-    setConfirmingOrderId(order._id);
+  const denySelectedOrder = () => {
+    if (!selectedOrder) return;
+    setDeniedOrderIds((prev) => (prev.includes(selectedOrder._id) ? prev : [...prev, selectedOrder._id]));
+    showNotification('Order denied.');
+    setSelectedOrder(null);
+    setPickupPin('');
+    setPickupPinError('');
+  };
+
+  const finalizePickup = async () => {
+    if (!user?.id || !selectedOrder || confirmingOrderId === selectedOrder._id) return;
+
+    if (selectedOrder.pickupPin && String(pickupPin).trim() !== String(selectedOrder.pickupPin).trim()) {
+      setPickupPinError('Invalid PIN. Ask the user for the correct pickup PIN.');
+      return;
+    }
+
+    setConfirmingOrderId(selectedOrder._id);
     try {
-      const assignRes = await fetch(`${API_BASE_URL}/service-monitoring/${order._id}/assign`, {
+      const assignRes = await fetch(`${API_BASE_URL}/service-monitoring/${selectedOrder._id}/assign`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignedStaff: user.id }),
+        body: JSON.stringify({ assignedStaff: user.id, pickupPin: pickupPin.trim() }),
       });
       const assignData = await assignRes.json();
 
@@ -204,7 +238,7 @@ export default function StaffDashboard() {
         throw new Error(assignData.message || 'Failed to assign pickup');
       }
 
-      const statusRes = await fetch(`${API_BASE_URL}/staff/tasks/${order._id}/status`, {
+      const statusRes = await fetch(`${API_BASE_URL}/staff/tasks/${selectedOrder._id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'Assigned', clerkId: user.id }),
@@ -215,13 +249,16 @@ export default function StaffDashboard() {
         throw new Error(statusData.message || 'Failed to confirm pickup');
       }
 
-      setPendingOrders((prev) => prev.filter((item) => item._id !== order._id));
+      setPendingOrders((prev) => prev.filter((item) => item._id !== selectedOrder._id));
       setActiveTasks((prev) => [
-        { ...order, assignedStaff: user.id, status: 'Assigned' },
-        ...prev.filter((item) => item._id !== order._id),
+        { ...selectedOrder, assignedStaff: user.id, status: 'Assigned' },
+        ...prev.filter((item) => item._id !== selectedOrder._id),
       ]);
       showNotification('Pickup confirmed successfully!');
       setActiveTab('active');
+      setSelectedOrder(null);
+      setPickupPin('');
+      setPickupPinError('');
     } catch (err) {
       console.error('Failed to confirm pickup:', err);
       showNotification(err.message || 'Failed to confirm pickup.', 'error');
@@ -349,7 +386,7 @@ export default function StaffDashboard() {
             <h3 className="text-lg font-black text-[#244c21]">Pending Orders</h3>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Orders waiting for pickup confirmation</p>
           </div>
-          <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">{pendingOrders.length} orders</span>
+          <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">{visiblePendingOrders.length} orders</span>
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-[#397234]/10 bg-white/70 shadow-inner flex-1">
@@ -361,12 +398,12 @@ export default function StaffDashboard() {
           </div>
 
           <div className="max-h-[420px] overflow-y-auto">
-            {pendingOrders.length === 0 ? (
+            {visiblePendingOrders.length === 0 ? (
               <div className="flex h-[360px] items-center justify-center px-6 text-center">
                 <p className="text-sm font-black uppercase tracking-widest text-[#397239]/50">No pending orders available</p>
               </div>
             ) : (
-              pendingOrders.map((order) => (
+              visiblePendingOrders.map((order) => (
                 <div key={order._id} className="grid grid-cols-[1.2fr_2fr_1fr_1fr] gap-3 border-b border-[#397234]/10 px-4 py-4 last:border-b-0 items-center">
                   <div>
                     <p className="text-sm font-black text-[#244c21]">{order._id.slice(-8).toUpperCase()}</p>
@@ -416,6 +453,14 @@ export default function StaffDashboard() {
       </div>
     </div>
   );
+
+  const selectedOrderMapSrc = selectedOrder ? buildMapSrc(selectedOrder.location) : BALANGODA_MAP_SRC;
+
+  const selectedOrderPhone = selectedOrder?.customer_phone || selectedOrder?.phone || '';
+
+  const selectedOrderInfo = selectedOrder
+    ? `${selectedOrder.customer_name || 'Customer'}${selectedOrder.customer_email ? ` • ${selectedOrder.customer_email}` : ''}`
+    : '';
 
   return (
     <div className="h-screen w-screen font-sans text-[#244c21] bg-[#f4f9f4] p-4 lg:p-3 overflow-hidden">
@@ -580,6 +625,139 @@ export default function StaffDashboard() {
           </main>
         </div>
       </div>
+
+      {/* Pickup Review Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedOrder(null)}>
+          <div className="grid w-full max-w-7xl grid-cols-1 gap-4 lg:grid-cols-[1.05fr_1fr]" onClick={(event) => event.stopPropagation()}>
+            <section className="rounded-[2rem] border border-blue-200 bg-blue-50/95 p-5 shadow-2xl shadow-blue-950/10 backdrop-blur-xl">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-500">Pickup Review</p>
+                  <h3 className="mt-1 text-2xl font-black text-blue-950">Order Details</h3>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700/60">Review the order before confirming pickup</p>
+                </div>
+                <button type="button" onClick={() => setSelectedOrder(null)} className="rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-blue-700 shadow-sm transition hover:bg-blue-100">
+                  Close
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500">Order ID</p>
+                  <p className="mt-1 text-lg font-black text-blue-950">{selectedOrder._id}</p>
+                </div>
+
+                <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500">User Information</p>
+                  <p className="mt-1 text-sm font-bold text-blue-950">{selectedOrderInfo || 'N/A'}</p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500">Waste Type</p>
+                    <p className="mt-1 text-sm font-bold text-blue-950">{selectedOrder.waste_category || selectedOrder.service_type || 'N/A'}</p>
+                  </div>
+                  <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500">Price</p>
+                    <p className="mt-1 text-sm font-black text-blue-950">{formatCurrency(getEstimatedAmount(selectedOrder))}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto]">
+                  <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500">User Number</p>
+                    <p className="mt-1 text-sm font-bold text-blue-950">{selectedOrderPhone || 'Not provided'}</p>
+                  </div>
+                  {selectedOrderPhone ? (
+                    <a
+                      href={`tel:${selectedOrderPhone}`}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-white px-4 py-4 text-xs font-black uppercase tracking-widest text-blue-700 shadow-sm transition hover:bg-blue-100"
+                    >
+                      <Icons.Phone /> Call
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4 text-xs font-black uppercase tracking-widest text-blue-300 shadow-sm"
+                    >
+                      <Icons.Phone /> Call
+                    </button>
+                  )}
+                </div>
+
+                <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500">Enter PIN</label>
+                  <input
+                    type="text"
+                    value={pickupPin}
+                    onChange={(event) => {
+                      setPickupPin(event.target.value);
+                      setPickupPinError('');
+                    }}
+                    placeholder="Ask the user for the pickup PIN"
+                    className="mt-2 w-full rounded-xl border border-blue-200 bg-blue-50/50 px-4 py-3 text-sm font-semibold text-blue-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                  />
+                  {pickupPinError && <p className="mt-2 text-xs font-semibold text-red-600">{pickupPinError}</p>}
+                  <p className="mt-2 text-xs font-semibold text-blue-700/70">The user receives this PIN after creating the pickup request.</p>
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={denySelectedOrder}
+                    className="flex-1 rounded-2xl border border-red-200 bg-white px-4 py-3 text-xs font-black uppercase tracking-widest text-red-600 transition hover:bg-red-50"
+                  >
+                    Deny Order
+                  </button>
+                  <button
+                    type="button"
+                    onClick={finalizePickup}
+                    disabled={confirmingOrderId === selectedOrder._id}
+                    className="flex-1 rounded-2xl bg-blue-600 px-4 py-3 text-xs font-black uppercase tracking-widest text-white shadow-md transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {confirmingOrderId === selectedOrder._id ? 'Confirming...' : 'Confirm Pickup'}
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-[2rem] border border-red-200 bg-red-50/95 p-5 shadow-2xl shadow-red-950/10 backdrop-blur-xl">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-500">Pickup Location</p>
+                  <h3 className="mt-1 text-2xl font-black text-red-950">Map & Navigation</h3>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-700/60">Navigate directly to the pickup location</p>
+                </div>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedOrder.location || 'Balangoda, Sri Lanka')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-red-700 shadow-sm transition hover:bg-red-100"
+                >
+                  Open in Maps
+                </a>
+              </div>
+
+              <div className="overflow-hidden rounded-3xl border border-red-200 bg-white shadow-inner">
+                <iframe
+                  title="Pickup location map"
+                  src={selectedOrderMapSrc}
+                  className="min-h-[620px] w-full"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-red-200 bg-white p-4 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500">Location</p>
+                <p className="mt-1 text-sm font-bold text-red-950">{selectedOrder.location || 'Location missing'}</p>
+              </div>
+            </section>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Elements */}
       <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-[#112A0F] px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">

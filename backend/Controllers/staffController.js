@@ -1,5 +1,6 @@
 const User = require("../Model/UserModule");
 const ServiceRequest = require("../Model/ServiceRequestModel");
+const Notification = require("../Model/NotificationModel");
 
 // ── Get staff profile ────────────────────────────────
 const getStaffProfile = async (req, res) => {
@@ -161,6 +162,17 @@ const updateTaskStatus = async (req, res) => {
       task.timeline.push({
         event: "Task completed by staff",
         time: new Date(),
+      });
+    }
+
+    if (status === "Assigned" && task.clerkId) {
+      await Notification.create({
+        clerkId: task.clerkId,
+        title: "Pickup Confirmed",
+        message: `Your pickup request for ${task.service_type} has been confirmed by staff. The crew is on the way.`,
+        type: "Info",
+        target: "user",
+        relatedService: task._id,
       });
     }
 

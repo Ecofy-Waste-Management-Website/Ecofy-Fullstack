@@ -1,6 +1,8 @@
 const ServiceRequest = require("../Model/ServiceRequestModel");
 const Notification = require("../Model/NotificationModel");
 
+const generatePickupPin = () => String(Math.floor(100000 + Math.random() * 900000));
+
 const STATUS_NOTIFICATIONS = {
   Assigned: {
     title: "Pickup Assigned",
@@ -34,6 +36,7 @@ const createBooking = async (req, res) => {
     const {
       customer_name,
       customer_email,
+      customer_phone,
       clerkId,
       service_type,
       waste_category,
@@ -42,15 +45,19 @@ const createBooking = async (req, res) => {
       notes,
     } = req.body;
 
+    const pickupPin = generatePickupPin();
+
     const newBooking = new ServiceRequest({
       customer_name,
       customer_email,
+      customer_phone,
       clerkId,
       service_type,
       waste_category,
       location,
       scheduled_date,
       notes,
+      pickupPin,
     });
 
     const savedBooking = await newBooking.save();
@@ -58,6 +65,7 @@ const createBooking = async (req, res) => {
     return res.status(201).json({
       message: "Booking created successfully",
       booking: savedBooking,
+      pickupPin,
     });
   } catch (error) {
     console.log("Error creating booking:", error);
