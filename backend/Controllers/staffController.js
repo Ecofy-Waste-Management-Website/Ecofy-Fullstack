@@ -1,11 +1,15 @@
-const User = require("../Model/UserModule");
+const User = require("../Model/User.js");
+const LegacyUser = require("../Model/UserModule");
 const ServiceRequest = require("../Model/ServiceRequestModel");
 
 // ── Get staff profile ────────────────────────────────
 const getStaffProfile = async (req, res) => {
   try {
     const { clerkId } = req.params;
-    const staff = await User.findOne({ clerkId, role: "Staff" });
+    const staff =
+      (await User.findOne({ clerkId, role: "Staff" })) ||
+      (await LegacyUser.findOne({ clerkId, role: "Staff" }));
+
     if (!staff) {
       return res.status(404).json({ message: "Staff member not found" });
     }

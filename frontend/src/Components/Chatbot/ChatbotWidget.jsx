@@ -129,11 +129,12 @@ export default function ChatbotWidget({ onOpenBooking }) {
         case "CREATE_INQUIRY":
           // Auto-submit inquiry via the existing endpoint
           fetch(
-            `${import.meta.env.VITE_API_URL || "http://localhost:5001"}/users/inquiries`,
+            `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/users/inquiries`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
+                clerkId: user?.id || "",
                 userName:
                   `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
                   "Chatbot User",

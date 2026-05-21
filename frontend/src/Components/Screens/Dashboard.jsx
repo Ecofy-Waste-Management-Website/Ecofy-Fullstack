@@ -195,35 +195,10 @@ export default function Dashboard() {
   );
   const totalPaid = payments.reduce((sum, p) => sum + (p.amount ?? 0), 0); 
 
-  // ── Inquiry form ──
-  const [inquiry, setInquiry] = useState({ subject: "", message: "" });
-  const [sendingInquiry, setSendingInquiry] = useState(false);
-  const [inquiryStatus, setInquiryStatus] = useState({ type: "", text: "" });
+  // ── Inquiry form state will be kept inside InquiryPanel to avoid parent re-renders
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const handleInquirySubmit = async (e) => {
-    e.preventDefault();
-    if (!inquiry.message.trim()) {
-      setInquiryStatus({ type: "error", text: "Please enter your inquiry message." });
-      return;
-    }
-
-    try {
-      setSendingInquiry(true);
-      await submitInquiry({
-        userName: `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || user?.username || "Ecofy User",
-        userEmail: user?.primaryEmailAddress?.emailAddress || "",
-        subject: inquiry.subject || "General Inquiry",
-        message: inquiry.message,
-      });
-      setInquiry({ subject: "", message: "" });
-      setInquiryStatus({ type: "success", text: "Inquiry sent. Admin will respond soon." });
-    } catch (error) {
-      setInquiryStatus({ type: "error", text: error.message || "Failed to send inquiry." });
-    } finally {
-      setSendingInquiry(false);
-    }
-  };
+  // Inquiry is handled inside the memoized InquiryPanel component below.
 
   const handleLogout = async () => {
     try {
@@ -266,42 +241,77 @@ export default function Dashboard() {
     </div>
   );
 
-  const InquiryPanel = () => (
-    <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-gray-800">Need help? Send an inquiry</h2>
-      <p className="mt-1 text-sm text-gray-500">Your inquiry will be visible in the Admin Inquiry section.</p>
+  const InquiryPanel = React.memo(function InquiryPanelInner() {
+    const [inquiry, setInquiry] = useState({ subject: "", message: "" });
+    const [sendingInquiry, setSendingInquiry] = useState(false);
+    const [inquiryStatus, setInquiryStatus] = useState({ type: "", text: "" });
 
-      <form onSubmit={handleInquirySubmit} className="mt-5 space-y-3">
-        <input
-          type="text"
-          value={inquiry.subject}
-          onChange={(e) => setInquiry((prev) => ({ ...prev, subject: e.target.value }))}
-          placeholder="Subject (optional)"
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-[#06a63e]"
-        />
-        <textarea
-          value={inquiry.message}
-          onChange={(e) => setInquiry((prev) => ({ ...prev, message: e.target.value }))}
-          placeholder="Write your inquiry..."
-          className="w-full min-h-40 rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-[#06a63e]"
-        />
+    const handleInquirySubmitLocal = async (e) => {
+      e.preventDefault();
+      if (!inquiry.message.trim()) {
+        setInquiryStatus({ type: "error", text: "Please enter your inquiry message." });
+        return;
+      }
 
-        {inquiryStatus.text && (
-          <p className={`text-sm ${inquiryStatus.type === "success" ? "text-[#66c45e]" : "text-red-600"}`}>
-            {inquiryStatus.text}
-          </p>
-        )}
+      try {
+        setSendingInquiry(true);
+        await submitInquiry({
+          clerkId: user?.id || "",
+          userName: `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || user?.username || "Ecofy User",
+          userEmail: user?.primaryEmailAddress?.emailAddress || "",
+          subject: inquiry.subject || "General Inquiry",
+          message: inquiry.message,
+        });
+        setInquiry({ subject: "", message: "" });
+        setInquiryStatus({ type: "success", text: "Inquiry sent. Admin will respond soon." });
+      } catch (error) {
+        setInquiryStatus({ type: "error", text: error.message || "Failed to send inquiry." });
+      } finally {
+        setSendingInquiry(false);
+      }
+    };
 
-        <button
-          type="submit"
-          className="rounded-xl bg-[#06a63e] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#058b33] disabled:opacity-60"
-          disabled={sendingInquiry}
-        >
-          {sendingInquiry ? "Sending..." : "Send Inquiry"}
-        </button>
-      </form>
-    </div>
-  );
+    // No debug logs in production
+
+    return (
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-800">Need help? Send an inquiry</h2>
+        <p className="mt-1 text-sm text-gray-500">Your inquiry will be visible in the Admin Inquiry section.</p>
+
+        <form onSubmit={handleInquirySubmitLocal} className="mt-5 space-y-3">
+          <input
+            type="text"
+            value={inquiry.subject}
+            onChange={(e) => setInquiry((prev) => ({ ...prev, subject: e.target.value }))}
+            placeholder="Subject (optional)"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#06a63e]"
+          />
+
+          <textarea
+            value={inquiry.message}
+            onChange={(e) => setInquiry((prev) => ({ ...prev, message: e.target.value }))}
+            placeholder="Write your inquiry..."
+            rows={5}
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#06a63e]"
+          />
+
+          {inquiryStatus.text && (
+            <p className={`text-sm ${inquiryStatus.type === "success" ? "text-[#66c45e]" : "text-red-600"}`}>
+              {inquiryStatus.text}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="rounded-xl bg-[#06a63e] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#058b33] disabled:opacity-60"
+            disabled={sendingInquiry}
+          >
+            {sendingInquiry ? "Sending..." : "Send Inquiry"}
+          </button>
+        </form>
+      </div>
+    );
+  });
 
   const TrackStatusPanel = () => (
     <div className="space-y-6">

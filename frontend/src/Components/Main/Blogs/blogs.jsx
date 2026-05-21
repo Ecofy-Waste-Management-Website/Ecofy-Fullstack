@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { getPublishedArticles } from '../../../services/articleStore';
-import { Link } from "react-router-dom";
+import { fetchPublishedBlogPosts } from '../../../services/api/blogService';
+import { Link } from 'react-router-dom';
 
 const iconByThumbnail = {
   bottle: '🧴',
@@ -10,18 +10,21 @@ const iconByThumbnail = {
 
 export default function Blogs() {
   const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const syncArticles = () => {
-      setArticles(getPublishedArticles());
+    const loadArticles = async () => {
+      try {
+        const posts = await fetchPublishedBlogPosts();
+        setArticles(posts);
+      } catch (error) {
+        console.error('Failed to load blog posts:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    syncArticles();
-
-    window.addEventListener('ecofy-articles-updated', syncArticles);
-
-    return () =>
-      window.removeEventListener('ecofy-articles-updated', syncArticles);
+    loadArticles();
   }, []);
 
   return (
@@ -38,13 +41,17 @@ export default function Blogs() {
           </h1>
         </div>
 
-        {articles.length > 0 ? (
+        {loading ? (
+          <div className="rounded-[28px] border border-dashed border-slate-300 bg-white/80 p-10 text-center text-slate-500">
+            Loading articles...
+          </div>
+        ) : articles.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 
             {articles.map((article) => (
               <Link
-                to={`/blogs/${article.id}`}
-                key={article.id}
+                to={`/blogs/${article._id}`}
+                key={article._id}
                 className="group block"
               >
                 <article className="overflow-hidden rounded-[28px] border border-white/60 bg-white shadow-[0_18px_45px_rgba(15,29,51,0.08)] transition-all duration-300 group-hover:-translate-y-1">
@@ -79,16 +86,14 @@ export default function Blogs() {
                     <h2 className="text-xl font-bold leading-tight text-[#0f1d33]">
                       {article.title}
                     </h2>
-
-                    <div
-                      className="text-sm leading-7 text-slate-600 line-clamp-3"
-                      dangerouslySetInnerHTML={{
-                        __html:
-                          article.excerpt ||
-                          'Read the full story from the Ecofy content team.',
-                      }}
-                    />
-
+             <div
+  className="text-sm leading-7 text-slate-600 line-clamp-3 break-words overflow-hidden"
+  dangerouslySetInnerHTML={{
+    __html:
+      article.excerpt ||
+      "Read the full story from the Ecofy content team.",
+  }}
+/>
                     <div className="flex items-center justify-between border-t border-slate-100 pt-4 text-sm text-slate-500">
                       <span>By {article.author}</span>
 
