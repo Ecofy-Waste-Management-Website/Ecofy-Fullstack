@@ -1,37 +1,41 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import {
-  createArticle,
-  deleteArticle,
-  getArticles,
-  setArticleStatus,
-  updateArticle,
-} from "../../services/articleStore";
+  fetchBlogPosts,
+  createBlogPost,
+  updateBlogPost,
+  deleteBlogPost,
+  createBlogFormData,
+} from "../../services/blogApi";
 
-const categories = [
-  "All",
-  "Recycling Tips",
-  "Community Events",
-  "Eco-Guides",
-];
+const CATEGORIES = ["Recycling Tips", "Community Events", "Eco-Guides"];
+const NEW_POST_ID = "__new__";
 
-const Icons = {
-  Plus: () => (
-    <svg
-      className="h-5 w-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-      />
-    </svg>
-  ),
+const blankForm = () => ({
+  _id: NEW_POST_ID,
+  title: "",
+  category: "Recycling Tips",
+  author: "",
+  excerpt: "",
+  content: "",
+  featuredImage: "",
+  tags: [],
+  status: "Draft",
+});
+
+const hydrateForm = (post) => {
+  if (!post) return null;
+  return {
+    _id: post._id || NEW_POST_ID,
+    title: post.title || "",
+    category: post.category || "Recycling Tips",
+    author: post.author || "",
+    excerpt: post.excerpt || "",
+    content: post.content || "",
+    featuredImage: post.featuredImage || "",
+    tags: Array.isArray(post.tags) ? post.tags : [],
+    status: post.status || "Draft",
+  };
 };
 
 export default function ContentBlogManagement() {
@@ -39,339 +43,517 @@ export default function ContentBlogManagement() {
   const [searchText, setSearchText] = useState("");
   const [editingPostId, setEditingPostId] = useState(null);
   const [editorForm, setEditorForm] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const [error, setError] = useState(null);
   const [message, setMessage] = useState("");
-  const navigate = useNavigate();
-
-  const hydrateEditorForm = (post) => {
-    if (!post) return null;
-
-    return {
-      title: post.title || "",
-      category: post.category || "Recycling Tips",
-      author: post.author || "Admin",
-      thumbnail: post.thumbnail || "bottle",
-      excerpt: post.excerpt || "",
-      content: post.content || "",
-      featuredImage: post.featuredImage || "",
-      comments: post.comments || 0,
-    };
-  };
+  const [loading, setLoading] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   useEffect(() => {
-    const loadArticles = () => {
-      const storedPosts = getArticles();
-
-      setPosts(storedPosts);
-
-      const nextSelectedId =
-        editingPostId || storedPosts[0]?.id || null;
-
-      setEditingPostId(nextSelectedId);
-      setEditorForm(hydrateEditorForm(
-        storedPosts.find((post) => post.id === nextSelectedId) || storedPosts[0] || null
-      ));
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const { posts: articles = [] } = await fetchBlogPosts({ limit: 100 });
+        setPosts(articles);
+        if (articles.length > 0) {
+          setEditingPostId(articles[0]._id);
+          setEditorForm(hydrateForm(articles[0]));
+        }
+      } catch {
+        setError("Failed to load blog posts. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     };
+    load();
+  }, []);
 
-    loadArticles();
-
-    window.addEventListener(
-      "ecofy-articles-updated",
-      loadArticles
-    );
-
-    return () =>
-      window.removeEventListener(
-        "ecofy-articles-updated",
-        loadArticles
-      );
-  }, [editingPostId]);
-
-  const refreshPosts = (next) => setPosts(next);
-
-  const handleDeletePost = (id) =>
-    refreshPosts(deleteArticle(id));
-
-  const filteredPosts = useMemo(() => {
-    return posts.filter((post) => {
-      return (
-        post.title
-          .toLowerCase()
-          .includes(searchText.toLowerCase()) ||
-        post.author
-          .toLowerCase()
-          .includes(searchText.toLowerCase())
-      );
-    });
-  }, [posts, searchText]);
-
-  const editingPost = posts.find(
-    (p) => p.id === editingPostId
+  const filteredPosts = useMemo(
+    () =>
+      posts.filter(
+        (p) =>
+          p.title.toLowerCase().includes(searchText.toLowerCase()) ||
+          p.author.toLowerCase().includes(searchText.toLowerCase())
+      ),
+    [posts, searchText]
   );
 
-  useEffect(() => {
-    setEditorForm(hydrateEditorForm(editingPost));
-  }, [editingPostId, editingPost]);
-
-  const commitPost = (status) => {
-    if (!editingPost || !editorForm) return;
-
-    const normalizedStatus = status === "Published" ? "Published" : "Draft";
-
-    const nextPosts = updateArticle(editingPost.id, {
-      ...editorForm,
-      status: normalizedStatus,
-      publishedAt: normalizedStatus === "Published" ? new Date().toISOString() : null,
-    });
-
-    refreshPosts(nextPosts);
+  const selectPost = (post) => {
+    setEditingPostId(post._id);
+    setEditorForm(hydrateForm(post));
+    setImageFile(null);
+    setImagePreview(post.featuredImage || "");
     setError(null);
-    setMessage(
-      normalizedStatus === "Published"
-        ? "Published successfully. Redirecting to the blog page."
-        : "Draft saved successfully."
-    );
+    setMessage("");
+  };
 
-    if (normalizedStatus === "Published") {
-      navigate("/blogs");
+  const handleNewPost = () => {
+    setEditingPostId(NEW_POST_ID);
+    setEditorForm(blankForm());
+    setImageFile(null);
+    setImagePreview("");
+    setError(null);
+    setMessage("");
+  };
+
+  const handleDeletePost = async (id) => {
+    setDeleteConfirm(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    try {
+      await deleteBlogPost(deleteConfirm);
+      const remaining = posts.filter((p) => p._id !== deleteConfirm);
+      setPosts(remaining);
+      if (editingPostId === deleteConfirm) {
+        if (remaining.length > 0) {
+          selectPost(remaining[0]);
+        } else {
+          setEditingPostId(null);
+          setEditorForm(null);
+        }
+      }
+      setMessage("Blog post deleted successfully.");
+      setDeleteConfirm(null);
+    } catch {
+      setError("Failed to delete blog post.");
+      setDeleteConfirm(null);
     }
   };
 
-  const handleCreateNewPost = () => {
-    const next = createArticle({
-      title: "Untitled Article",
-      category: "Recycling Tips",
-      author: "M.N. Mohamed",
-      status: "Draft",
-      thumbnail: "bottle",
-      excerpt: "",
-      content: "",
-      featuredImage: "",
-      comments: 0,
-    });
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
+  };
 
-    refreshPosts(next);
+  const updateField = (field, value) =>
+    setEditorForm((f) => ({ ...f, [field]: value }));
 
-    setEditingPostId(next[0]?.id || null);
-    setEditorForm(hydrateEditorForm(next[0] || null));
+  const handleTagsChange = (value) => {
+    updateField(
+      "tags",
+      value
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+    );
+  };
+
+  const commitPost = async (status) => {
+    if (!editorForm) return;
+    if (!editorForm.title || !editorForm.content) {
+      setError("Title and content are required.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const payload = createBlogFormData(
+        { ...editorForm, status },
+        imageFile
+      );
+
+      const isNew = editingPostId === NEW_POST_ID;
+      let savedPost;
+
+      if (isNew) {
+        const res = await createBlogPost(payload);
+        savedPost = res.post;
+        setPosts([savedPost, ...posts]);
+      } else {
+        const res = await updateBlogPost(editingPostId, payload);
+        savedPost = res.post;
+        setPosts((prev) =>
+          prev.map((p) => (p._id === savedPost._id ? savedPost : p))
+        );
+      }
+
+      setEditingPostId(savedPost._id);
+      setEditorForm(hydrateForm(savedPost));
+      setImageFile(null);
+      setImagePreview(savedPost.featuredImage || "");
+      setMessage(
+        status === "Published"
+          ? "🎉 Published successfully!"
+          : "✓ Draft saved."
+      );
+    } catch (err) {
+      setError(err.message || "Failed to save blog post.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <section className="w-full font-sans text-[#244c21]">
-
-      {/* TOP BAR */}
-      <div className="mb-6 flex justify-between">
-
-        <input
-          className="border px-3 py-2 rounded-lg"
-          placeholder="Search..."
-          value={searchText}
-          onChange={(e) =>
-            setSearchText(e.target.value)
-          }
-        />
-
-        <button
-          type="button"
-          onClick={handleCreateNewPost}
-          className="bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-        >
-          <Icons.Plus />
-          New Post
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 p-6">
+      {/* HEADER */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-[#244c21]">Blog Management</h1>
+            <p className="text-gray-600 mt-1">Create, edit, and manage blog posts</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleNewPost}
+            className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg hover:shadow-xl"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Post
+          </button>
+        </div>
       </div>
 
+      {/* ALERTS */}
       {error && (
-        <div className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+        <div className="mb-6 p-4 rounded-xl border border-red-300 bg-red-50 text-red-800 flex items-start gap-3">
+          <svg className="h-5 w-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+          <span>{error}</span>
         </div>
       )}
-
       {message && (
-        <div className="mb-6 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-[#397239]">
-          {message}
+        <div className="mb-6 p-4 rounded-xl border border-green-300 bg-green-50 text-green-800 flex items-start gap-3">
+          <svg className="h-5 w-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <span>{message}</span>
         </div>
       )}
 
-      <div className="flex flex-col gap-6 lg:flex-row items-start">
+      {/* SEARCH BAR */}
+      <div className="mb-8">
+        <div className="relative">
+          <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by title or author..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 transition-colors"
+          />
+        </div>
+      </div>
 
-        {/* POSTS LIST */}
-        <section className="flex w-full flex-col gap-4 lg:w-1/3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* POSTS LIST SIDEBAR */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6">
+            <h2 className="text-xl font-bold text-[#244c21] mb-4 flex items-center gap-2">
+              <span className="h-2 w-2 bg-green-600 rounded-full"></span>
+              Posts ({filteredPosts.length})
+            </h2>
+            
+            <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto">
+              {/* NEW POST INDICATOR */}
+              {editingPostId === NEW_POST_ID && (
+                <div className="p-4 rounded-xl border-2 border-green-400 bg-gradient-to-r from-green-50 to-emerald-50 shadow-sm">
+                  <p className="text-sm font-semibold text-green-700 flex items-center gap-2">
+                    <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
+                    New Post (unsaved)
+                  </p>
+                </div>
+              )}
 
-          {filteredPosts.map((post) => (
-            <div
-              key={post.id}
-              onClick={() => {
-                setEditingPostId(post.id);
-                setEditorForm(hydrateEditorForm(post));
-              }}
-              className={`p-4 border rounded-xl cursor-pointer transition ${
-                editingPostId === post.id
-                  ? "bg-green-100"
-                  : "bg-white"
-              }`}
-            >
-              <h4 className="font-bold">
-                {post.title}
-              </h4>
-
-              <p className="text-xs mt-1">
-                {post.author}
-              </p>
-
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeletePost(post.id);
-                }}
-                className="mt-3 text-red-600 text-sm"
-              >
-                Delete
-              </button>
+              {/* POSTS LIST */}
+              {filteredPosts.length === 0 ? (
+                <div className="p-8 text-center">
+                  <svg className="h-12 w-12 mx-auto text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="text-gray-500 text-sm">No posts found</p>
+                </div>
+              ) : (
+                filteredPosts.map((post) => (
+                  <div
+                    key={post._id}
+                    onClick={() => selectPost(post)}
+                    className={`p-4 rounded-xl cursor-pointer transition-all ${
+                      editingPostId === post._id
+                        ? "bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-500 shadow-md"
+                        : "bg-white border-2 border-gray-200 hover:border-green-300 hover:shadow-md"
+                    }`}
+                  >
+                    <h4 className="font-semibold text-gray-900 truncate text-sm">{post.title || "Untitled"}</h4>
+                    <p className="text-xs text-gray-500 mt-1">{post.author || "No author"}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                        post.status === "Published"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}>
+                        {post.status}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePost(post._id);
+                      }}
+                      className="mt-3 text-xs font-semibold text-red-600 hover:text-red-700 transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
-          ))}
-        </section>
+          </div>
+        </div>
 
-        {/* EDITOR */}
-        <div className="w-full lg:w-2/3">
-
-          {editingPost ? (
-            <div className="border rounded-2xl bg-white overflow-hidden">
-
+        {/* EDITOR SECTION */}
+        <div className="lg:col-span-2">
+          {editorForm ? (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
               {/* HEADER */}
-              <div className="p-4 border-b">
-                <h2 className="font-bold text-lg">
-                  Edit Article
+              <div className="px-8 py-6 border-b-2 border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50 flex items-center gap-4">
+                <div className="h-12 w-12 flex-shrink-0 rounded-2xl bg-gradient-to-br from-green-100 to-green-50 flex items-center justify-center text-green-600 shadow-sm">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-[#244c21]">
+                  {editingPostId === NEW_POST_ID ? "Create New Post" : "Edit Post"}
                 </h2>
               </div>
 
               {/* CONTENT */}
-              <div className="p-6 space-y-6">
-
-                {/* TITLE */}
-                <div>
-                  <label className="block mb-2 font-semibold">
-                    Title
-                  </label>
-
-                  <input
-                    type="text"
-                    value={editorForm?.title || ""}
-                    onChange={(e) =>
-                      setEditorForm((current) => ({
-                        ...(current || hydrateEditorForm(editingPost)),
-                        title: e.target.value,
-                      }))
-                    }
-                    className="w-full border rounded-lg px-4 py-3"
-                  />
-                </div>
-
-                {/* IMAGE PREVIEW */}
-                {editorForm?.featuredImage && (
+              <div className="p-8 space-y-8 max-h-[calc(100vh-300px)] overflow-y-auto">
+                {/* TITLE & CATEGORY ROW */}
+                <div className="space-y-4">
                   <div>
-                    <img
-                      src={editorForm.featuredImage}
-                      alt="Preview"
-                      className="h-64 w-full rounded-xl object-cover border"
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">Post Title *</label>
+                    <input
+                      type="text"
+                      value={editorForm.title}
+                      onChange={(e) => updateField("title", e.target.value)}
+                      className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-green-500 transition-colors"
+                      placeholder="Enter an engaging title..."
                     />
                   </div>
-                )}
+                </div>
 
-                {/* CONTENT EDITOR */}
+                {/* CATEGORY & STATUS */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">Category *</label>
+                    <select
+                      value={editorForm.category}
+                      onChange={(e) => updateField("category", e.target.value)}
+                      className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-green-500 transition-colors"
+                    >
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">Status</label>
+                    <select
+                      value={editorForm.status}
+                      onChange={(e) => updateField("status", e.target.value)}
+                      className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-green-500 transition-colors"
+                    >
+                      <option value="Draft">Draft</option>
+                      <option value="Published">Published</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* AUTHOR */}
                 <div>
-                  <label className="block mb-2 font-semibold">
-                    Content
-                  </label>
-
-                  <textarea
-                    value={editorForm?.content || ""}
-                    onChange={(e) =>
-                      setEditorForm((current) => ({
-                        ...(current || hydrateEditorForm(editingPost)),
-                        content: e.target.value,
-                      }))
-                    }
-                    placeholder="Write the article content here..."
-                    className="min-h-[400px] w-full rounded-lg border px-4 py-3 leading-7 outline-none focus:border-green-600"
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Author *</label>
+                  <input
+                    type="text"
+                    value={editorForm.author}
+                    onChange={(e) => updateField("author", e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-green-500 transition-colors"
+                    placeholder="Author name"
                   />
                 </div>
 
-                <div className="h-16"></div>
+                {/* EXCERPT */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Excerpt</label>
+                  <textarea
+                    value={editorForm.excerpt}
+                    onChange={(e) => updateField("excerpt", e.target.value)}
+                    rows={2}
+                    className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-green-500 transition-colors resize-none"
+                    placeholder="Brief summary (shown in listings)..."
+                  />
+                </div>
+
+                {/* FEATURED IMAGE */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Featured Image</label>
+                  {imagePreview && (
+                    <div className="mb-4 relative group">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-48 rounded-xl object-cover border-2 border-gray-200"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-xl transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImagePreview("");
+                            setImageFile(null);
+                          }}
+                          className="bg-white text-red-600 px-4 py-2 rounded-lg font-semibold"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/jpg,image/jpeg,image/png"
+                    id="featured-image-upload"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                  <label
+                    htmlFor="featured-image-upload"
+                    className="inline-flex items-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-gray-100 to-gray-50 border-2 border-dashed border-gray-300 hover:border-green-500 cursor-pointer transition-all text-sm font-semibold text-gray-700"
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {imageFile ? `Change Image (${imageFile.name})` : "Upload Image"}
+                  </label>
+                </div>
+
+                {/* CONTENT */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Content *</label>
+                  <textarea
+                    value={editorForm.content}
+                    onChange={(e) => updateField("content", e.target.value)}
+                    rows={14}
+                    className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-green-500 transition-colors font-mono text-sm leading-7"
+                    placeholder="Write your blog content here..."
+                  />
+                </div>
+
+                {/* TAGS */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Tags</label>
+                  <input
+                    type="text"
+                    value={editorForm.tags.join(", ")}
+                    onChange={(e) => handleTagsChange(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-green-500 transition-colors"
+                    placeholder="e.g. recycling, tips, sustainability (comma-separated)"
+                  />
+                </div>
               </div>
 
               {/* ACTIONS */}
-              <div className="flex items-center justify-between border-t p-4">
-
-                {/* IMAGE BUTTON */}
-                <div>
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    id="featured-image-upload"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-
-                      if (!file) return;
-
-                      const reader = new FileReader();
-
-                      reader.onloadend = () => {
-                        setEditorForm((current) => ({
-                          ...(current || hydrateEditorForm(editingPost)),
-                          featuredImage: reader.result,
-                        }));
-                      };
-
-                      reader.readAsDataURL(file);
-                    }}
-                  />
-
-                  <label
-                    htmlFor="featured-image-upload"
-                    className="cursor-pointer rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition"
-                  >
-                    Upload Image
-                  </label>
-                </div>
-
-                {/* BUTTONS */}
-                <div className="flex gap-3">
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      commitPost("Draft")
-                    }
-                    className="px-4 py-2 border rounded-lg"
-                  >
-                    Save Draft
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      commitPost("Published")
-                    }
-                    className="px-4 py-2 bg-green-700 text-white rounded-lg"
-                  >
-                    Publish
-                  </button>
-
-                </div>
+              <div className="flex items-center justify-end gap-3 border-t-2 border-gray-100 p-8 bg-gray-50">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => commitPost("Draft")}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2m0 0v-8m0 8H3m6-8h6m0 0V5m0 8v8" />
+                  </svg>
+                  {loading ? "Saving..." : "Save Draft"}
+                </button>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => commitPost("Published")}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold hover:from-green-700 hover:to-green-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {loading ? "Publishing..." : "Publish"}
+                </button>
               </div>
-
             </div>
           ) : (
-            <div className="p-10 text-center">
-              Select a post to edit
+            <div className="flex flex-col items-center justify-center h-96 rounded-2xl bg-white border-2 border-dashed border-gray-300">
+              <svg className="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4" />
+              </svg>
+              <p className="text-gray-600 text-lg font-semibold">
+                {loading ? "Loading your posts..." : "Create a new post to get started"}
+              </p>
             </div>
           )}
         </div>
       </div>
-    </section>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-in fade-in zoom-in duration-300">
+            {/* Header */}
+            <div className="px-6 py-6 border-b-2 border-red-100 bg-gradient-to-r from-red-50 to-red-100/50">
+              <div className="flex items-start gap-4">
+                <div className="h-12 w-12 flex-shrink-0 rounded-full bg-red-100 flex items-center justify-center">
+                  <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4v2m0 0H8m4 0h4M6 18H4a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2h-2" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Delete Post?</h3>
+                  <p className="text-sm text-gray-500 mt-1">This action cannot be undone</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 py-4">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to permanently delete this blog post? This cannot be recovered.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 px-6 py-4 bg-gray-50 border-t-2 border-gray-100">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 px-4 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold hover:from-red-700 hover:to-red-800 transition-all shadow-lg"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

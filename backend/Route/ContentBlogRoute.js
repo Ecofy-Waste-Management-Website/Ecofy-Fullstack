@@ -1,5 +1,5 @@
 const express = require('express');
-const { isAuthenticated, isAdmin } = require('../Middleware/authMiddleware.js');
+const { upload, uploadToCloudinary } = require('../Middleware/cloudinaryUpload.js');
 const {
   listBlogPosts,
   getBlogPostById,
@@ -10,12 +10,12 @@ const {
 
 const router = express.Router();
 
-//router.use(isAuthenticated, isAdmin);
+const handleImage = [upload.single('featuredImage'), uploadToCloudinary];
 
 router.get('/', listBlogPosts);
-router.post('/', createBlogPost, isAuthenticated, isAdmin);
+router.post('/', ...handleImage, createBlogPost);
 router.get('/:id', getBlogPostById);
-router.patch('/:id', updateBlogPost);
+router.patch('/:id', ...handleImage, updateBlogPost);
 router.delete('/:id', deleteBlogPost);
 
 module.exports = router;

@@ -39,7 +39,10 @@ wss.on("connection", (ws) => {
 app.set("wss", wss);
 
 //Middleware 
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 
 // Register Clerk middleware only when keys are available.
