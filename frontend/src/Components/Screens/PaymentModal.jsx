@@ -18,6 +18,12 @@ const SERVICE_PRICES = {
   "Drain Cleaning": 2000,
 };
 
+const formatMoney = (value) => {
+  if (typeof value === "number") return `LKR ${value.toLocaleString()}`;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? `LKR ${parsed.toLocaleString()}` : "N/A";
+};
+
 // ── Inner form (must be inside <Elements>) ────────────────────────────────────
 function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
   const stripe = useStripe();
@@ -45,7 +51,7 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
           </p>
         </div>
         <div className="rounded-xl bg-green-50 border border-green-200 px-5 py-2 text-green-700 font-bold text-lg">
-          LKR {SERVICE_PRICES[bookingDetails.service_type]?.toLocaleString()}
+          {formatMoney(SERVICE_PRICES[bookingDetails.service_type] || bookingDetails.price)}
         </div>
         <p className="text-xs text-gray-400">Your booking has been confirmed.</p>
         <button
@@ -105,6 +111,10 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
       <div className="rounded-xl bg-green-50/70 border border-green-200/60 px-4 py-3 text-sm text-green-800 space-y-1">
         <p className="font-semibold text-gray-700 mb-2">Booking Summary</p>
         <div className="flex justify-between">
+          <span className="text-gray-500">Order ID</span>
+          <span className="font-medium truncate max-w-[180px]">{bookingDetails.orderId || bookingDetails._id || "Pending"}</span>
+        </div>
+        <div className="flex justify-between">
           <span className="text-gray-500">Service</span>
           <span className="font-medium">{bookingDetails.service_type}</span>
         </div>
@@ -120,11 +130,13 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
           <span className="text-gray-500">Date</span>
           <span className="font-medium">{bookingDetails.scheduled_date}</span>
         </div>
+        <div className="flex justify-between">
+          <span className="text-gray-500">Pickup PIN</span>
+          <span className="font-medium">{bookingDetails.pickupPin || "Pending"}</span>
+        </div>
         <div className="flex justify-between border-t border-green-200 pt-2 mt-1">
           <span className="font-semibold text-green-700">Total</span>
-          <span className="font-bold text-green-700">
-            LKR {SERVICE_PRICES[bookingDetails.service_type]?.toLocaleString()}
-          </span>
+          <span className="font-bold text-green-700">{formatMoney(SERVICE_PRICES[bookingDetails.service_type] || bookingDetails.price)}</span>
         </div>
       </div>
 

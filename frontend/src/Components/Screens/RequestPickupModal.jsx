@@ -88,7 +88,9 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
         ...form,
         clerkId: user?.id,
         email: user?.primaryEmailAddress?.emailAddress || "",
+          orderId: createdBooking?._id || createdBooking?.id || "",
         pickupPin: createdBooking?.pickupPin || createdBooking?.pickup_pin || "",
+          price: createdBooking?.price || createdBooking?.estimated_amt || "",
       });
         onClose();
       }, 1500);

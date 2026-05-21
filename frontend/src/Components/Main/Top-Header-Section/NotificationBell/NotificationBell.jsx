@@ -24,6 +24,8 @@ export default function NotificationBell({ target = "user" }) {
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const panelRef = useRef(null);
+  const wsRef = useRef(null);
+  const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   // Fetch on mount and every 60 seconds
   useEffect(() => {
@@ -33,6 +35,34 @@ export default function NotificationBell({ target = "user" }) {
     const interval = setInterval(fetch, 60_000);
     return () => clearInterval(interval);
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const wsBase = apiBaseUrl.replace(/^http/i, "ws");
+    const wsUrl = wsBase;
+    const socket = new WebSocket(wsUrl);
+    wsRef.current = socket;
+
+    socket.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === "NOTIFICATION_CREATED" && msg.data?.clerkId === user.id && msg.data?.target === target) {
+          fetchNotifications();
+        }
+      } catch {
+        // ignore malformed events
+      }
+    };
+
+    return () => {
+      try {
+        socket.close();
+      } catch {
+        // ignore close errors
+      }
+    };
+  }, [user, target]);
 
   const fetchNotifications = async () => {
     try {
@@ -44,6 +74,12 @@ export default function NotificationBell({ target = "user" }) {
       console.error("Failed to fetch notifications", err);
     }
   };
+
+  useEffect(() => {
+    if (open) {
+      fetchNotifications();
+    }
+  }, [open]);
 
   // Close panel on outside click
   useEffect(() => {
