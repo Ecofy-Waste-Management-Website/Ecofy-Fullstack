@@ -7,6 +7,7 @@ import ContentBlogManagement from "./contentBlogManagement";
 import StaffAccountCreation from "./StaffAccountCreation";
 import InquiryManagement from "./InquiryManagement";
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
+import ServiceManagement from "./ServiceManagement";
 
 // Apple System Colors
 const COLORS = {
@@ -27,7 +28,7 @@ const COLORS = {
   warning: "#FF9500",
   error: "#FF3B30",
 };
-import ServiceManagement from "./ServiceManagement"; 
+
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
