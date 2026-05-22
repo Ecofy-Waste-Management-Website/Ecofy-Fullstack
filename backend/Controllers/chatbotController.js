@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const ChatSession = require("../Model/ChatSession");
 
 // ── Initialise Gemini ────────────────────────────────
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -124,7 +125,32 @@ const chatMessage = async (req, res) => {
       }
     }
 
-    return res.status(200).json({ reply, action });
+    // Persist session to DB (create a new session for this exchange)
+    try {
+      const msgs = [];
+      for (const turn of conversationHistory) {
+        msgs.push({ role: turn.role === 'user' ? 'user' : (turn.role === 'model' ? 'model' : 'bot'), text: turn.text, time: turn.time || turn.timestamp || Date.now() });
+      }
+      // current user message and bot reply
+      msgs.push({ role: 'user', text: message, time: Date.now() });
+      msgs.push({ role: 'model', text: reply, time: Date.now() });
+
+      const sessionDoc = new ChatSession({
+        user: {
+          clerkId: userContext?.id || null,
+          name: userContext?.name || null,
+          email: userContext?.email || null,
+        },
+        messages: msgs,
+        lastUpdated: new Date(),
+      });
+
+      await sessionDoc.save();
+      return res.status(200).json({ reply, action, sessionId: sessionDoc._id });
+    } catch (saveErr) {
+      console.error('Failed to save chat session:', saveErr);
+      return res.status(200).json({ reply, action });
+    }
   } catch (error) {
     console.error("Chatbot error:", error);
 
@@ -192,5 +218,28 @@ const chatMessage = async (req, res) => {
   }
 };
 
-module.exports = { chatMessage };
+// GET /sessions - list recent chat sessions
+const getSessions = async (req, res) => {
+  try {
+    const sessions = await ChatSession.find().sort({ lastUpdated: -1 }).limit(500).lean();
+    return res.status(200).json({ sessions });
+  } catch (err) {
+    console.error('Failed to list chat sessions:', err);
+    return res.status(500).json({ message: 'Failed to list sessions' });
+  }
+};
+
+// GET /sessions/:id - return a single session
+const getSessionById = async (req, res) => {
+  try {
+    const s = await ChatSession.findById(req.params.id).lean();
+    if (!s) return res.status(404).json({ message: 'Session not found' });
+    return res.status(200).json(s);
+  } catch (err) {
+    console.error('Failed to fetch session:', err);
+    return res.status(500).json({ message: 'Failed to fetch session' });
+  }
+};
+
+module.exports = { chatMessage, getSessions, getSessionById };
 

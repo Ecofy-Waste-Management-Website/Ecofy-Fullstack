@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 
 // Components
@@ -39,6 +39,10 @@ const PrivateRoute = ({ children }) => (
 
 export default function App() {
   const [chatbotBookingOpen, setChatbotBookingOpen] = useState(false);
+  const location = useLocation();
+  const pathname = location?.pathname || '';
+  // Hide chatbot on admin and staff dashboards
+  const hideChatbot = pathname.startsWith('/admin') || pathname.startsWith('/admin-dashboard') || pathname.startsWith('/staff-dashboard');
 
   return (
     <>
@@ -154,8 +158,8 @@ export default function App() {
 
     </Routes>
 
-    {/* Global AI Chatbot Widget */}
-    <ChatbotWidget onOpenBooking={() => setChatbotBookingOpen(true)} />
+    {/* Global AI Chatbot Widget (hidden on admin/staff dashboards) */}
+    {!hideChatbot && <ChatbotWidget onOpenBooking={() => setChatbotBookingOpen(true)} />}
     </>
   );
 }

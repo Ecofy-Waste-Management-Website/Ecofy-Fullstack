@@ -6,6 +6,7 @@ import ServiceRequests from "./ServiceRequests";
 import ContentBlogManagement from "./contentBlogManagement";
 import StaffAccountCreation from "./StaffAccountCreation";
 import InquiryManagement from "./InquiryManagement";
+import ChatbotManagement from "./ChatbotManagement";
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
 
 // Apple System Colors
@@ -154,6 +155,7 @@ const menuItems = [
   },
   { label: "Content/Blog", key: "CONTENT_BLOG", hasSubmenu: false },
   { label: "Inquiry", key: "INQUIRY", hasSubmenu: false },
+  { label: "Chatbot Management", key: "CHATBOT_MGMT", hasSubmenu: false },
   { label: "Service Management", key: "SERVICE_MGMT", hasSubmenu: false }
 ];
 // ─── SERVICE MANAGEMENT COMPONENT ─────────────────────────────────────────
@@ -660,6 +662,7 @@ export default function AdminDashboard() {
     SERVICE_REQ: <ServiceRequests />,
     CONTENT_BLOG: <ContentBlogManagement />,
     INQUIRY: <InquiryManagement />,
+    CHATBOT_MGMT: <ChatbotManagement />,
     SERVICE_MGMT: <ServiceManagement />
   };
 
