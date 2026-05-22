@@ -493,7 +493,7 @@ export default function Dashboard() {
 
            <div className="flex items-center gap-3 w-full lg:w-auto">
              {/* Notification Bell */}
-            <NotificationBell target="user" />
+           <NotificationBell target="user" />
 
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 w-full lg:w-auto">
             <button
