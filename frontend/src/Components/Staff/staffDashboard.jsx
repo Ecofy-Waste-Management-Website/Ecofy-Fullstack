@@ -196,7 +196,7 @@ export default function StaffDashboard() {
       const assignRes = await fetch(`${API_BASE_URL}/service-monitoring/${order._id}/assign`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignedStaff: user.id }),
+        body: JSON.stringify({ assignedStaff: staffName }),
       });
       const assignData = await assignRes.json();
 
@@ -217,7 +217,7 @@ export default function StaffDashboard() {
 
       setPendingOrders((prev) => prev.filter((item) => item._id !== order._id));
       setActiveTasks((prev) => [
-        { ...order, assignedStaff: user.id, status: 'Assigned' },
+        { ...order, assignedStaff: staffName, status: 'Assigned' },
         ...prev.filter((item) => item._id !== order._id),
       ]);
       showNotification('Pickup confirmed successfully!');

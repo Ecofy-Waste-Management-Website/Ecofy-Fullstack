@@ -140,12 +140,8 @@ router.patch("/:id/assign", async (req, res) => {
 
     const doc = await ServiceRequest.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: "Not found" });
-   if (assignedStaff && assignedStaff.startsWith("user_")) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid staff name",
-      });
-    }
+    // Accept either a staff display name (from Admin UI) or a clerkId (e.g. user_xxx from Clerk).
+    // No validation here — staff ownership/authorization is enforced in staffController when staff update statuses.
     if (doc.assignedStaff !== assignedStaff) {
       doc.assignedStaff = assignedStaff || null;
       const event = assignedStaff

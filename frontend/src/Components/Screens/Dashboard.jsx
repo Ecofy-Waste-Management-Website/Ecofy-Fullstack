@@ -225,18 +225,20 @@ export default function Dashboard() {
     setSearchStatus({ type: "success", text: `Showing ${value} on the map.` });
   };
 
-  const HelpCard = ({ title, description, actionLabel, onAction }) => (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-      <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
-      <p className="mt-1 text-sm text-gray-500">{description}</p>
+  const Card = ({ title, description, actionLabel, onAction, className = "" }) => (
+    <div className={`rounded-2xl bg-white p-6 shadow-md hover:shadow-lg transition-transform transform hover:-translate-y-1 ${className}`}>
+      <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+      <p className="mt-2 text-sm text-gray-500">{description}</p>
       {actionLabel && (
-        <button
-          type="button"
-          onClick={onAction}
-          className="mt-4 rounded-xl bg-[#06a63e] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#058b33]"
-        >
-          {actionLabel}
-        </button>
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={onAction}
+            className="rounded-lg bg-[#06a63e] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#058b33] shadow-sm"
+          >
+            {actionLabel}
+          </button>
+        </div>
       )}
     </div>
   );
@@ -387,25 +389,25 @@ export default function Dashboard() {
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <HelpCard
+          <Card
             title="Pickup support"
             description="Need to reschedule, track, or understand a pickup booking? Start here."
             actionLabel="Book a pickup"
             onAction={() => setShowPickupModal(true)}
           />
-          <HelpCard
+          <Card
             title="Account help"
             description="Update your name, phone number, and other profile details from one place."
             actionLabel="Manage profile"
             onAction={openProfile}
           />
-          <HelpCard
+          <Card
             title="Billing questions"
             description="Review your service history or ask about a recent transaction."
             actionLabel="Order history"
             onAction={() => navigate("/service-history")}
           />
-          <HelpCard
+          <Card
             title="Live assistance"
             description="If you still need help, send a message and the Ecofy team will respond."
             actionLabel="Send inquiry"
@@ -495,35 +497,28 @@ export default function Dashboard() {
              {/* Notification Bell */}
             <NotificationBell target="user" />
 
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 w-full lg:w-auto">
-            <button
-              type="button"
-              onClick={() => setShowPickupModal(true)}
-              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-[#66c45e] hover:text-white"
-            >
-              Schedule
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("track-status")}
-              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-[#66c45e] hover:text-white"
-            >
-              Track status
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/service-history")}
-              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-[#66c45e] hover:text-white"
-            >
-              History
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("special-services")}
-              className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-[#66c45e] hover:text-white"
-            >
-              Services
-            </button>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-6 w-full lg:w-auto">
+            {[
+              { label: "Schedule", onClick: () => setShowPickupModal(true) },
+              { label: "Pickup", onClick: () => setShowPickupModal(true) },
+              { label: "Track Orders", onClick: () => setActiveTab("track-status") },
+              { label: "Order History", onClick: () => navigate("/service-history") },
+              { label: "Inquiry", onClick: () => setActiveTab("inquiry") },
+              { label: "Profile", onClick: () => setActiveTab("profile") },
+            ].map((btn) => (
+              <button
+                key={btn.label}
+                type="button"
+                onClick={btn.onClick}
+                className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white text-[#0f5132] font-medium shadow-sm hover:shadow-md hover:bg-[#ecf9ef] transition"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="opacity-80" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2v6" stroke="#166534" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M6 8h12M7 21h10a2 2 0 002-2V8H5v11a2 2 0 002 2z" stroke="#166534" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-sm">{btn.label}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>

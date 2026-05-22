@@ -30,8 +30,14 @@ const getAssignedTasks = async (req, res) => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
+    // Allow tasks where assignedStaff is either the clerkId or the staff display name
+    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' })) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }));
+    const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
+
+    const matchAssigned = staffName ? { $in: [clerkId, staffName] } : clerkId;
+
     const tasks = await ServiceRequest.find({
-      assignedStaff: clerkId,
+      assignedStaff: matchAssigned,
       scheduled_date: { $gte: today, $lt: tomorrow },
     }).sort({ scheduled_date: 1 });
 
@@ -50,8 +56,12 @@ const getAssignedTasks = async (req, res) => {
 const getActiveTasks = async (req, res) => {
   try {
     const { clerkId } = req.params;
+    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' })) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }));
+    const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
+    const matchAssigned = staffName ? { $in: [clerkId, staffName] } : clerkId;
+
     const tasks = await ServiceRequest.find({
-      assignedStaff: clerkId,
+      assignedStaff: matchAssigned,
       status: { $in: ["Pending", "Assigned", "In Progress", "En Route"] },
     }).sort({ scheduled_date: 1 });
 
@@ -70,8 +80,12 @@ const getActiveTasks = async (req, res) => {
 const getCompletedTasks = async (req, res) => {
   try {
     const { clerkId } = req.params;
+    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' })) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }));
+    const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
+    const matchAssigned = staffName ? { $in: [clerkId, staffName] } : clerkId;
+
     const tasks = await ServiceRequest.find({
-      assignedStaff: clerkId,
+      assignedStaff: matchAssigned,
       status: "Completed",
     }).sort({ scheduled_date: -1 });
 
@@ -110,9 +124,15 @@ const updateTaskStatus = async (req, res) => {
     }
 
     // ── Find task and verify ownership ───────────────
+    // Allow ownership if assignedStaff stored as clerkId or as the staff's display name
+    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' })) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }));
+    const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
+
+    const assignedMatch = staffName ? { $in: [clerkId, staffName] } : clerkId;
+
     const task = await ServiceRequest.findOne({
       _id: taskId,
-      assignedStaff: clerkId,
+      assignedStaff: assignedMatch,
     });
 
     if (!task) {
