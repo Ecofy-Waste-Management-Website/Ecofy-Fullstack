@@ -3,6 +3,7 @@ const LegacyUser = require("../Model/UserModule");
 const PaymentHistory = require("../Model/PaymentHistoryModel");
 const ServiceHistory = require("../Model/ServiceHistoryModel");
 const ServiceRequest = require("../Model/ServiceRequestModel");
+const { clerkClient } = require("@clerk/clerk-sdk-node");
 
 const jwt = require("jsonwebtoken");
 
@@ -165,6 +166,66 @@ const getUserByClerkId = async (req, res) => {
   }
 };
 
+const updateUserSettings = async (req, res) => {
+  try {
+    const { clerkId } = req.params;
+    const {
+      firstName,
+      lastName,
+      availabilityStatus,
+      bankDetails,
+    } = req.body;
+
+    const user =
+      (await User.findOne({ clerkId })) ||
+      (await LegacyUser.findOne({ clerkId }));
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const nextFirstName = typeof firstName === "string" ? firstName.trim() : user.firstName;
+    const nextLastName = typeof lastName === "string" ? lastName.trim() : user.lastName;
+    const nextAvailability = typeof availabilityStatus === "string" ? availabilityStatus.trim() : user.availabilityStatus || "Available";
+    const nextBankDetails = {
+      bankName: typeof bankDetails?.bankName === "string" ? bankDetails.bankName.trim() : user.bankDetails?.bankName || "",
+      accountName: typeof bankDetails?.accountName === "string" ? bankDetails.accountName.trim() : user.bankDetails?.accountName || "",
+      accountNumber: typeof bankDetails?.accountNumber === "string" ? bankDetails.accountNumber.trim() : user.bankDetails?.accountNumber || "",
+      branch: typeof bankDetails?.branch === "string" ? bankDetails.branch.trim() : user.bankDetails?.branch || "",
+    };
+
+    if (!nextFirstName) {
+      return res.status(400).json({ message: "First name is required" });
+    }
+
+    if (!['Available', 'Busy', 'Off Duty'].includes(nextAvailability)) {
+      return res.status(400).json({ message: "Invalid availability status" });
+    }
+
+    user.firstName = nextFirstName;
+    user.lastName = nextLastName;
+    user.availabilityStatus = nextAvailability;
+    user.bankDetails = nextBankDetails;
+
+    await user.save();
+
+    if (user.clerkId) {
+      await clerkClient.users.updateUser(user.clerkId, {
+        firstName: nextFirstName,
+        lastName: nextLastName || undefined,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Settings updated successfully",
+      user,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Internal server Error" });
+  }
+};
+
 // // Update profile (name, email, preferences) 
 // const updateUser = async (req, res) => {
 //   try {
@@ -228,4 +289,4 @@ const getUserByClerkId = async (req, res) => {
 //     res.status(500).json({ message: "Internal server Error" });
 //   }
 // };
-module.exports = { createUser, getAllUsers, getUserByClerkId, getUserOrderHistory };
+module.exports = { createUser, getAllUsers, getUserByClerkId, getUserOrderHistory, updateUserSettings };
