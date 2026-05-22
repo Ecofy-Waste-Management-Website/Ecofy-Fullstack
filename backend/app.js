@@ -1,12 +1,18 @@
+{/* forces google DNS for more stable network*/}
 const dns = require('dns');
 dns.setServers(['8.8.8.8', '8.8.4.4']);
+
+{/*load up the env file*/}
 require('dotenv').config();
+console.log("env files loaded!")
+
+
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
-const http = require('http');
-const { WebSocketServer } = require('ws');
-const { clerkMiddleware } = require('@clerk/express');
+const cors = require('cors'); {/*to allow frontend  access*/}
+const http = require('http'); 
+const { WebSocketServer } = require('ws'); {/*get real time updates */}
+const { clerkMiddleware } = require('@clerk/express'); 
 
 const userRouter = require("./Route/UserRoute")
 const staffRouter = require("./Route/staffRoute");
@@ -23,6 +29,7 @@ const authTestRouter = require("./Route/authTestRoute");
 const stripeRoute = require("./Route/stripe.route");
 const chatbotRouter = require("./Route/chatbotRoute");
 const blogRoute = require("./Route/ContentBlogRoute");
+
 const app = express();
 
 
