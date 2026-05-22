@@ -70,6 +70,93 @@ To auto-create a complaint inquiry:
 - Respond in the same language the user writes in (English or Sinhala or Tamil).
 `;
 
+const buildFallbackReply = (message) => {
+  const normalized = String(message || "").toLowerCase();
+
+  if (normalized.includes("price") || normalized.includes("pricing") || normalized.includes("service fees")) {
+    return {
+      reply:
+        "Here are the current service prices: Household LKR 1,500, Commercial LKR 3,500, Bulk LKR 2,500, Garden LKR 1,200, and Drain Cleaning LKR 2,000.",
+      action: null,
+    };
+  }
+
+  if (
+    normalized.includes("report") ||
+    normalized.includes("problem") ||
+    normalized.includes("issue") ||
+    normalized.includes("complaint") ||
+    normalized.includes("late pickup") ||
+    normalized.includes("damaged")
+  ) {
+    return {
+      reply:
+        "I’m sorry about that. Please share a few details about the pickup issue, and I’ll help you raise it with the team.",
+      action: {
+        action: "CREATE_INQUIRY",
+        subject: "Pickup issue reported via chatbot",
+        message: "The user reported a pickup problem and needs follow-up from the Ecofy team.",
+      },
+    };
+  }
+
+  if (normalized.includes("book") || normalized.includes("pickup") || normalized.includes("schedule")) {
+    return {
+      reply:
+        "Sure — I can help with that booking. I’ll open the pickup form so you can choose the service, location, and date.",
+      action: { action: "OPEN_BOOKING" },
+    };
+  }
+
+  if (normalized.includes("track") || normalized.includes("status")) {
+    return {
+      reply:
+        "You can check your service and pickup status from the history page, so I’ll take you there now.",
+      action: { action: "NAVIGATE", target: "/service-history" },
+    };
+  }
+
+  return {
+    reply:
+      "I’m having trouble reaching the AI assistant right now, but I can still help with bookings, pricing, and pickup issues. Please try again in a moment.",
+    action: null,
+  };
+};
+
+const sanitizeHistory = (conversationHistory = []) =>
+  conversationHistory
+    .filter((turn) => turn && typeof turn.text === "string" && turn.text.trim())
+    .map((turn) => ({
+      role: turn.role === "user" ? "user" : "model",
+      parts: [{ text: turn.text }],
+    }));
+
+const serializeMessages = (conversationHistory = [], message, reply) => {
+  const msgs = [];
+
+  for (const turn of conversationHistory) {
+    if (!turn || typeof turn.text !== "string" || !turn.text.trim()) {
+      continue;
+    }
+
+    msgs.push({
+      role: turn.role === "user" ? "user" : turn.role === "model" ? "model" : "bot",
+      text: turn.text.trim(),
+      time: turn.time || turn.timestamp || Date.now(),
+    });
+  }
+
+  if (typeof message === "string" && message.trim()) {
+    msgs.push({ role: "user", text: message.trim(), time: Date.now() });
+  }
+
+  if (typeof reply === "string" && reply.trim()) {
+    msgs.push({ role: "model", text: reply.trim(), time: Date.now() });
+  }
+
+  return msgs;
+};
+
 // ── Chat endpoint ────────────────────────────────────
 const chatMessage = async (req, res) => {
   try {
@@ -80,15 +167,7 @@ const chatMessage = async (req, res) => {
     }
 
     // Build the conversation for Gemini
-    const contents = [];
-
-    // Add prior conversation turns
-    for (const turn of conversationHistory) {
-      contents.push({
-        role: turn.role === "user" ? "user" : "model",
-        parts: [{ text: turn.text }],
-      });
-    }
+    const contents = sanitizeHistory(conversationHistory);
 
     // Add current user message (with optional context)
     let userMessage = message;
@@ -127,13 +206,7 @@ const chatMessage = async (req, res) => {
 
     // Persist session to DB (create a new session for this exchange)
     try {
-      const msgs = [];
-      for (const turn of conversationHistory) {
-        msgs.push({ role: turn.role === 'user' ? 'user' : (turn.role === 'model' ? 'model' : 'bot'), text: turn.text, time: turn.time || turn.timestamp || Date.now() });
-      }
-      // current user message and bot reply
-      msgs.push({ role: 'user', text: message, time: Date.now() });
-      msgs.push({ role: 'model', text: reply, time: Date.now() });
+      const msgs = serializeMessages(conversationHistory, message, reply);
 
       const sessionDoc = new ChatSession({
         user: {
@@ -166,12 +239,7 @@ const chatMessage = async (req, res) => {
       try {
         const { message, conversationHistory = [], userContext = {} } = req.body;
         const contents = [];
-        for (const turn of conversationHistory) {
-          contents.push({
-            role: turn.role === "user" ? "user" : "model",
-            parts: [{ text: turn.text }],
-          });
-        }
+        contents.push(...sanitizeHistory(conversationHistory));
         let userMessage = message;
         if (userContext.name || userContext.email) {
           userMessage = `[User context: name="${userContext.name || "Guest"}", email="${userContext.email || "N/A"}", loggedIn=${!!userContext.isLoggedIn}]\n\n${message}`;
@@ -196,24 +264,19 @@ const chatMessage = async (req, res) => {
         }
         return res.status(200).json({ reply: retryReply, action: retryAction });
       } catch {
+        const fallback = buildFallbackReply(req.body?.message || "");
         return res.status(200).json({
-          reply: "I'm a bit busy right now! 🕐 Please try again in a few seconds.",
-          action: null,
+          reply: fallback.reply,
+          action: fallback.action,
         });
       }
     }
 
-    // Handle API key errors
-    if (error.message?.includes("API key")) {
-      return res.status(200).json({
-        reply: "I'm having trouble connecting right now. Please try again in a moment. 🔧",
-        action: null,
-      });
-    }
+    const fallback = buildFallbackReply(req.body?.message || "");
 
     return res.status(200).json({
-      reply: "Sorry, I encountered an unexpected error. Please try again. 🔧",
-      action: null,
+      reply: fallback.reply,
+      action: fallback.action,
     });
   }
 };

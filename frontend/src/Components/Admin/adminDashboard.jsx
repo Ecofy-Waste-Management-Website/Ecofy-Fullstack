@@ -186,13 +186,12 @@ const menuItems = [
     subItems: [
       { label: "User Management", key: "USER_MGMT", path: "/admins" },
       { label: "Monitor Requests", key: "SERVICE_REQ", path: "/" },
-      
+      { label: "Service Management", key: "SERVICE_MGMT", path: "/" },
     ] 
   },
   { label: "Content/Blog", key: "CONTENT_BLOG", hasSubmenu: false },
   { label: "Inquiry", key: "INQUIRY", hasSubmenu: false },
   { label: "Chatbot Management", key: "CHATBOT_MGMT", hasSubmenu: false },
-  { label: "Service Management", key: "SERVICE_MGMT", hasSubmenu: false }
 ];
 // ─── SERVICE MANAGEMENT COMPONENT ─────────────────────────────────────────
 

@@ -14,6 +14,7 @@ import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
+import RequestPickupModal from './Components/Screens/RequestPickupModal';
 import ContactUs from './Components/Main/Contact/Contact';
 import ProfileSettings from "./Components/Screens/ProfileSettings";
 import About from './Components/Main/About/About';
@@ -160,6 +161,12 @@ export default function App() {
 
     {/* Global AI Chatbot Widget (hidden on admin/staff dashboards) */}
     {!hideChatbot && <ChatbotWidget onOpenBooking={() => setChatbotBookingOpen(true)} />}
+
+    <RequestPickupModal
+      isOpen={chatbotBookingOpen}
+      onClose={() => setChatbotBookingOpen(false)}
+      onSuccess={() => setChatbotBookingOpen(false)}
+    />
     </>
   );
 }
