@@ -2,7 +2,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 /**
  * Creates a new waste-collection pickup request.
- * @param {Object} bookingData - { customer_name, customer_email, customer_phone, service_type, waste_category, location, scheduled_date, notes }
+ * @param {Object} bookingData - { customer_name, customer_email, service_type, waste_category, location, scheduled_date, notes }
  * @returns {Promise<Object>} The saved booking object
  */
 export const createPickupRequest = async (bookingData) => {

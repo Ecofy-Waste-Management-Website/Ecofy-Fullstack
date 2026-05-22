@@ -50,6 +50,10 @@ export default function DashboardRouter() {
     );
   }
 
+  if (role === 'Admin') {
+    return <AdminDashboard />;
+  }
+
   return (
     <div className="min-h-screen bg-green-50">
       <Navbar />

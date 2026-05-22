@@ -134,7 +134,6 @@ export default function ChatbotWidget({ onOpenBooking }) {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                clerkId: user?.id || "",
                 userName:
                   `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
                   "Chatbot User",
