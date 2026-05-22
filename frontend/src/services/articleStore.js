@@ -1,123 +1,133 @@
 const STORAGE_KEY = "ecofy_articles";
 
-const defaultArticles = [
-  {
-    id: 1,
-    title: "5 Tips for Reducing Home Plastic",
-    category: "Recycling Tips",
-    author: "M.N. Mohamed",
-    comments: 12,
-    status: "Published",
-    thumbnail: "bottle",
-    excerpt: "Small changes at home can reduce daily plastic waste and make recycling easier.",
-    createdAt: "2026-04-10T08:00:00.000Z",
-    publishedAt: "2026-04-10T08:00:00.000Z",
-  },
-  {
-    id: 2,
-    title: "Upcoming Beach Cleanup Drive",
-    category: "Community Events",
-    author: "Guest Contributor",
-    comments: 0,
-    status: "Draft",
-    thumbnail: "cleanup",
-    excerpt: "A community-led cleanup event for coastal neighborhoods and volunteers.",
-    createdAt: "2026-04-15T09:00:00.000Z",
-    publishedAt: null,
-  },
-  {
-    id: 3,
-    title: "Composting 101: A Beginner's Guide",
-    category: "Eco-Guides",
-    author: "M.N. Mohamed",
-    comments: 5,
-    status: "Published",
-    thumbnail: "compost",
-    excerpt: "Learn how to start a simple composting routine at home in a few steps.",
-    createdAt: "2026-04-18T10:30:00.000Z",
-    publishedAt: "2026-04-18T10:30:00.000Z",
-  },
-];
+
+  // READ ARTICLES (SAFE)
 
 const readStoredArticles = () => {
-  if (typeof window === "undefined") {
-    return defaultArticles;
-  }
+  if (typeof window === "undefined") return [];
 
   const storedValue = window.localStorage.getItem(STORAGE_KEY);
+
   if (!storedValue) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultArticles));
-    return defaultArticles;
+    const empty = [];
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(empty));
+    return empty;
   }
 
   try {
     const parsedValue = JSON.parse(storedValue);
-    return Array.isArray(parsedValue) ? parsedValue : defaultArticles;
+    return Array.isArray(parsedValue) ? parsedValue : [];
   } catch {
-    return defaultArticles;
+    return [];
   }
 };
 
+  // WRITE ARTICLES (SYNC + EVENT)
+
 const writeStoredArticles = (articles) => {
-  if (typeof window === "undefined") {
-    return articles;
-  }
+  if (typeof window === "undefined") return articles;
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(articles));
+
+  // notify all pages (admin + blog page sync)
   window.dispatchEvent(new Event("ecofy-articles-updated"));
+
   return articles;
 };
 
+   //GET ALL ARTICLES
 export const getArticles = () => readStoredArticles();
+
+   //GET ONLY PUBLISHED ARTICLES
 
 export const getPublishedArticles = () =>
   readStoredArticles()
-    .filter((article) => article.status === "Published")
-    .sort((left, right) => {
-      const leftDate = new Date(left.publishedAt || left.createdAt || 0).getTime();
-      const rightDate = new Date(right.publishedAt || right.createdAt || 0).getTime();
-      return rightDate - leftDate;
+    .filter((article) =>
+      String(article.status || "")
+        .trim()
+        .toLowerCase() === "published"
+    )
+    .sort((a, b) => {
+      const dateA = new Date(a.publishedAt || a.createdAt || 0).getTime();
+      const dateB = new Date(b.publishedAt || b.createdAt || 0).getTime();
+      return dateB - dateA;
     });
 
+
+   //UPDATE ARTICLE
 export const updateArticle = (articleId, changes) => {
-  const nextArticles = readStoredArticles().map((article) =>
+  const updated = readStoredArticles().map((article) =>
     article.id === articleId ? { ...article, ...changes } : article
   );
 
-  return writeStoredArticles(nextArticles);
+  return writeStoredArticles(updated);
 };
+
+
+  // DELETE ARTICLE
 
 export const deleteArticle = (articleId) => {
-  const nextArticles = readStoredArticles().filter((article) => article.id !== articleId);
-  return writeStoredArticles(nextArticles);
+  const updated = readStoredArticles().filter(
+    (article) => article.id !== articleId
+  );
+
+  return writeStoredArticles(updated);
 };
+
+
+   //CREATE ARTICLE
 
 export const createArticle = (article) => {
-  const currentArticles = readStoredArticles();
-  const nextId = currentArticles.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1;
-  const nextArticles = [
-    {
-      id: nextId,
-      createdAt: new Date().toISOString(),
-      publishedAt: article.status === "Published" ? new Date().toISOString() : null,
-      comments: 0,
-      thumbnail: "bottle",
-      excerpt: "",
-      ...article,
-    },
-    ...currentArticles,
-  ];
+  const current = readStoredArticles();
 
-  return writeStoredArticles(nextArticles);
+  const nextId =
+    current.length > 0
+      ? Math.max(...current.map((a) => a.id)) + 1
+      : 1;
+
+  const newArticle = {
+    id: nextId,
+    title: article.title,
+    category: article.category || "General",
+    author: article.author || "Admin",
+    comments: 0,
+    status:
+      String(article.status || "Draft")
+        .trim()
+        .toLowerCase() === "published"
+        ? "Published"
+        : "Draft",
+    thumbnail: article.thumbnail || "bottle",
+    excerpt: article.excerpt || "",
+    content: article.content || "",
+    createdAt: new Date().toISOString(),
+    publishedAt:
+      String(article.status || "")
+        .trim()
+        .toLowerCase() === "published"
+        ? new Date().toISOString()
+        : null,
+  };
+
+  const updated = [newArticle, ...current];
+
+  return writeStoredArticles(updated);
 };
 
+
+   //SET STATUS (PUBLISH / DRAFT)
 export const setArticleStatus = (articleId, status) => {
-  const publishedAt = status === "Published" ? new Date().toISOString() : null;
+  const normalizedStatus =
+    String(status || "Draft").trim().toLowerCase() === "published"
+      ? "Published"
+      : "Draft";
+
+  const publishedAt =
+    normalizedStatus === "Published" ? new Date().toISOString() : null;
 
   return updateArticle(articleId, {
-    status,
+    status: normalizedStatus,
     publishedAt,
   });
 };
-
 export const articleStoreKey = STORAGE_KEY;

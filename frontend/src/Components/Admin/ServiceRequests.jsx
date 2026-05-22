@@ -40,7 +40,7 @@ const Icons = {
 };
 
 // ── Config ─────────────────────────────────────────────────────────────────────
-const API_ORIGIN = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API_ORIGIN = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const API_BASE = `${API_ORIGIN}/service-monitoring`;
 const WS_URL = API_ORIGIN.replace(/^http/, "ws");
 
@@ -67,7 +67,7 @@ function statusTailwind(s) {
     Pending:      "bg-yellow-100 text-yellow-800",
     Assigned:     "bg-blue-100 text-blue-800",
     "In Progress":"bg-purple-100 text-purple-800",
-    Completed:    "bg-green-100 text-[#397239]",
+    Completed:    "bg-green-100 text-green-800",
     Delayed:      "bg-red-100 text-red-800",
   }[s] || "bg-gray-100 text-gray-800";
 }
@@ -83,24 +83,23 @@ function typeColor(t) {
 }
 
 // ── KPI Cards ──────────────────────────────────────────────────────────────────
-// ── KPI Cards ──────────────────────────────────────────────────────────────────
 function KPIGrid({ stats }) {
   const cards = [
-    { label: "Total Requests", value: stats.total,      colorText: "text-blue-400",   icon: <Icons.Total />, sub: "All requests" },
-    { label: "Pending",        value: stats.pending,    colorText: "text-amber-400",  icon: <Icons.Pending />, sub: "Awaiting" },
-    { label: "In Progress",    value: stats.inProgress, colorText: "text-purple-400", icon: <Icons.InProgress />, sub: "Active" },
-    { label: "Completed",      value: stats.completed,  colorText: "text-[#66c45e]",  icon: <Icons.Completed />, sub: "Closed" },
-    { label: "Delayed",        value: stats.delayed,    colorText: "text-red-400",    icon: <Icons.Delayed />, sub: "Critical" },
+    { label: "Total Requests", value: stats.total,      colorText: "text-blue-600",   colorBg: "bg-blue-50",   icon: <Icons.Total />, sub: "All service requests" },
+    { label: "Pending",        value: stats.pending,    colorText: "text-yellow-600", colorBg: "bg-yellow-50", icon: <Icons.Pending />, sub: "Awaiting assignment" },
+    { label: "In Progress",    value: stats.inProgress, colorText: "text-purple-600", colorBg: "bg-purple-50", icon: <Icons.InProgress />, sub: "Currently active" },
+    { label: "Completed",      value: stats.completed,  colorText: "text-green-600",  colorBg: "bg-green-50",  icon: <Icons.Completed />, sub: "Successfully closed" },
+    { label: "Delayed",        value: stats.delayed,    colorText: "text-red-600",    colorBg: "bg-red-50",    icon: <Icons.Delayed />, sub: "Requires attention" },
   ];
 
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 mb-6">
       {cards.map(c => (
-        <article key={c.label} className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-5 rounded-2xl shadow-sm border border-[#397234]/20">
-          <div className={`mb-3 w-max rounded-lg bg-[#397234]/10 p-2 ${c.colorText.replace('text-blue-400', 'text-blue-600').replace('text-amber-400', 'text-amber-600').replace('text-[#66c45e]', 'text-[#397239]').replace('text-red-400', 'text-red-600')}`}>{c.icon}</div>
-          <p className="text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest">{c.label}</p>
-          <p className={`text-3xl font-extrabold mt-1 ${c.colorText.replace('text-blue-400', 'text-blue-600').replace('text-amber-400', 'text-amber-600').replace('text-[#66c45e]', 'text-[#397239]').replace('text-red-400', 'text-red-600')}`}>{c.value ?? "—"}</p>
-          <p className="text-[9px] text-[#397239]/40 uppercase font-bold mt-1">{c.sub}</p>
+        <article key={c.label} className="flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className={`mb-2 w-max rounded-lg ${c.colorBg} p-2 ${c.colorText}`}>{c.icon}</div>
+          <p className="text-sm font-medium text-gray-500">{c.label}</p>
+          <p className={`text-2xl font-bold ${c.colorText}`}>{c.value ?? "—"}</p>
+          <p className="mt-1 text-xs text-gray-400">{c.sub}</p>
         </article>
       ))}
     </section>
@@ -131,86 +130,80 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-4xl overflow-hidden rounded-3xl bg-white border border-[#112A0F]/20 shadow-2xl" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-4xl overflow-hidden rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
         
-        <div className="flex items-center justify-between border-b border-[#397234]/10 bg-[#D6E9CA]/50 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-6 py-4">
           <div className="flex items-center gap-3">
-            <span className="text-lg font-black text-[#244c21] tracking-tight">{req.requestId}</span>
-            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${statusTailwind(req.status)}`}>
+            <span className="text-lg font-bold text-[#0f1d33]">{req.requestId}</span>
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusTailwind(req.status)}`}>
               {req.status}
             </span>
           </div>
-          <button className="text-[#397239]/40 hover:text-[#397239]" onClick={onClose}><Icons.Close /></button>
+          <button className="text-gray-400 hover:text-gray-600" onClick={onClose}><Icons.Close /></button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
           {/* Left column */}
           <div className="flex flex-col gap-6">
-            <div className="bg-[#D6E9CA]/50 p-5 rounded-2xl border border-[#397234]/5">
-              <h4 className="mb-4 font-bold text-[#397239]/60 text-xs uppercase tracking-widest border-b border-[#397234]/10 pb-2">Customer Details</h4>
-              <div className="space-y-2 text-sm text-[#244c21]">
-                <p><strong className="text-[#397239] font-bold">Name:</strong> {req.customer}</p>
-                <p><strong className="text-[#397239] font-bold">Email:</strong> {req.email}</p>
-                <p><strong className="text-[#397239] font-bold">Location:</strong> {req.location}</p>
+            <div>
+              <h4 className="mb-2 font-semibold text-gray-800 border-b pb-1">Customer Details</h4>
+              <div className="space-y-1 text-sm text-gray-600">
+                <p><strong className="text-gray-800">Name:</strong> {req.customer}</p>
+                <p><strong className="text-gray-800">Email:</strong> {req.email}</p>
+                <p><strong className="text-gray-800">Location:</strong> {req.location}</p>
               </div>
             </div>
 
-            <div className="bg-[#112A0F]/5 p-5 rounded-2xl border border-[#397239]/5">
-              <h4 className="mb-4 font-bold text-[#397239]/60 text-xs uppercase tracking-widest border-b border-[#112A0F]/10 pb-2">Request Info</h4>
-              <div className="space-y-3 text-sm text-[#244c21]">
+            <div>
+              <h4 className="mb-2 font-semibold text-gray-800 border-b pb-1">Request Info</h4>
+              <div className="space-y-2 text-sm text-gray-600">
                 <p className="flex items-center">
-                  <strong className="text-[#397239] font-bold mr-2">Service Type:</strong>
-                  <span className="rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest" style={{ background: typeColor(req.type) + "20", color: typeColor(req.type), border: `1px solid ${typeColor(req.type)}30` }}>
+                  <strong className="text-gray-800 mr-2">Service Type:</strong>
+                  <span className="rounded-md px-2 py-0.5 text-xs font-bold" style={{ background: typeColor(req.type) + "1a", color: typeColor(req.type) }}>
                     {req.type}
                   </span>
                 </p>
-                <p><strong className="text-[#397239] font-bold">Waste Category:</strong> {req.wasteCategory}</p>
-                <p><strong className="text-[#397239] font-bold">Scheduled:</strong> {new Date(req.scheduledDate).toLocaleDateString()}</p>
-                <p><strong className="text-[#397239] font-bold">Submitted:</strong> {new Date(req.submittedAt).toLocaleString()}</p>
-                {req.notes && <p><strong className="text-[#397239] font-bold">Notes:</strong> {req.notes}</p>}
+                <p><strong className="text-gray-800">Waste Category:</strong> {req.wasteCategory}</p>
+                <p><strong className="text-gray-800">Scheduled:</strong> {new Date(req.scheduledDate).toLocaleDateString()}</p>
+                <p><strong className="text-gray-800">Submitted:</strong> {new Date(req.submittedAt).toLocaleString()}</p>
+                {req.notes && <p><strong className="text-gray-800">Notes:</strong> {req.notes}</p>}
               </div>
             </div>
 
-            <div className="rounded-2xl bg-[#D6E9CA]/50 p-6 border border-[#397234]/10 shadow-inner">
-              <h4 className="mb-4 font-black text-[#244c21] text-sm uppercase tracking-widest">Update Management</h4>
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1.5 block text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Assign Staff</label>
-                  <select className="w-full rounded-xl bg-white border border-[#112A0F]/10 px-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all" value={selStaff} onChange={e => setSelStaff(e.target.value)}>
-                    <option value="" className="bg-white">— Unassigned —</option>
-                    {STAFF_LIST.map(s => <option key={s} value={s} className="bg-white">{s}</option>)}
-                  </select>
-                </div>
+            <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
+              <h4 className="mb-3 font-semibold text-gray-800">Update Request</h4>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Assign Staff</label>
+              <select className="mb-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={selStaff} onChange={e => setSelStaff(e.target.value)}>
+                <option value="">— Unassigned —</option>
+                {STAFF_LIST.map(s => <option key={s}>{s}</option>)}
+              </select>
 
-                <div>
-                  <label className="mb-1.5 block text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Status</label>
-                  <select className="w-full rounded-xl bg-white border border-[#112A0F]/10 px-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all" value={selStatus} onChange={e => setSelStatus(e.target.value)}>
-                    {STATUS_OPTIONS.slice(1).map(s => <option key={s} value={s} className="bg-white">{s}</option>)}
-                  </select>
-                </div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Status</label>
+              <select className="mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={selStatus} onChange={e => setSelStatus(e.target.value)}>
+                {STATUS_OPTIONS.slice(1).map(s => <option key={s}>{s}</option>)}
+              </select>
 
-                <button className="w-full rounded-xl bg-[#397239] py-3 font-extrabold text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 shadow-lg shadow-[#397239]/10" onClick={handleSave} disabled={saving}>
-                  {saving ? "Saving…" : "Confirm Changes"}
-                </button>
-              </div>
+              <button className="w-full rounded-md bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50" onClick={handleSave} disabled={saving}>
+                {saving ? "Saving…" : "Save Changes"}
+              </button>
             </div>
           </div>
 
           {/* Right column: Timeline */}
-          <div className="bg-[#D6E9CA]/50 p-6 rounded-2xl border border-[#397234]/5 flex flex-col">
-            <h4 className="mb-6 font-bold text-[#397239]/60 text-xs uppercase tracking-widest border-b border-[#397234]/10 pb-2">Status Timeline</h4>
-            <div className="relative pl-6 border-l border-[#112A0F]/10 ml-2 flex-1">
+          <div>
+            <h4 className="mb-4 font-semibold text-gray-800 border-b pb-1">Status Timeline</h4>
+            <div className="relative pl-4 border-l-2 border-gray-100 ml-2">
               {(req.timeline || []).length === 0 && (
-                <p className="text-sm text-[#397239]/30 italic">No timeline events yet.</p>
+                <p className="text-sm text-gray-500">No timeline events yet.</p>
               )}
               {(req.timeline || []).map((ev, i) => {
                 const isLast = i === req.timeline.length - 1;
                 return (
-                  <div key={i} className="mb-8 relative">
-                    <div className={`absolute -left-[30px] top-1.5 h-4 w-4 rounded-full border-2 border-white ${isLast ? "bg-[#397239] shadow-[0_0_12px_rgba(57,114,57,0.4)]" : "bg-[#397239]/20"}`} />
-                    <p className="text-sm font-black text-[#244c21]">{ev.event}</p>
-                    <p className="text-[10px] font-bold text-[#397239]/60 mt-1 uppercase tracking-tighter">
+                  <div key={i} className="mb-6 relative">
+                    <div className={`absolute -left-[23px] top-1 h-3 w-3 rounded-full border-2 border-white ${isLast ? "bg-blue-500 shadow-[0_0_0_2px_rgba(59,130,246,0.3)]" : "bg-gray-300"}`} />
+                    <p className="text-sm font-medium text-gray-800">{ev.event}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
                       {timeAgo(ev.time)} · {new Date(ev.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
@@ -316,17 +309,17 @@ export default function ServiceRequests() {
   const selReq = selected ? requests.find(r => r.id === selected) : null;
 
   return (
-    <div className="w-full">
+    <div className="w-full text-[#0f1d33]">
 
       {/* Page header */}
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <p className="text-sm text-[#397239]/80 m-0 font-bold">Monitor, filter and manage all active waste pickup requests</p>
-        <div className="flex items-center gap-2 rounded-full border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#397239] backdrop-blur-md">
+        <p className="text-sm text-gray-500 m-0">Monitor, filter and manage all active waste pickup requests</p>
+        <div className="flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-700">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#397239] opacity-75"></span>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#397239]"></span>
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
           </span>
-          Live Updates Active
+          Live Updates
         </div>
       </div>
 
@@ -334,96 +327,94 @@ export default function ServiceRequests() {
       <KPIGrid stats={stats} />
 
       {/* Filter bar */}
-      <div className="mb-6 rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-[40px] p-5 shadow-sm">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="relative flex-1 min-w-[240px]">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#397239]/60">
+      <div className="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px]">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
               <Icons.Search />
             </span>
             <input
-              className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 pl-11 pr-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] focus:bg-white transition-all placeholder:text-[#397239]/60"
-              placeholder="Search customer, location…"
+              className="w-full rounded-lg border border-gray-300 bg-gray-50 pl-10 pr-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+              placeholder="Search by customer, location…"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex gap-3 flex-wrap">
-            <select className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all cursor-pointer font-bold" value={filters.status} onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}>
-              {STATUS_OPTIONS.map(o => <option key={o} value={o} className="bg-white">{o}</option>)}
-            </select>
-            <select className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all cursor-pointer font-bold" value={filters.type} onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}>
-              {TYPE_OPTIONS.map(o => <option key={o} value={o} className="bg-white">{o}</option>)}
-            </select>
-            <select className="rounded-xl border border-[#397234]/10 bg-white/40 px-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all cursor-pointer font-bold" value={filters.location} onChange={e => setFilters(f => ({ ...f, location: e.target.value }))}>
-              {LOCATION_OPTIONS.map(o => <option key={o} value={o} className="bg-white">{o}</option>)}
-            </select>
-          </div>
-          <span className="ml-auto whitespace-nowrap rounded-lg bg-[#397234]/10 px-3 py-1.5 text-[10px] font-bold text-[#397239] uppercase tracking-widest border border-[#397234]/10">
-            {requests.length} results
+          <select className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white" value={filters.status} onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}>
+            {STATUS_OPTIONS.map(o => <option key={o}>{o}</option>)}
+          </select>
+          <select className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white" value={filters.type} onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}>
+            {TYPE_OPTIONS.map(o => <option key={o}>{o}</option>)}
+          </select>
+          <select className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white" value={filters.location} onChange={e => setFilters(f => ({ ...f, location: e.target.value }))}>
+            {LOCATION_OPTIONS.map(o => <option key={o}>{o}</option>)}
+          </select>
+          <span className="ml-auto whitespace-nowrap rounded-md bg-gray-100 px-2.5 py-1 text-sm font-semibold text-gray-600">
+            {requests.length} requests
           </span>
         </div>
       </div>
 
       {/* Requests table */}
-      <div className="overflow-hidden rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-[40px] shadow-sm">
-        <div className="flex items-center justify-between border-b border-[#397234]/10 bg-[#D6E9CA]/50 px-8 py-5">
-          <h3 className="m-0 text-lg font-black text-[#244c21]">Active Service Requests</h3>
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-6 py-4">
+          <h3 className="m-0 text-lg font-bold text-gray-800">Active Service Requests</h3>
         </div>
 
         {/* Loading / error states */}
-        {loading && <p className="p-12 text-center text-white/40 font-bold uppercase tracking-widest text-xs animate-pulse">Loading requests…</p>}
-        {error && <p className="p-12 text-center text-red-400 font-bold">{error}</p>}
+        {loading && <p className="p-8 text-center text-gray-500">Loading requests…</p>}
+        {error && <p className="p-8 text-center text-red-500">{error}</p>}
 
         {!loading && !error && (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-[#244c21]">
-              <thead className="bg-[#397234]/10 border-b border-[#397234]/10 text-[#397239] uppercase tracking-widest text-[10px] font-bold">
+            <table className="w-full text-left text-sm text-gray-700">
+              <thead className="bg-white border-b border-gray-200 text-gray-600">
                 <tr>
-                  <th className="px-8 py-4">Request ID</th>
-                  <th className="px-8 py-4">Customer</th>
-                  <th className="px-8 py-4">Location</th>
-                  <th className="px-8 py-4">Type</th>
-                  <th className="px-8 py-4">Status</th>
-                  <th className="px-8 py-4">Staff</th>
-                  <th className="px-8 py-4">Time</th>
-                  <th className="px-8 py-4 text-right">Action</th>
+                  <th className="px-6 py-3 font-semibold">Request ID</th>
+                  <th className="px-6 py-3 font-semibold">Customer</th>
+                  <th className="px-6 py-3 font-semibold">Location</th>
+                  <th className="px-6 py-3 font-semibold">Service Type</th>
+                  <th className="px-6 py-3 font-semibold">Status</th>
+                  <th className="px-6 py-3 font-semibold">Assigned Staff</th>
+                  <th className="px-6 py-3 font-semibold">Submitted</th>
+                  <th className="px-6 py-3 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-gray-100">
                 {requests.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center text-white/30 font-medium italic">No requests match your current filters.</td>
+                    <td colSpan={8} className="py-10 text-center text-gray-500">No requests match the selected filters.</td>
                   </tr>
                 )}
                 {requests.map(r => (
-                  <tr key={r.id} className="transition-colors hover:bg-[#112A0F]/5">
-                    <td className="px-8 py-5 font-black text-[#244c21]">{r.requestId}</td>
-                    <td className="px-8 py-5 font-bold text-[#244c21]">{r.customer}</td>
-                    <td className="px-8 py-5 text-[#397239]/80 font-medium">{r.location}</td>
-                    <td className="px-8 py-5">
-                      <span className="rounded-md px-2 py-1 text-[10px] font-extrabold uppercase tracking-widest" style={{ background: typeColor(r.type) + "20", color: typeColor(r.type), border: `1px solid ${typeColor(r.type)}40` }}>
+                  <tr key={r.id} className="transition-colors hover:bg-gray-50/50">
+                    <td className="px-6 py-4 font-bold text-gray-900">{r.requestId}</td>
+                    <td className="px-6 py-4">{r.customer}</td>
+                    <td className="px-6 py-4">{r.location}</td>
+                    <td className="px-6 py-4">
+                      <span className="rounded-md px-2 py-1 text-xs font-bold" style={{ background: typeColor(r.type) + "1a", color: typeColor(r.type) }}>
                         {r.type}
                       </span>
                     </td>
-                    <td className="px-8 py-5">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest ${statusTailwind(r.status)}`}>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusTailwind(r.status)}`}>
                         {r.status}
                       </span>
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-6 py-4">
                       {r.assignedStaff
-                        ? <span className="font-bold text-[#397239]">{r.assignedStaff}</span>
-                        : <span className="text-[#397239]/20 italic font-medium">Unassigned</span>}
+                        ? <span className="font-medium text-gray-800">{r.assignedStaff}</span>
+                        : <span className="text-gray-400 italic">Unassigned</span>}
                     </td>
-                    <td className="px-8 py-5 text-[10px] font-bold text-[#397239]/60 uppercase tracking-tighter">
+                    <td className="px-6 py-4 text-xs text-gray-500">
                       {timeAgo(r.submittedAt)}
                     </td>
-                    <td className="px-8 py-5 text-right">
+                    <td className="px-6 py-4 text-right">
                       <button 
-                        className="rounded-xl border border-[#112A0F]/20 bg-[#397239] px-4 py-2 text-[10px] font-bold text-white uppercase tracking-widest transition hover:bg-[#244c21] shadow-md active:scale-95" 
+                        className="rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:bg-blue-100" 
                         onClick={() => setSelected(r.id)}
                       >
-                        Details
+                        View Details
                       </button>
                     </td>
                   </tr>

@@ -44,6 +44,33 @@ const userSchema = new Schema(
             enum:['Activate','Suspended','Banned'],
             default:'Activate',
             index: true, 
+        },
+
+        availabilityStatus: {
+            type: String,
+            enum: ['Available', 'Busy', 'Unavailable'],
+            default: 'Available',
+            index: true,
+        },
+
+        bankAccountName: {
+            type: String,
+            default: '',
+        },
+
+        bankName: {
+            type: String,
+            default: '',
+        },
+
+        bankAccountNumber: {
+            type: String,
+            default: '',
+        },
+
+        bankBranch: {
+            type: String,
+            default: '',
         }
 
     },

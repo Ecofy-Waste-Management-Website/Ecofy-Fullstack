@@ -1,4 +1,5 @@
 const User = require("../Model/UserModule");
+const { clerkClient } = require("@clerk/clerk-sdk-node");
 
 const jwt = require("jsonwebtoken");
 
@@ -73,6 +74,63 @@ const getUserByClerkId = async (req, res) => {
   }
 };
 
+const updateStaffSettings = async (req, res) => {
+  try {
+    const { clerkId } = req.params;
+    const {
+      firstName,
+      lastName,
+      availabilityStatus,
+      bankAccountName,
+      bankName,
+      bankAccountNumber,
+      bankBranch,
+    } = req.body;
+
+    const user = await User.findOne({ clerkId });
+    if (!user || user.role !== "Staff") {
+      return res.status(404).json({ message: "Staff member not found" });
+    }
+
+    const nextFirstName = typeof firstName === "string" ? firstName.trim() : user.firstName;
+    const nextLastName = typeof lastName === "string" ? lastName.trim() : user.lastName || "";
+    const nextAvailabilityStatus = typeof availabilityStatus === "string" ? availabilityStatus.trim() : user.availabilityStatus || "Available";
+
+    if (!nextFirstName) {
+      return res.status(400).json({ message: "First name is required" });
+    }
+
+    if (!["Available", "Busy", "Unavailable"].includes(nextAvailabilityStatus)) {
+      return res.status(400).json({ message: "Invalid availability status" });
+    }
+
+    if (user.clerkId) {
+      await clerkClient.users.updateUser(user.clerkId, {
+        firstName: nextFirstName,
+        lastName: nextLastName || undefined,
+      });
+    }
+
+    user.firstName = nextFirstName;
+    user.lastName = nextLastName;
+    user.availabilityStatus = nextAvailabilityStatus;
+    user.bankAccountName = typeof bankAccountName === "string" ? bankAccountName.trim() : user.bankAccountName || "";
+    user.bankName = typeof bankName === "string" ? bankName.trim() : user.bankName || "";
+    user.bankAccountNumber = typeof bankAccountNumber === "string" ? bankAccountNumber.trim() : user.bankAccountNumber || "";
+    user.bankBranch = typeof bankBranch === "string" ? bankBranch.trim() : user.bankBranch || "";
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Staff settings updated successfully",
+      user,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal server Error" });
+  }
+};
+
 // // Update profile (name, email, preferences) 
 // const updateUser = async (req, res) => {
 //   try {
@@ -137,4 +195,4 @@ const getUserByClerkId = async (req, res) => {
 //   }
 // };
 // module.exports = { createUser, login, getAllUsers, getUserByClerkId, updateUser, updateUserStatus, deleteUser };
-module.exports = { createUser, getUserByClerkId };
+module.exports = { createUser, getUserByClerkId, updateStaffSettings };

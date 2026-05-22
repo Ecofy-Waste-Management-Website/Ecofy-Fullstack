@@ -1,5 +1,23 @@
 const User = require("../Model/UserModule");
 const ServiceRequest = require("../Model/ServiceRequestModel");
+const Notification = require("../Model/NotificationModel");
+
+const SERVICE_PRICES = {
+  Household: 1500,
+  Commercial: 3500,
+  Bulk: 2500,
+  Garden: 1200,
+  "Drain Cleaning": 2000,
+};
+
+function broadcast(req, payload) {
+  const wss = req.app.get("wss");
+  if (!wss) return;
+  const msg = JSON.stringify(payload);
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) client.send(msg);
+  });
+}
 
 // ── Get staff profile ────────────────────────────────
 const getStaffProfile = async (req, res) => {
@@ -161,6 +179,27 @@ const updateTaskStatus = async (req, res) => {
       task.timeline.push({
         event: "Task completed by staff",
         time: new Date(),
+      });
+    }
+
+    if (status === "Assigned" && task.clerkId) {
+      const price = SERVICE_PRICES[task.service_type] || task.estimated_amt || 0;
+      const notification = await Notification.create({
+        clerkId: task.clerkId,
+        title: "Pickup Confirmed",
+        message: `Pickup confirmed for Order ${task._id}. PIN: ${task.pickupPin || "N/A"}. Price: LKR ${Number(price).toLocaleString()}. The crew is on the way.`,
+        type: "Info",
+        target: "user",
+        relatedService: task._id,
+      });
+
+      broadcast(req, {
+        type: "NOTIFICATION_CREATED",
+        data: {
+          clerkId: notification.clerkId,
+          target: notification.target,
+          notification: notification.toObject ? notification.toObject() : notification,
+        },
       });
     }
 

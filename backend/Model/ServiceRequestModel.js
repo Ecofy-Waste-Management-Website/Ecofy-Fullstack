@@ -13,6 +13,8 @@ const serviceRequestSchema = new Schema(
   {
     customer_name: { type: String, required: true },
     customer_email: { type: String, required: true },
+    customer_phone: { type: String, default: null },
+    clerkId: { type: String, default: null, index: true },
     service_type: {
       type: String,
       enum: ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"],
@@ -31,6 +33,7 @@ const serviceRequestSchema = new Schema(
       default: "Pending",
     },
     notes: { type: String },
+    pickupPin: { type: String, default: null },
     assignedStaff: { type: String, default: null },
 
     // Full audit trail — auto-seeded with a "Request submitted" entry on create

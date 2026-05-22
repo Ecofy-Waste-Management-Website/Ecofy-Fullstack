@@ -12,6 +12,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
     service_type: "",
     waste_category: "",
     location,
+    customer_phone: user?.phoneNumbers?.[0]?.phoneNumber || "",
     scheduled_date: "",
     notes: "",
   });
@@ -20,6 +21,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
     service_type: "",
     waste_category: "",
     location: "",
+    customer_phone: "",
     scheduled_date: "",
     notes: "",
   });
@@ -63,16 +65,21 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
       setSubmitting(true);
       setStatus({ type: "", text: "" });
 
-      await createPickupRequest({
+      const createdBooking = await createPickupRequest({
         customer_name:
           `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
           user?.username ||
           "Ecofy Customer",
         customer_email: user?.primaryEmailAddress?.emailAddress || "",
+        customer_phone: form.customer_phone || user?.phoneNumbers?.[0]?.phoneNumber || "",
+        clerkId: user?.id,
         ...form,
       });
 
-      setStatus({ type: "success", text: "Pickup request submitted successfully! 🎉" });
+      setStatus({
+        type: "success",
+        text: `Pickup request submitted successfully! 🎉 Your pickup PIN is ${createdBooking?.pickupPin || createdBooking?.pickup_pin || "saved in your booking record"}.`,
+      });
 
       // Auto-close after a brief pause so the user sees the success message
       setTimeout(() => {
@@ -81,6 +88,9 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
         ...form,
         clerkId: user?.id,
         email: user?.primaryEmailAddress?.emailAddress || "",
+          orderId: createdBooking?._id || createdBooking?.id || "",
+        pickupPin: createdBooking?.pickupPin || createdBooking?.pickup_pin || "",
+          price: createdBooking?.price || createdBooking?.estimated_amt || "",
       });
         onClose();
       }, 1500);
@@ -184,6 +194,21 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
                 value={form.location}
                 onChange={handleChange}
                 placeholder="e.g. 123 Main Street, Colombo"
+                className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
+              />
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-800 mb-1">
+                Phone Number <span className="text-gray-500">(optional)</span>
+              </label>
+              <input
+                type="tel"
+                name="customer_phone"
+                value={form.customer_phone}
+                onChange={handleChange}
+                placeholder="e.g. 0771234567"
                 className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
               />
             </div>

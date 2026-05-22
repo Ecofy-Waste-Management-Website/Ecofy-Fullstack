@@ -1,6 +1,7 @@
 const express = require("express");
 const router  = express.Router();
 const ServiceRequest = require("../Model/ServiceRequestModel");
+const User = require("../Model/User");
 
 // ── Broadcast helper ──────────────────────────────────────────────────────────
 // Sends a WebSocket message to every connected dashboard client.
@@ -22,11 +23,13 @@ function toFrontend(doc) {
     requestId:     `#REQ-${doc._id.toString().slice(-5).toUpperCase()}`,
     customer:      doc.customer_name,
     email:         doc.customer_email,
+    customerPhone: doc.customer_phone,
     location:      doc.location,
     type:          doc.service_type,
     wasteCategory: doc.waste_category,
     status:        doc.status,
     assignedStaff: doc.assignedStaff,
+    pickupPin:     doc.pickupPin,
     submittedAt:   doc.createdAt,
     scheduledDate: doc.scheduled_date,
     notes:         doc.notes,
@@ -141,10 +144,32 @@ router.patch("/:id/assign", async (req, res) => {
     const doc = await ServiceRequest.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: "Not found" });
 
+    if (assignedStaff) {
+      const staffUser = await User.findOne({ clerkId: assignedStaff, role: "Staff" }).select("firstName username lastName clerkId role");
+      if (!staffUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid staff name",
+        });
+      }
+      req.staffDisplayName = [staffUser.firstName, staffUser.lastName || staffUser.username]
+        .filter(Boolean)
+        .join(" ");
+
+      const { pickupPin } = req.body;
+      const incomingPin = String(pickupPin || "").trim();
+      if (incomingPin && doc.pickupPin && incomingPin !== String(doc.pickupPin).trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid pickup PIN",
+        });
+      }
+    }
+
     if (doc.assignedStaff !== assignedStaff) {
       doc.assignedStaff = assignedStaff || null;
       const event = assignedStaff
-        ? `Assigned to ${assignedStaff}`
+        ? `Assigned to ${req.staffDisplayName || assignedStaff}`
         : "Staff unassigned";
       doc.timeline.push({ event, time: new Date() });
       await doc.save();
