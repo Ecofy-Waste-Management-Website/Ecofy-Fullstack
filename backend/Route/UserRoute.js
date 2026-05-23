@@ -6,14 +6,19 @@ const { createInquiry } = require("../Controllers/InquiryControl");
 
 const {
   createUser,
+  getAllUsers,
   getUserByClerkId,
+  getUserOrderHistory,
+  updateUserSettings,
 } = require("../Controllers/UserControl");
 
 router.post("/signup", createUser);
 router.post("/inquiries", createInquiry);
 // router.post('/check-admin',checkAdmin);
 // router.post("/login", login);
-// router.get("/", getAllUsers);
+router.get("/admin/all", getAllUsers);
+router.get("/admin/:clerkId/history", getUserOrderHistory);
+router.put("/:clerkId/settings", updateUserSettings);
 router.get("/:clerkId", getUserByClerkId);
 // router.put("/:clerkId", updateUser);
 // router.patch("/:clerkId/status", updateUserStatus);

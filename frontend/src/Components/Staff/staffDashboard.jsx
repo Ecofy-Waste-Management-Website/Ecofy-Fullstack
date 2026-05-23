@@ -97,29 +97,60 @@ export default function StaffDashboard() {
   const [notification, setNotification] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [displayName, setDisplayName] = useState('Staff Member');
+  const [settingsForm, setSettingsForm] = useState({
+    firstName: '',
+    lastName: '',
+    availabilityStatus: 'Available',
+    bankDetails: {
+      bankName: '',
+      accountName: '',
+      accountNumber: '',
+      branch: '',
+    },
+  });
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsMessage, setSettingsMessage] = useState(null);
 
-  const staffName = user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Staff Member";
+  const staffName = displayName;
   const staffInitials = staffName.split(" ").map(n => n[0] || "").join("").toUpperCase();
 
   // Fetch tasks and role
   useEffect(() => {
     if (!isLoaded || !user) return;
 
-    const fetchRole = async () => {
+    const fetchRoleAndProfile = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/users/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           setRole(data.user.role);
+          const profile = data.user;
+          const nextFirstName = profile.firstName || user.firstName || '';
+          const nextLastName = profile.lastName || user.lastName || '';
+          setDisplayName(`${nextFirstName} ${nextLastName}`.trim() || 'Staff Member');
+          setSettingsForm({
+            firstName: nextFirstName,
+            lastName: nextLastName,
+            availabilityStatus: profile.availabilityStatus || 'Available',
+            bankDetails: {
+              bankName: profile.bankDetails?.bankName || '',
+              accountName: profile.bankDetails?.accountName || '',
+              accountNumber: profile.bankDetails?.accountNumber || '',
+              branch: profile.bankDetails?.branch || '',
+            },
+          });
         }
       } catch (error) {
         console.error('Failed to fetch staff role:', error);
       } finally {
         setRoleLoading(false);
+        setSettingsLoading(false);
       }
     };
 
-    fetchRole();
+    fetchRoleAndProfile();
 
     const fetchTasks = async () => {
       try {
@@ -150,6 +181,66 @@ export default function StaffDashboard() {
 
     fetchTasks();
   }, [isLoaded, user]);
+
+  const handleSettingsChange = (field, value) => {
+    setSettingsForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleBankDetailChange = (field, value) => {
+    setSettingsForm((prev) => ({
+      ...prev,
+      bankDetails: {
+        ...prev.bankDetails,
+        [field]: value,
+      },
+    }));
+  };
+
+  const saveSettings = async () => {
+    if (!user?.id || savingSettings) return;
+
+    setSavingSettings(true);
+    setSettingsMessage(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${user.id}/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settingsForm),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update settings');
+      }
+
+      const updatedUser = data.user || {};
+      const nextFirstName = updatedUser.firstName || settingsForm.firstName;
+      const nextLastName = updatedUser.lastName || settingsForm.lastName;
+
+      setDisplayName(`${nextFirstName} ${nextLastName}`.trim() || 'Staff Member');
+      setRole(updatedUser.role || role);
+      setSettingsForm({
+        firstName: nextFirstName,
+        lastName: nextLastName,
+        availabilityStatus: updatedUser.availabilityStatus || settingsForm.availabilityStatus,
+        bankDetails: {
+          bankName: updatedUser.bankDetails?.bankName || settingsForm.bankDetails.bankName,
+          accountName: updatedUser.bankDetails?.accountName || settingsForm.bankDetails.accountName,
+          accountNumber: updatedUser.bankDetails?.accountNumber || settingsForm.bankDetails.accountNumber,
+          branch: updatedUser.bankDetails?.branch || settingsForm.bankDetails.branch,
+        },
+      });
+
+      setSettingsMessage({ type: 'success', text: 'Settings updated successfully.' });
+      showNotification('Settings updated successfully!');
+    } catch (error) {
+      setSettingsMessage({ type: 'error', text: error.message });
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
@@ -268,6 +359,7 @@ export default function StaffDashboard() {
     { label: 'Pending Tasks', key: 'pending', icon: <Icons.PendingTasks />, count: pendingTasks.length },
     { label: 'Active Tasks', key: 'active', icon: <Icons.ActiveTasks />, count: ongoingTasks.length },
     { label: 'Completed Today', key: 'completed', icon: <Icons.CompletedTasks />, count: completedTasks.length },
+    { label: 'Settings', key: 'settings', icon: <Icons.Bell />, count: 0 },
   ];
 
   const getPageTitle = () => menuItems.find(m => m.key === activeTab)?.label || "Staff Dashboard";
@@ -417,6 +509,152 @@ export default function StaffDashboard() {
     </div>
   );
 
+  const SettingsPanel = () => (
+    <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
+      <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-5 shadow-sm">
+        <div className="mb-5">
+          <h3 className="text-xl font-black text-[#244c21]">Settings</h3>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Update your name, availability, and bank details</p>
+        </div>
+
+        {settingsMessage && (
+          <div className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-bold ${settingsMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
+            {settingsMessage.text}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">First Name</span>
+            <input
+              value={settingsForm.firstName}
+              onChange={(e) => handleSettingsChange('firstName', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="First name"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Last Name</span>
+            <input
+              value={settingsForm.lastName}
+              onChange={(e) => handleSettingsChange('lastName', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Last name"
+            />
+          </label>
+        </div>
+
+        <div className="mt-4">
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Availability Status</span>
+            <select
+              value={settingsForm.availabilityStatus}
+              onChange={(e) => handleSettingsChange('availabilityStatus', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+            >
+              <option value="Available">Available</option>
+              <option value="Busy">Busy</option>
+              <option value="Off Duty">Off Duty</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Bank Name</span>
+            <input
+              value={settingsForm.bankDetails.bankName}
+              onChange={(e) => handleBankDetailChange('bankName', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Bank name"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Account Name</span>
+            <input
+              value={settingsForm.bankDetails.accountName}
+              onChange={(e) => handleBankDetailChange('accountName', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Account name"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Account Number</span>
+            <input
+              value={settingsForm.bankDetails.accountNumber}
+              onChange={(e) => handleBankDetailChange('accountNumber', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Account number"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Branch</span>
+            <input
+              value={settingsForm.bankDetails.branch}
+              onChange={(e) => handleBankDetailChange('branch', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Branch"
+            />
+          </label>
+        </div>
+
+        <div className="mt-5 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setSettingsForm((prev) => ({ ...prev }));
+              setSettingsMessage(null);
+            }}
+            className="rounded-2xl border border-[#397234]/20 bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-[#244c21] transition-all hover:bg-[#112A0F]/5"
+          >
+            Clear Message
+          </button>
+          <button
+            type="button"
+            onClick={saveSettings}
+            disabled={savingSettings}
+            className="rounded-2xl bg-[#397239] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {savingSettings ? 'Saving...' : 'Update Settings'}
+          </button>
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/20 p-5 shadow-sm">
+        <h3 className="text-xl font-black text-[#244c21]">Preview</h3>
+        <p className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">How your profile will appear to the team</p>
+
+        <div className="mt-5 rounded-3xl border border-[#397234]/10 bg-white/70 p-5 shadow-inner">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-full bg-[#397239] text-sm font-black text-white shadow-inner">
+              {staffInitials}
+            </div>
+            <div>
+              <p className="text-sm font-black text-[#244c21]">{staffName}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#397239]/40">{settingsForm.availabilityStatus}</p>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-3 text-sm text-[#244c21]">
+            <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#397239]/50">Bank</p>
+              <p className="mt-1 font-bold">{settingsForm.bankDetails.bankName || 'No bank added'}</p>
+            </div>
+            <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#397239]/50">Account</p>
+              <p className="mt-1 font-bold">{settingsForm.bankDetails.accountName || 'No account name added'}</p>
+              <p className="text-xs text-[#397239]/70">{settingsForm.bankDetails.accountNumber || 'No account number added'}</p>
+            </div>
+            <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#397239]/50">Branch</p>
+              <p className="mt-1 font-bold">{settingsForm.bankDetails.branch || 'No branch added'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="h-screen w-screen font-sans text-[#244c21] bg-[#f4f9f4] p-4 lg:p-3 overflow-hidden">
       <div className="flex h-full w-full gap-3">
@@ -494,62 +732,23 @@ export default function StaffDashboard() {
                 </div>
               )}
 
-              {/* Stats Bar (Clickable with Glow Effect) */}
-              <section className="grid grid-cols-3 gap-3 mb-4">
-                <button 
-                  onClick={() => setActiveTab('pending')}
-                  className={`flex flex-col items-center p-4 rounded-2xl border transition-all duration-300 backdrop-blur-md ${
-                    activeTab === 'pending' 
-                      ? 'border-[#397239]/60 bg-[#D6E9CA]/80 shadow-md' 
-                      : 'border-[#397234]/20 bg-[#D6E9CA]/50 hover:bg-[#D6E9CA]/60 hover:shadow-sm'
-                  }`}
-                >
-                  <p className={`text-2xl font-black leading-none ${activeTab === 'pending' ? 'text-[#397239]' : 'text-[#244c21]'}`}>
-                    {pendingTasks.length}
-                  </p>
-                  <p className="text-[10px] font-black uppercase tracking-widest mt-2 text-[#397239]/60">
-                    Pending
-                  </p>
-                </button>
-
-                <button 
-                  onClick={() => setActiveTab('active')}
-                  className={`flex flex-col items-center p-4 rounded-2xl border transition-all duration-300 backdrop-blur-md ${
-                    activeTab === 'active' 
-                      ? 'border-[#397239]/60 bg-[#D6E9CA]/80 shadow-md' 
-                      : 'border-[#397234]/20 bg-[#D6E9CA]/50 hover:bg-[#D6E9CA]/60 hover:shadow-sm'
-                  }`}
-                >
-                  <p className={`text-2xl font-black leading-none ${activeTab === 'active' ? 'text-[#397239]' : 'text-[#244c21]'}`}>
-                    {ongoingTasks.length}
-                  </p>
-                  <p className="text-[10px] font-black uppercase tracking-widest mt-2 text-[#397239]/60">
-                    Active
-                  </p>
-                </button>
-
-                <button 
-                  onClick={() => setActiveTab('completed')}
-                  className={`flex flex-col items-center p-4 rounded-2xl border transition-all duration-300 backdrop-blur-md ${
-                    activeTab === 'completed' 
-                      ? 'border-[#397239]/60 bg-[#D6E9CA]/80 shadow-md' 
-                      : 'border-[#397234]/20 bg-[#D6E9CA]/50 hover:bg-[#D6E9CA]/60 hover:shadow-sm'
-                  }`}
-                >
-                  <p className={`text-2xl font-black leading-none ${activeTab === 'completed' ? 'text-[#397239]' : 'text-[#244c21]'}`}>
-                    {completedTasks.length}
-                  </p>
-                  <p className="text-[10px] font-black uppercase tracking-widest mt-2 text-[#397239]/60">
-                    Completed
-                  </p>
-                </button>
-              </section>
-
               {/* Task Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activeTab === 'pending' && (
                   <div className="col-span-full">
                     <PendingOrdersPanel />
+                  </div>
+                )}
+
+                {activeTab === 'settings' && (
+                  <div className="col-span-full">
+                    {settingsLoading ? (
+                      <div className="rounded-3xl border border-dashed border-[#397239]/20 bg-[#D6E9CA]/20 p-12 text-center text-[#397239]/60 font-black uppercase tracking-widest text-[10px]">
+                        Loading settings...
+                      </div>
+                    ) : (
+                      <SettingsPanel />
+                    )}
                   </div>
                 )}
 
