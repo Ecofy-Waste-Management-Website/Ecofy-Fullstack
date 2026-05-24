@@ -4,6 +4,7 @@ const PaymentHistory = require("../Model/PaymentHistoryModel");
 const ServiceHistory = require("../Model/ServiceHistoryModel");
 const ServiceRequest = require("../Model/ServiceRequestModel");
 const { clerkClient } = require("@clerk/clerk-sdk-node");
+const Notification = require("../Model/NotificationModel");
 
 const jwt = require("jsonwebtoken");
 
@@ -32,6 +33,14 @@ const createUser = async (req, res) => {
     });
 
     await newUser.save();
+
+    await Notification.create({
+      title: "New User Registered",
+      message: `${firstName} ${lastName || ""} (${email}) has just created an account.`,
+      type: "Info",
+      target: "admin",
+    });
+
     res.status(201).json({ message: "New User created Successfully!", user: newUser });
   } catch (err) {
     console.log(err);
