@@ -55,6 +55,13 @@ const createBooking = async (req, res) => {
 
     const savedBooking = await newBooking.save();
 
+    await Notification.create({
+      title: "New Service Request",
+      message: `${customer_name} has submitted a ${service_type} request scheduled for ${new Date(scheduled_date).toLocaleDateString()}.`,
+      type: "Info",
+      target: "admin",
+    });
+
     return res.status(201).json({
       message: "Booking created successfully",
       booking: savedBooking,
