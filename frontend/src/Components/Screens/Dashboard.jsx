@@ -482,7 +482,7 @@ export default function Dashboard() {
 
       <div className="mx-auto max-w-7xl px-4 py-25 sm:px-6 lg:px-8 relative z-10">
       {/* Navbar-style Action Card */}
-      <div className="mx-auto mb-10 w-full rounded-[40px] bg-green-100/30 backdrop-blur-md border border-green-300/50 p-1.5 shadow-sm transition-all duration-500">
+      <div className="mx-auto mb-10 w-full rounded-[40px] bg-green-100/30 border border-green-300/50 p-1.5 shadow-sm transition-all duration-500">
         <div className="flex flex-col items-center justify-between gap-6 px-8 py-8 lg:flex-row lg:gap-4">
           <div className="text-center lg:text-left">
             <h2 className="text-xl font-bold tracking-tight text-[#244c21] sm:text-2xl">What would you like to do today?</h2>

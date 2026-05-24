@@ -101,7 +101,7 @@ export default function NotificationBell({ target = "user" }) {
 
       {/* Dropdown Panel */}
       {open && (
-        <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-[360px] rounded-2xl border border-green-100 bg-white shadow-xl shadow-green-900/10 overflow-hidden">
+        <div className="absolute right-0 top-[calc(100%+10px)] z-[100] w-[360px] rounded-2xl border border-green-100 bg-white shadow-xl shadow-green-900/10 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-green-50">
             <p className="text-sm font-bold text-gray-800 m-0">
