@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Plus, Search, Trash2, FileText, AlertCircle, CheckCircle, Upload } from 'lucide-react';
+import { Button, Badge } from './UIComponents';
 
 import {
   fetchBlogPosts,
@@ -202,33 +204,28 @@ export default function ContentBlogManagement() {
             <h1 className="text-4xl font-bold text-[#244c21]">Blog Management</h1>
             <p className="text-gray-600 mt-1">Create, edit, and manage blog posts</p>
           </div>
-          <button
+          <Button
             type="button"
             onClick={handleNewPost}
-            className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg hover:shadow-xl"
+            variant="primary"
+            className="flex items-center gap-2"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <Plus size={18} />
             New Post
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* ALERTS */}
       {error && (
         <div className="mb-6 p-4 rounded-xl border border-red-300 bg-red-50 text-red-800 flex items-start gap-3">
-          <svg className="h-5 w-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          </svg>
+          <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" color="currentColor" />
           <span>{error}</span>
         </div>
       )}
       {message && (
         <div className="mb-6 p-4 rounded-xl border border-green-300 bg-green-50 text-green-800 flex items-start gap-3">
-          <svg className="h-5 w-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
+          <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" color="currentColor" />
           <span>{message}</span>
         </div>
       )}
@@ -236,9 +233,7 @@ export default function ContentBlogManagement() {
       {/* SEARCH BAR */}
       <div className="mb-8">
         <div className="relative">
-          <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
             placeholder="Search by title or author..."
@@ -291,24 +286,21 @@ export default function ContentBlogManagement() {
                     <h4 className="font-semibold text-gray-900 truncate text-sm">{post.title || "Untitled"}</h4>
                     <p className="text-xs text-gray-500 mt-1">{post.author || "No author"}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-                        post.status === "Published"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}>
+                      <Badge variant={post.status === "Published" ? "active" : "pending"}>
                         {post.status}
-                      </span>
+                      </Badge>
                     </div>
-                    <button
+                    <Button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeletePost(post._id);
                       }}
-                      className="mt-3 text-xs font-semibold text-red-600 hover:text-red-700 transition"
+                      variant="danger"
+                      size="sm"
                     >
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 ))
               )}
@@ -323,9 +315,7 @@ export default function ContentBlogManagement() {
               {/* HEADER */}
               <div className="px-8 py-6 border-b-2 border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50 flex items-center gap-4">
                 <div className="h-12 w-12 flex-shrink-0 rounded-2xl bg-gradient-to-br from-green-100 to-green-50 flex items-center justify-center text-green-600 shadow-sm">
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+                  <FileText size={24} />
                 </div>
                 <h2 className="text-2xl font-bold text-[#244c21]">
                   {editingPostId === NEW_POST_ID ? "Create New Post" : "Edit Post"}
@@ -434,9 +424,7 @@ export default function ContentBlogManagement() {
                     htmlFor="featured-image-upload"
                     className="inline-flex items-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-gray-100 to-gray-50 border-2 border-dashed border-gray-300 hover:border-green-500 cursor-pointer transition-all text-sm font-semibold text-gray-700"
                   >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                    <Upload size={18} />
                     {imageFile ? `Change Image (${imageFile.name})` : "Upload Image"}
                   </label>
                 </div>
@@ -468,35 +456,29 @@ export default function ContentBlogManagement() {
 
               {/* ACTIONS */}
               <div className="flex items-center justify-end gap-3 border-t-2 border-gray-100 p-8 bg-gray-50">
-                <button
+                <Button
                   type="button"
                   disabled={loading}
                   onClick={() => commitPost("Draft")}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  variant="outline"
+                  className="flex items-center gap-2"
                 >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2m0 0v-8m0 8H3m6-8h6m0 0V5m0 8v8" />
-                  </svg>
                   {loading ? "Saving..." : "Save Draft"}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   disabled={loading}
                   onClick={() => commitPost("Published")}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold hover:from-green-700 hover:to-green-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  variant="primary"
+                  className="flex items-center gap-2"
                 >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
                   {loading ? "Publishing..." : "Publish"}
-                </button>
+                </Button>
               </div>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-96 rounded-2xl bg-white border-2 border-dashed border-gray-300">
-              <svg className="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4" />
-              </svg>
+              <FileText className="h-16 w-16 text-gray-400 mb-4" />
               <p className="text-gray-600 text-lg font-semibold">
                 {loading ? "Loading your posts..." : "Create a new post to get started"}
               </p>
@@ -513,9 +495,7 @@ export default function ContentBlogManagement() {
             <div className="px-6 py-6 border-b-2 border-red-100 bg-gradient-to-r from-red-50 to-red-100/50">
               <div className="flex items-start gap-4">
                 <div className="h-12 w-12 flex-shrink-0 rounded-full bg-red-100 flex items-center justify-center">
-                  <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4v2m0 0H8m4 0h4M6 18H4a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2h-2" />
-                  </svg>
+                  <Trash2 className="h-6 w-6 text-red-600" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Delete Post?</h3>
@@ -533,23 +513,24 @@ export default function ContentBlogManagement() {
 
             {/* Actions */}
             <div className="flex items-center gap-3 px-6 py-4 bg-gray-50 border-t-2 border-gray-100">
-              <button
+              <Button
                 type="button"
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 px-4 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition-all"
+                variant="outline"
+                fullWidth
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={confirmDelete}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold hover:from-red-700 hover:to-red-800 transition-all shadow-lg"
+                variant="danger"
+                fullWidth
+                className="flex items-center justify-center gap-2"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
+                <Trash2 size={16} />
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>

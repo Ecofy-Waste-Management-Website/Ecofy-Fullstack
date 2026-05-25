@@ -1,43 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { FileText, Clock, Zap, CheckCircle, AlertTriangle, Search, X } from 'lucide-react';
+import { Button, Badge } from './UIComponents';
 
 // ── Icons ──────────────────────────────────────────────────────────────────
-const Icons = {
-  Total: () => (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-    </svg>
-  ),
-  Pending: () => (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  InProgress: () => (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-    </svg>
-  ),
-  Completed: () => (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-    </svg>
-  ),
-  Delayed: () => (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-    </svg>
-  ),
-  Search: () => (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-  ),
-  Close: () => (
-    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  )
-};
 
 // ── Config ─────────────────────────────────────────────────────────────────────
 const API_ORIGIN = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -86,11 +51,11 @@ function typeColor(t) {
 // ── KPI Cards ──────────────────────────────────────────────────────────────────
 function KPIGrid({ stats }) {
   const cards = [
-    { label: "Total Requests", value: stats.total,      colorText: "text-blue-400",   icon: <Icons.Total />, sub: "All requests" },
-    { label: "Pending",        value: stats.pending,    colorText: "text-amber-400",  icon: <Icons.Pending />, sub: "Awaiting" },
-    { label: "In Progress",    value: stats.inProgress, colorText: "text-purple-400", icon: <Icons.InProgress />, sub: "Active" },
-    { label: "Completed",      value: stats.completed,  colorText: "text-[#66c45e]",  icon: <Icons.Completed />, sub: "Closed" },
-    { label: "Delayed",        value: stats.delayed,    colorText: "text-red-400",    icon: <Icons.Delayed />, sub: "Critical" },
+    { label: "Total Requests", value: stats.total,      colorText: "text-blue-400",   icon: <FileText size={20} />, sub: "All requests" },
+    { label: "Pending",        value: stats.pending,    colorText: "text-amber-400",  icon: <Clock size={20} />, sub: "Awaiting" },
+    { label: "In Progress",    value: stats.inProgress, colorText: "text-purple-400", icon: <Zap size={20} />, sub: "Active" },
+    { label: "Completed",      value: stats.completed,  colorText: "text-[#66c45e]",  icon: <CheckCircle size={20} />, sub: "Closed" },
+    { label: "Delayed",        value: stats.delayed,    colorText: "text-red-400",    icon: <AlertTriangle size={20} />, sub: "Critical" },
   ];
 
   return (
@@ -137,11 +102,9 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
         <div className="flex items-center justify-between border-b border-[#397234]/10 bg-[#D6E9CA]/50 px-6 py-4">
           <div className="flex items-center gap-3">
             <span className="text-lg font-black text-[#244c21] tracking-tight">{req.requestId}</span>
-            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${statusTailwind(req.status)}`}>
-              {req.status}
-            </span>
+            <Badge variant="primary">{req.status}</Badge>
           </div>
-          <button className="text-[#397239]/40 hover:text-[#397239]" onClick={onClose}><Icons.Close /></button>
+          <button className="text-[#397239]/40 hover:text-[#397239]" onClick={onClose}><X size={18} /></button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
@@ -190,9 +153,14 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
                   </select>
                 </div>
 
-                <button className="w-full rounded-xl bg-[#397239] py-3 font-extrabold text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 shadow-lg shadow-[#397239]/10" onClick={handleSave} disabled={saving}>
+                <Button
+                  variant="primary"
+                  fullWidth
+                  onClick={handleSave}
+                  disabled={saving}
+                >
                   {saving ? "Saving…" : "Confirm Changes"}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -338,7 +306,7 @@ export default function ServiceRequests() {
         <div className="flex flex-wrap items-center gap-4">
           <div className="relative flex-1 min-w-[240px]">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#397239]/60">
-              <Icons.Search />
+              <Search size={16} />
             </span>
             <input
               className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 pl-11 pr-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] focus:bg-white transition-all placeholder:text-[#397239]/60"
@@ -406,9 +374,7 @@ export default function ServiceRequests() {
                       </span>
                     </td>
                     <td className="px-8 py-5">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest ${statusTailwind(r.status)}`}>
-                        {r.status}
-                      </span>
+                      <Badge variant="primary">{r.status}</Badge>
                     </td>
                     <td className="px-8 py-5">
                       {r.assignedStaff
@@ -436,12 +402,13 @@ export default function ServiceRequests() {
   </div>
 </td>
                     <td className="px-8 py-5 text-right">
-                      <button 
-                        className="rounded-xl border border-[#112A0F]/20 bg-[#397239] px-4 py-2 text-[10px] font-bold text-white uppercase tracking-widest transition hover:bg-[#244c21] shadow-md active:scale-95" 
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => setSelected(r.id)}
                       >
                         Details
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}
