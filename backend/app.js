@@ -29,7 +29,7 @@ const authTestRouter = require("./Route/authTestRoute");
 const stripeRoute = require("./Route/stripe.route");
 const chatbotRouter = require("./Route/chatbotRoute");
 const blogRoute = require("./Route/ContentBlogRoute");
-
+const serviceManagementRouter = require('./Route/serviceManagementRoute');
 const app = express();
 
 
@@ -88,6 +88,8 @@ app.use("/auth-test", authTestRouter);
 app.use("/api/stripe", stripeRoute);
 app.use("/chatbot", chatbotRouter);
 app.use("/blog", blogRoute);
+app.use('/services', serviceManagementRouter);
+
 
 mongoose.connect(process.env.MONGO_URI, {
   family: 4,                        // Force IPv4 – avoids SRV/DNS lookup failures
