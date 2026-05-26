@@ -98,6 +98,8 @@ export default function StaffDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [displayName, setDisplayName] = useState('Staff Member');
+  const [pickupPinValues, setPickupPinValues] = useState({});
+  const [verifiedPickupPins, setVerifiedPickupPins] = useState({});
   const [settingsForm, setSettingsForm] = useState({
     firstName: '',
     lastName: '',
@@ -249,6 +251,10 @@ export default function StaffDashboard() {
 
   const updateTaskStatus = async (taskId, newStatus) => {
     if (updatingTask === taskId) return;
+    if (newStatus === 'Completed' && activeTasks.find((task) => task._id === taskId)?.pickupPin && !verifiedPickupPins[taskId]) {
+      showNotification('Verify the pickup PIN before completing this task.', 'error');
+      return;
+    }
     setUpdatingTask(taskId);
     try {
       const res = await fetch(`${API_BASE_URL}/staff/tasks/${taskId}/status`, {
@@ -323,6 +329,38 @@ export default function StaffDashboard() {
 
   const getStatusColor = (status) => STATUS_STYLES[status] || 'bg-gray-100 text-gray-700';
 
+  const handlePickupPinChange = (taskId, value) => {
+    setPickupPinValues((prev) => ({
+      ...prev,
+      [taskId]: value,
+    }));
+  };
+
+  const verifyPickupPin = (task) => {
+    const enteredPin = String(pickupPinValues[task._id] || '').trim();
+    const expectedPin = String(task.pickupPin || '').trim();
+
+    if (!expectedPin) {
+      showNotification('No pickup PIN is available for this order.', 'error');
+      return;
+    }
+
+    if (enteredPin && enteredPin === expectedPin) {
+      setVerifiedPickupPins((prev) => ({
+        ...prev,
+        [task._id]: true,
+      }));
+      showNotification('Pickup PIN verified successfully!');
+      return;
+    }
+
+    setVerifiedPickupPins((prev) => ({
+      ...prev,
+      [task._id]: false,
+    }));
+    showNotification('Invalid pickup PIN.', 'error');
+  };
+
   const formatDate = (date) => {
     if (!date) return 'N/A';
     return new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -394,6 +432,66 @@ export default function StaffDashboard() {
         </div>
       </div>
 
+      {!isCompleted && (
+      <div className="grid grid-cols-1 gap-3 mb-6 md:grid-cols-3">
+        <div className="rounded-2xl border border-[#397234]/10 bg-white/60 p-3">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-[#397239]/40">Order Price</p>
+          <p className="mt-1 text-sm font-black text-[#244c21]">{formatCurrency(getEstimatedAmount(task))}</p>
+        </div>
+
+        <div className="rounded-2xl border border-[#397234]/10 bg-white/60 p-3">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-[#397239]/40">Customer Phone</p>
+          <p className="mt-1 text-sm font-black text-[#244c21] truncate">{task.customer_phone || 'Phone unavailable'}</p>
+          {task.customer_phone ? (
+            <a
+              href={`tel:${task.customer_phone}`}
+              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#397239] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-[#244c21]"
+            >
+              Call User
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#397239]/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-[#397239]/40"
+            >
+              Call User
+            </button>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-[#397234]/10 bg-white/60 p-3">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-[#397239]/40">Pickup PIN</p>
+          <div className="mt-2 flex gap-2">
+            <input
+              type="text"
+              inputMode="numeric"
+              value={pickupPinValues[task._id] || ''}
+              onChange={(event) => handlePickupPinChange(task._id, event.target.value)}
+              placeholder={task.pickupPin ? 'Enter generated PIN' : 'No PIN available'}
+              className={`min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm font-bold text-[#244c21] outline-none transition-all ${
+                verifiedPickupPins[task._id]
+                  ? 'border-green-400 bg-green-50'
+                  : 'border-[#397234]/15 bg-white/80 focus:border-[#397239]'
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => verifyPickupPin(task)}
+              className="rounded-xl bg-[#244c21] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-[#397239]"
+            >
+              Verify
+            </button>
+          </div>
+          {task.pickupPin && (
+            <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-[#397239]/45">
+              {verifiedPickupPins[task._id] ? 'PIN verified' : 'Enter the order PIN before completing'}
+            </p>
+          )}
+        </div>
+      </div>
+      )}
+
       {!isCompleted && task.notes && (
         <div className="bg-amber-50/30 rounded-2xl p-3 mb-6 border border-amber-100/30">
           <p className="text-[9px] text-amber-600/50 font-bold uppercase tracking-widest flex items-center gap-1.5"><Icons.Notes /> NOTES</p>
@@ -431,7 +529,7 @@ export default function StaffDashboard() {
     return `LKR ${value.toLocaleString()}`;
   };
 
-  const getEstimatedAmount = (order) => SERVICE_PRICES[order.service_type] || order.estimated_amt || 0;
+  const getEstimatedAmount = (order) => order.servicePrice || SERVICE_PRICES[order.service_type] || order.estimated_amt || 0;
 
   const PendingOrdersPanel = () => (
     <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.4fr] gap-4 min-h-[540px]">
@@ -733,7 +831,7 @@ export default function StaffDashboard() {
               )}
 
               {/* Task Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className={`grid grid-cols-1 gap-4 ${activeTab === 'active' || activeTab === 'completed' ? '' : 'md:grid-cols-2'}`}>
                 {activeTab === 'pending' && (
                   <div className="col-span-full">
                     <PendingOrdersPanel />
@@ -759,7 +857,11 @@ export default function StaffDashboard() {
                       <p className="text-[#397239]/60 font-black uppercase tracking-widest text-[10px]">No active tasks in progress.</p>
                     </div>
                   ) : (
-                    ongoingTasks.map((task) => renderTaskCard(task))
+                    ongoingTasks.map((task) => (
+                      <div key={task._id} className="col-span-full">
+                        {renderTaskCard(task)}
+                      </div>
+                    ))
                   )
                 )}
 
@@ -770,7 +872,11 @@ export default function StaffDashboard() {
                       <p className="text-[#397239]/60 font-black uppercase tracking-widest text-[10px]">No tasks completed yet today.</p>
                     </div>
                   ) : (
-                    completedTasks.map((task) => renderTaskCard(task, true))
+                    completedTasks.map((task) => (
+                      <div key={task._id} className="col-span-full">
+                        {renderTaskCard(task, true)}
+                      </div>
+                    ))
                   )
                 )}
               </div>

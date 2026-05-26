@@ -1,5 +1,16 @@
 const ServiceRequest = require("../Model/ServiceRequestModel");
 const Notification = require("../Model/NotificationModel");
+const { randomInt } = require("crypto");
+
+const SERVICE_PRICES = {
+  Household: 150000,
+  Commercial: 350000,
+  Bulk: 250000,
+  Garden: 120000,
+  "Drain Cleaning": 200000,
+};
+
+const generatePickupPin = () => String(randomInt(100000, 1000000));
 
 const STATUS_NOTIFICATIONS = {
   Assigned: {
@@ -34,6 +45,7 @@ const createBooking = async (req, res) => {
     const {
       customer_name,
       customer_email,
+      customer_phone,
       clerkId,
       service_type,
       waste_category,
@@ -42,15 +54,21 @@ const createBooking = async (req, res) => {
       notes,
     } = req.body;
 
+    const servicePrice = SERVICE_PRICES[service_type] || 0;
+    const pickupPin = req.body.pickupPin || generatePickupPin();
+
     const newBooking = new ServiceRequest({
       customer_name,
       customer_email,
+      customer_phone: customer_phone || "",
       clerkId,
       service_type,
       waste_category,
       location,
       scheduled_date,
       notes,
+      servicePrice,
+      pickupPin,
     });
 
     const savedBooking = await newBooking.save();

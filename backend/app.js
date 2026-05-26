@@ -35,6 +35,15 @@ wss.on("connection", (ws) => {
   ws.on("close", () => console.log("📡 Dashboard client disconnected"));
 });
 
+wss.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.warn("WebSocket server could not bind to the requested port because it is already in use.");
+    return;
+  }
+
+  throw err;
+});
+
 // Make wss accessible inside route handlers via req.app.get("wss")
 app.set("wss", wss);
 
@@ -93,7 +102,22 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(()=> console.log("connected to MongoDB"))
 .catch((err)=> console.log(err));
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT , () =>{
-  console.log(`Server is running ! ${PORT}`);
-});
+const BASE_PORT = Number(process.env.PORT) || 5000;
+
+const listenOnPort = (port) => {
+  server.once("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.warn(`Port ${port} is already in use. Retrying on ${port + 1}...`);
+      listenOnPort(port + 1);
+      return;
+    }
+
+    throw err;
+  });
+
+  server.listen(port, () => {
+    console.log(`Server is running ! ${port}`);
+  });
+};
+
+listenOnPort(BASE_PORT);

@@ -1,6 +1,7 @@
 const express = require("express");
 const router  = express.Router();
 const ServiceRequest = require("../Model/ServiceRequestModel");
+const Notification = require("../Model/NotificationModel");
 
 // ── Broadcast helper ──────────────────────────────────────────────────────────
 // Sends a WebSocket message to every connected dashboard client.
@@ -22,9 +23,12 @@ function toFrontend(doc) {
     requestId:     `#REQ-${doc._id.toString().slice(-5).toUpperCase()}`,
     customer:      doc.customer_name,
     email:         doc.customer_email,
+    customer_phone: doc.customer_phone,
     location:      doc.location,
     type:          doc.service_type,
     wasteCategory: doc.waste_category,
+    servicePrice:  doc.servicePrice,
+    pickupPin:     doc.pickupPin,
     status:        doc.status,
     assignedStaff: doc.assignedStaff,
     submittedAt:   doc.createdAt,
@@ -148,6 +152,18 @@ router.patch("/:id/assign", async (req, res) => {
         ? `Assigned to ${assignedStaff}`
         : "Staff unassigned";
       doc.timeline.push({ event, time: new Date() });
+
+      if (assignedStaff && doc.clerkId) {
+        await Notification.create({
+          clerkId: doc.clerkId,
+          title: "Pickup Confirmed",
+          message: "Your pickup order has been confirmed by staff. We are on the way.",
+          type: "Success",
+          target: "user",
+          relatedService: null,
+        });
+      }
+
       await doc.save();
     }
 
