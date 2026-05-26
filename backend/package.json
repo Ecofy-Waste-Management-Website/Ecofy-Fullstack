@@ -13,8 +13,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@clerk/clerk-sdk-node": "^5.1.6",
-    "@clerk/express": "^2.1.0",
+    "@clerk/clerk-sdk-node": "^4.12.12",
+    "@clerk/express": "^2.1.21",
     "@google/generative-ai": "^0.24.1",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.10.0",
