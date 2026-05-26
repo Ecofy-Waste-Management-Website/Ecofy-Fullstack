@@ -20,6 +20,15 @@ const createInquiry = async (req, res) => {
       message,
     });
 
+    await Notification.create({
+      clerkId: "",                          
+      title: "New Inquiry Received",
+      message: `${userName} submitted an inquiry: "${subject || "General Inquiry"}"`,
+      type: "Info",
+      target: "admin",
+      isRead: false,
+    });
+
     return res.status(201).json({
       message: "Inquiry submitted successfully.",
       inquiry,
