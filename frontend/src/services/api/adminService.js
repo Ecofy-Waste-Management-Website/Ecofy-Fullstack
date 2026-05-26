@@ -1,5 +1,24 @@
 // The base URL should ideally come from environment variables.
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+const requestJson = async (path, token, options = {}) => {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Request failed');
+  }
+
+  return data;
+};
 
 /**
  * Creates a new staff member account.
@@ -10,22 +29,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
  */
 export const createStaffAccount = async (staffData, token) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/create-staff`, {
+    return await requestJson('/admin/create-staff', token, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(staffData)
+      body: JSON.stringify(staffData),
     });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to create staff account. Please check your credentials.');
-    }
-    
-    return data;
   } catch (error) {
     throw error;
   }

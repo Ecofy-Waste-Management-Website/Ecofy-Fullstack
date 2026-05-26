@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 
 // Components
@@ -14,6 +14,7 @@ import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
 import Notifications from './Components/Screens/Notifications';
 import StaffDashboard from './Components/Staff/staffDashboard';
+import RequestPickupModal from './Components/Screens/RequestPickupModal';
 import ContactUs from './Components/Main/Contact/Contact';
 import ProfileSettings from "./Components/Screens/ProfileSettings";
 import About from './Components/Main/About/About';
@@ -39,6 +40,10 @@ const PrivateRoute = ({ children }) => (
 
 export default function App() {
   const [chatbotBookingOpen, setChatbotBookingOpen] = useState(false);
+  const location = useLocation();
+  const pathname = location?.pathname || '';
+  // Hide chatbot on admin and staff dashboards
+  const hideChatbot = pathname.startsWith('/admin') || pathname.startsWith('/admin-dashboard') || pathname.startsWith('/staff-dashboard');
 
   return (
     <>
@@ -154,8 +159,14 @@ export default function App() {
 
     </Routes>
 
-    {/* Global AI Chatbot Widget */}
-    <ChatbotWidget onOpenBooking={() => setChatbotBookingOpen(true)} />
+    {/* Global AI Chatbot Widget (hidden on admin/staff dashboards) */}
+    {!hideChatbot && <ChatbotWidget onOpenBooking={() => setChatbotBookingOpen(true)} />}
+
+    <RequestPickupModal
+      isOpen={chatbotBookingOpen}
+      onClose={() => setChatbotBookingOpen(false)}
+      onSuccess={() => setChatbotBookingOpen(false)}
+    />
     </>
   );
 }

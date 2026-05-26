@@ -17,10 +17,13 @@ const inquiryRouter = require("./Route/inquiryRoute");
 const serviceRequestRouter = require("./Route/ServiceRequestRoute");
 const adminRoutes = require("./Route/adminRoutes");
 const slaAnalyticsRouter = require("./Route/slaAnalyticsRoute");
+const analyticsRouter = require("./Route/analyticsRoute");
 const serviceMonitoringRouter = require("./Route/serviceMonitoringRoute"); 
 const authTestRouter = require("./Route/authTestRoute");
 const stripeRoute = require("./Route/stripe.route");
 const chatbotRouter = require("./Route/chatbotRoute");
+const blogRoute = require("./Route/ContentBlogRoute");
+const serviceManagementRouter = require('./Route/serviceManagementRoute');
 const app = express();
 
 
@@ -37,7 +40,10 @@ wss.on("connection", (ws) => {
 app.set("wss", wss);
 
 //Middleware 
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 
 // Register Clerk middleware only when keys are available.
@@ -62,7 +68,6 @@ if (clerkSecretKey) {
 }
 
 app.use("/users",userRouter);
-
 app.use("/service-history", serviceHistoryRouter);
 app.use("/payment-history", paymentHistoryRouter);
 app.use("/notifications", notificationRouter);
@@ -70,11 +75,14 @@ app.use("/inquiries", inquiryRouter);
 app.use("/bookings", serviceRequestRouter);
 app.use("/admin", adminRoutes);
 app.use("/sla-analytics", slaAnalyticsRouter);
+app.use("/analytics", analyticsRouter);
 app.use("/service-monitoring", serviceMonitoringRouter);
 app.use("/staff", staffRouter);
 app.use("/auth-test", authTestRouter);
 app.use("/api/stripe", stripeRoute);
 app.use("/chatbot", chatbotRouter);
+app.use("/blog", blogRoute);
+app.use('/services', serviceManagementRouter);
 
 
 mongoose.connect(process.env.MONGO_URI, {

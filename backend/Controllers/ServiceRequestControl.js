@@ -1,11 +1,40 @@
 const ServiceRequest = require("../Model/ServiceRequestModel");
+const Notification = require("../Model/NotificationModel");
 
+const STATUS_NOTIFICATIONS = {
+  Assigned: {
+    title: "Pickup Assigned",
+    message: "Your pickup request has been assigned to a driver. We'll be with you soon!",
+    type: "Info",
+  },
+  "In Progress": {
+    title: "Pickup In Progress",
+    message: "Your pickup is now in progress! Our team is on the way.",
+    type: "Info",
+  },
+  Completed: {
+    title: "Pickup Completed",
+    message: "Your pickup has been completed successfully. Thank you!",
+    type: "Success",
+  },
+  Delayed: {
+    title: "Pickup Delayed",
+    message: "Your pickup has been delayed. We apologize for the inconvenience.",
+    type: "Warning",
+  },
+  Pending: {
+    title: "Pickup Pending",
+    message: "Your pickup request is back to pending status.",
+    type: "Info",
+  },
+};
 // POST - Create a new waste collection booking
 const createBooking = async (req, res) => {
   try {
     const {
       customer_name,
       customer_email,
+      clerkId,
       service_type,
       waste_category,
       location,
@@ -16,6 +45,7 @@ const createBooking = async (req, res) => {
     const newBooking = new ServiceRequest({
       customer_name,
       customer_email,
+      clerkId,
       service_type,
       waste_category,
       location,
@@ -24,6 +54,13 @@ const createBooking = async (req, res) => {
     });
 
     const savedBooking = await newBooking.save();
+
+    await Notification.create({
+      title: "New Service Request",
+      message: `${customer_name} has submitted a ${service_type} request scheduled for ${new Date(scheduled_date).toLocaleDateString()}.`,
+      type: "Info",
+      target: "admin",
+    });
 
     return res.status(201).json({
       message: "Booking created successfully",
@@ -97,6 +134,17 @@ const updateBookingStatus = async (req, res) => {
 
     if (!updatedBooking) {
       return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (updatedBooking.clerkId && STATUS_NOTIFICATIONS[status]) {
+      const { title, message, type } = STATUS_NOTIFICATIONS[status];
+      await Notification.create({
+        clerkId: updatedBooking.clerkId,
+        title,
+        message,
+        type,
+        target: "user",
+      });
     }
 
     return res.status(200).json({

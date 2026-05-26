@@ -1,8 +1,10 @@
 const Inquiry = require("../Model/InquiryModel");
+const Notification = require("../Model/NotificationModel");
+const User = require("../Model/UserModule");
 
 const createInquiry = async (req, res) => {
   try {
-    const { userName, userEmail, subject, message } = req.body;
+    const { userName, userEmail, clerkId, subject, message } = req.body;
 
     if (!userName || !userEmail || !message) {
       return res.status(400).json({
@@ -13,8 +15,18 @@ const createInquiry = async (req, res) => {
     const inquiry = await Inquiry.create({
       userName,
       userEmail,
+      clerkId: clerkId || "",
       subject: subject || "General Inquiry",
       message,
+    });
+
+    await Notification.create({
+      clerkId: "",                          
+      title: "New Inquiry Received",
+      message: `${userName} submitted an inquiry: "${subject || "General Inquiry"}"`,
+      type: "Info",
+      target: "admin",
+      isRead: false,
     });
 
     return res.status(201).json({
@@ -59,6 +71,30 @@ const replyToInquiry = async (req, res) => {
 
     if (!updatedInquiry) {
       return res.status(404).json({ message: "Inquiry not found." });
+    }
+
+    const notificationMessage = reply.trim();
+    let notificationClerkId = updatedInquiry.clerkId || "";
+
+    if (!notificationClerkId && updatedInquiry.userEmail) {
+      const matchedUser = await User.findOne({ email: updatedInquiry.userEmail.toLowerCase() });
+      notificationClerkId = matchedUser?.clerkId || "";
+    }
+
+    if (notificationClerkId) {
+      await Notification.create({
+        clerkId: notificationClerkId,
+        title: `Reply to ${updatedInquiry.subject || "Inquiry"}`,
+        message: notificationMessage,
+        type: "Info",
+        target: "user",
+        isRead: false,
+      });
+    } else {
+      console.warn("Inquiry reply notification skipped: no clerkId found", {
+        inquiryId: updatedInquiry._id?.toString?.() || id,
+        userEmail: updatedInquiry.userEmail,
+      });
     }
 
     return res.status(200).json({

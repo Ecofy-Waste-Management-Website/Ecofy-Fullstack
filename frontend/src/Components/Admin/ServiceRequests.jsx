@@ -40,7 +40,7 @@ const Icons = {
 };
 
 // ── Config ─────────────────────────────────────────────────────────────────────
-const API_ORIGIN = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API_ORIGIN = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const API_BASE = `${API_ORIGIN}/service-monitoring`;
 const WS_URL = API_ORIGIN.replace(/^http/, "ws");
 
@@ -385,7 +385,7 @@ export default function ServiceRequests() {
                   <th className="px-8 py-4">Type</th>
                   <th className="px-8 py-4">Status</th>
                   <th className="px-8 py-4">Staff</th>
-                  <th className="px-8 py-4">Time</th>
+                  <th className="px-8 py-4">Submitted</th>
                   <th className="px-8 py-4 text-right">Action</th>
                 </tr>
               </thead>
@@ -415,9 +415,26 @@ export default function ServiceRequests() {
                         ? <span className="font-bold text-[#397239]">{r.assignedStaff}</span>
                         : <span className="text-[#397239]/20 italic font-medium">Unassigned</span>}
                     </td>
-                    <td className="px-8 py-5 text-[10px] font-bold text-[#397239]/60 uppercase tracking-tighter">
-                      {timeAgo(r.submittedAt)}
-                    </td>
+                  <td className="px-8 py-5">
+  <div className="flex flex-col">
+    
+    <span className="text-xs font-bold text-[#244c21]">
+      {new Date(r.submittedAt).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })}
+    </span>
+
+    <span className="text-[10px] text-[#397239]/50 font-medium">
+      {new Date(r.submittedAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}
+    </span>
+
+  </div>
+</td>
                     <td className="px-8 py-5 text-right">
                       <button 
                         className="rounded-xl border border-[#112A0F]/20 bg-[#397239] px-4 py-2 text-[10px] font-bold text-white uppercase tracking-widest transition hover:bg-[#244c21] shadow-md active:scale-95" 
