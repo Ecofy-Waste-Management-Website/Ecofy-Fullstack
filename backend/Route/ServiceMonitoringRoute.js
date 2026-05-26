@@ -175,4 +175,41 @@ router.patch("/:id/assign", async (req, res) => {
   }
 });
 
+// ── PATCH /service-monitoring/:id/cancel ─────────────────────────────────────
+// Cancels a staff pickup, returns it to pending, and notifies the customer.
+router.patch("/:id/cancel", async (req, res) => {
+  try {
+    const { clerkId } = req.body;
+
+    const doc = await ServiceRequest.findById(req.params.id);
+    if (!doc) return res.status(404).json({ success: false, message: "Not found" });
+
+    if (clerkId && doc.assignedStaff && doc.assignedStaff !== clerkId) {
+      return res.status(403).json({ success: false, message: "You can only cancel your own assigned pickup" });
+    }
+
+    doc.assignedStaff = null;
+    doc.status = "Pending";
+    doc.timeline.push({ event: "Pickup cancelled by staff and returned to pending orders", time: new Date() });
+    await doc.save();
+
+    if (doc.clerkId) {
+      await Notification.create({
+        clerkId: doc.clerkId,
+        title: "Pickup Cancelled",
+        message: "Your pickup order was cancelled by staff and returned to pending orders.",
+        type: "Warning",
+        target: "user",
+        relatedService: null,
+      });
+    }
+
+    const payload = toFrontend(doc);
+    broadcast(req, { type: "REQUEST_UPDATED", data: payload });
+    res.json({ success: true, data: payload });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;

@@ -78,6 +78,12 @@ const Icons = {
     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
+  ),
+  ExternalLink: () => (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 5h6m0 0v6m0-6L10 14" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 7a2 2 0 012-2h4m-6 8v6a2 2 0 002 2h6" />
+    </svg>
   )
 };
 
@@ -327,6 +333,48 @@ export default function StaffDashboard() {
     }
   };
 
+  const cancelPickup = async (order) => {
+    if (!user?.id || confirmingOrderId === order._id) return;
+
+    const confirmed = window.confirm('Cancel this pickup and return it to pending orders?');
+    if (!confirmed) return;
+
+    setConfirmingOrderId(order._id);
+    try {
+      const cancelRes = await fetch(`${API_BASE_URL}/service-monitoring/${order._id}/cancel`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clerkId: user.id }),
+      });
+
+      const cancelData = await cancelRes.json();
+
+      if (!cancelRes.ok) {
+        throw new Error(cancelData.message || 'Failed to cancel pickup');
+      }
+
+      setActiveTasks((prev) => prev.filter((item) => item._id !== order._id));
+      setPendingOrders((prev) => [{ ...order, status: 'Pending', assignedStaff: null }, ...prev]);
+      setPickupPinValues((prev) => {
+        const next = { ...prev };
+        delete next[order._id];
+        return next;
+      });
+      setVerifiedPickupPins((prev) => {
+        const next = { ...prev };
+        delete next[order._id];
+        return next;
+      });
+      showNotification('Pickup cancelled and returned to pending orders.');
+      setActiveTab('pending');
+    } catch (err) {
+      console.error('Failed to cancel pickup:', err);
+      showNotification(err.message || 'Failed to cancel pickup.', 'error');
+    } finally {
+      setConfirmingOrderId(null);
+    }
+  };
+
   const getStatusColor = (status) => STATUS_STYLES[status] || 'bg-gray-100 text-gray-700';
 
   const handlePickupPinChange = (taskId, value) => {
@@ -415,7 +463,20 @@ export default function StaffDashboard() {
       </div>
 
       <div className="bg-[#D6E9CA]/50 rounded-2xl p-4 mb-4 border border-[#397234]/10 shadow-inner">
-        <p className="text-[9px] font-bold text-[#397239]/40 uppercase tracking-widest mb-2 flex items-center gap-1.5"><Icons.MapPin /> LOCATION</p>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-[9px] font-bold text-[#397239]/40 uppercase tracking-widest flex items-center gap-1.5"><Icons.MapPin /> LOCATION</p>
+          {task.location && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(task.location)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#397239]/15 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-[#397239] transition-all hover:bg-white"
+            >
+              Open in Google Maps
+              <Icons.ExternalLink />
+            </a>
+          )}
+        </div>
         <p className="text-sm text-[#244c21] font-bold leading-relaxed truncate">{task.location || 'Location missing'}</p>
       </div>
 
@@ -518,6 +579,19 @@ export default function StaffDashboard() {
             className="flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white border border-[#397239]/20 text-[#397239] transition-all hover:bg-[#112A0F]/5"
           >
             {updatingTask === task._id ? '...' : <><Icons.CompletedTasks /> Complete</>}
+          </button>
+        </div>
+      )}
+
+      {!isCompleted && (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => cancelPickup(task)}
+            disabled={confirmingOrderId === task._id}
+            className="w-full rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-700 transition-all hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {confirmingOrderId === task._id ? 'Cancelling...' : 'Cancel Pickup'}
           </button>
         </div>
       )}

@@ -152,6 +152,7 @@ export default function Dashboard() {
   const [searchStatus, setSearchStatus] = useState({ type: "", text: "" });
   const [pickupLocation, setPickupLocation] = useState("");
   const [selectedMapLocation, setSelectedMapLocation] = useState("");
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   // ── User bookings (for stats + pickup status) ──
   const [bookings, setBookings] = useState([]);
@@ -212,6 +213,8 @@ export default function Dashboard() {
   const greetingName = user?.firstName || user?.username || "there";
 
   const openProfile = () => setActiveTab("profile");
+
+  const closeBookingModal = () => setSelectedBooking(null);
 
   const handleLocationSearch = () => {
     const value = locationQuery.trim();
@@ -313,6 +316,108 @@ export default function Dashboard() {
     );
   });
 
+  const BookingDetailsModal = () => {
+    if (!selectedBooking) return null;
+    const timelineEntries = Array.isArray(selectedBooking.timeline) ? selectedBooking.timeline : [];
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
+        <div className="w-full max-w-2xl rounded-[32px] bg-white p-6 shadow-2xl border border-gray-100">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#06a63e]">Pickup Order</p>
+              <h3 className="mt-2 text-2xl font-bold text-gray-900">
+                {selectedBooking.service_type} — {selectedBooking.waste_category}
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Clicked order details and generated pickup PIN
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={closeBookingModal}
+              className="rounded-full border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-100"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Location</p>
+              <p className="mt-2 text-sm font-semibold text-gray-800">{selectedBooking.location || "Location unavailable"}</p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Scheduled Date</p>
+              <p className="mt-2 text-sm font-semibold text-gray-800">
+                {selectedBooking.scheduled_date ? new Date(selectedBooking.scheduled_date).toLocaleDateString() : "N/A"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Status</p>
+              <p className="mt-2 text-sm font-semibold text-gray-800">{selectedBooking.status || "Pending"}</p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Generated PIN</p>
+              <p className="mt-2 text-2xl font-black tracking-[0.2em] text-[#06a63e]">
+                {selectedBooking.pickupPin || "N/A"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4 md:col-span-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Assigned Staff</p>
+              <p className="mt-2 text-sm font-semibold text-gray-800">
+                {selectedBooking.assignedStaff || "Not yet assigned"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-[#06a63e]/15 bg-[#06a63e]/5 p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#03652a]">Order Notes</p>
+            <p className="mt-2 text-sm text-gray-700">
+              {selectedBooking.notes || "No notes added for this order."}
+            </p>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Live Status Timeline</p>
+              <p className="text-xs font-semibold text-gray-500">
+                {timelineEntries.length} updates
+              </p>
+            </div>
+            <div className="mt-4 max-h-56 space-y-3 overflow-y-auto pr-1">
+              {timelineEntries.length === 0 ? (
+                <p className="text-sm text-gray-500">No timeline updates yet.</p>
+              ) : (
+                timelineEntries.map((entry, index) => (
+                  <div key={`${entry.event || "event"}-${index}`} className="flex gap-3 rounded-2xl border border-white bg-white p-3 shadow-sm">
+                    <div className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#06a63e]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-gray-800">{entry.event || "Status update"}</p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {entry.time ? new Date(entry.time).toLocaleString() : "Time unavailable"}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-end">
+            <button
+              type="button"
+              onClick={closeBookingModal}
+              className="rounded-full bg-[#06a63e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#058b33]"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const TrackStatusPanel = () => (
     <div className="space-y-6">
       <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -337,9 +442,11 @@ export default function Dashboard() {
             <p className="text-sm text-gray-400">No recent pickups to display.</p>
           ) : (
             activeBookings.slice(0, 5).map((b) => (
-              <div
+              <button
                 key={b._id}
-                className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3"
+                type="button"
+                onClick={() => setSelectedBooking(b)}
+                className="flex w-full items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-left transition hover:border-[#06a63e]/30 hover:bg-[#06a63e]/5"
               >
                 <div>
                   <p className="text-sm font-medium text-gray-700">
@@ -354,7 +461,7 @@ export default function Dashboard() {
                 >
                   {b.status}
                 </span>
-              </div>
+              </button>
             ))
           )}
         </div>
@@ -607,6 +714,8 @@ export default function Dashboard() {
         {activeTab === "profile" && <ProfileSettings />}
         {activeTab === "inquiry" && <InquiryPanel />}
       </main>
+
+      <BookingDetailsModal />
 
       {/* ── Request Pickup Modal ── */}
       <RequestPickupModal
