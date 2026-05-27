@@ -367,7 +367,6 @@ const UserManagement = () => {
                         <p className="truncate text-xs text-gray-500">{user.email}</p>
                         <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-gray-500">
                           <span className="rounded-full bg-gray-100 px-2 py-1">{user.role || "Customer"}</span>
-                          <span className="rounded-full bg-gray-100 px-2 py-1">{user.clerkId || "No Clerk ID"}</span>
                         </div>
                       </div>
                     </button>
@@ -396,7 +395,6 @@ const UserManagement = () => {
                 <div className="flex flex-wrap gap-2">
                   <span className="rounded-full bg-white/80 px-3 py-1.5 text-xs font-600 text-gray-700">Role: {selectedUser.role || "Customer"}</span>
                   <span className={`rounded-full px-3 py-1.5 text-xs font-600 ${getStatusTone(selectedUser.status)}`}>{selectedUser.status || "Unknown"}</span>
-                  <span className="rounded-full bg-white/80 px-3 py-1.5 text-xs font-600 text-gray-700">Clerk ID: {selectedUser.clerkId || "N/A"}</span>
                 </div>
               </div>
 

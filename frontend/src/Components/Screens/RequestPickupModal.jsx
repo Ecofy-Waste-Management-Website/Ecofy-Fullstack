@@ -63,17 +63,23 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
       setSubmitting(true);
       setStatus({ type: "", text: "" });
 
-      await createPickupRequest({
+      const booking = await createPickupRequest({
         customer_name:
           `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
           user?.username ||
           "Ecofy Customer",
         customer_email: user?.primaryEmailAddress?.emailAddress || "",
+        customer_phone: user?.phoneNumbers?.[0]?.phoneNumber || "",
         clerkId: user?.id,
         ...form,
       });
 
-      setStatus({ type: "success", text: "Pickup request submitted successfully! 🎉" });
+      setStatus({
+        type: "success",
+        text: booking?.pickupPin
+          ? `Pickup request submitted successfully! Your order PIN is ${booking.pickupPin}.`
+          : "Pickup request submitted successfully! 🎉",
+      });
 
       // Auto-close after a brief pause so the user sees the success message
       setTimeout(() => {
@@ -82,6 +88,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
         ...form,
         clerkId: user?.id,
         email: user?.primaryEmailAddress?.emailAddress || "",
+        pickupPin: booking?.pickupPin || "",
       });
         onClose();
       }, 1500);
