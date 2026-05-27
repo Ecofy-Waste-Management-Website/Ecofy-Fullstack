@@ -52,6 +52,11 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
   ),
+  Inquiry: () => (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z" />
+    </svg>
+  ),
   MapPin: () => (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -82,7 +87,22 @@ const Icons = {
     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
-  )
+  ),
+  Send: () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+    </svg>
+  ),
+  ChevronDown: () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  ),
+  ChevronUp: () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+    </svg>
+  ),
 };
 
 export default function StaffDashboard() {
@@ -91,7 +111,7 @@ export default function StaffDashboard() {
   const navigate = useNavigate();
   const [role, setRole] = useState(null);
   const [roleLoading, setRoleLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pending'); // Default to Pending
+  const [activeTab, setActiveTab] = useState('pending');
   const [activeTasks, setActiveTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
   const [pendingOrders, setPendingOrders] = useState([]);
@@ -102,6 +122,14 @@ export default function StaffDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [displayName, setDisplayName] = useState('Staff Member');
+
+  // Inquiry state
+  const [inquiries, setInquiries] = useState([]);
+  const [inquiriesLoading, setInquiriesLoading] = useState(false);
+  const [expandedInquiryId, setExpandedInquiryId] = useState(null);
+  const [replyTexts, setReplyTexts] = useState({});
+  const [sendingReply, setSendingReply] = useState(null);
+
   const [settingsForm, setSettingsForm] = useState({
     firstName: '',
     lastName: '',
@@ -185,6 +213,65 @@ export default function StaffDashboard() {
 
     fetchTasks();
   }, [isLoaded, user]);
+
+  // Fetch inquiries when tab is opened
+  useEffect(() => {
+    if (activeTab !== 'inquiries' || !user?.id) return;
+    fetchInquiries();
+  }, [activeTab, user]);
+
+  const fetchInquiries = async () => {
+    setInquiriesLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/inquiries`);
+      if (res.ok) {
+        const data = await res.json();
+        // Filter to only show inquiries whose clerkId matches this staff member
+        const filtered = (data.inquiries || []).filter(
+          (inq) => inq.clerkId && inq.clerkId === user.id
+        );
+        setInquiries(filtered);
+      }
+    } catch (err) {
+      console.error('Failed to fetch inquiries:', err);
+    } finally {
+      setInquiriesLoading(false);
+    }
+  };
+
+  const handleSendReply = async (inquiryId) => {
+    const replyText = replyTexts[inquiryId]?.trim();
+    if (!replyText || sendingReply === inquiryId) return;
+
+    setSendingReply(inquiryId);
+    try {
+      const res = await fetch(`${API_BASE_URL}/inquiries/${inquiryId}/reply`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reply: replyText,
+          repliedBy: staffName,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setInquiries((prev) =>
+          prev.map((inq) =>
+            inq._id === inquiryId ? data.inquiry : inq
+          )
+        );
+        setReplyTexts((prev) => ({ ...prev, [inquiryId]: '' }));
+        showNotification('Reply sent successfully!');
+      } else {
+        showNotification(data.message || 'Failed to send reply.', 'error');
+      }
+    } catch (err) {
+      console.error('Failed to send reply:', err);
+      showNotification('Failed to send reply. Please try again.', 'error');
+    } finally {
+      setSendingReply(null);
+    }
+  };
 
   const handleSettingsChange = (field, value) => {
     setSettingsForm((prev) => ({ ...prev, [field]: value }));
@@ -337,6 +424,13 @@ export default function StaffDashboard() {
     return new Date(date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
+  const formatDateTime = (date) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
@@ -355,14 +449,15 @@ export default function StaffDashboard() {
     );
   }
 
-  // Filter tasks for each menu item
   const pendingTasks = activeTasks.filter(t => t.status === 'Pending');
   const ongoingTasks = activeTasks.filter(t => t.status !== 'Pending');
+  const pendingInquiriesCount = inquiries.filter(i => i.status === 'Pending').length;
 
   const menuItems = [
     { label: 'Pending Tasks', key: 'pending', icon: <Icons.PendingTasks />, count: pendingTasks.length },
     { label: 'Active Tasks', key: 'active', icon: <Icons.ActiveTasks />, count: ongoingTasks.length },
     { label: 'Completed Today', key: 'completed', icon: <Icons.CompletedTasks />, count: completedTasks.length },
+    { label: 'Inquiries', key: 'inquiries', icon: <Icons.Inquiry />, count: pendingInquiriesCount },
     { label: 'Settings', key: 'settings', icon: <Icons.Bell />, count: 0 },
   ];
 
@@ -388,11 +483,11 @@ export default function StaffDashboard() {
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="bg-[#D6E9CA]/50 rounded-2xl p-3 border border-[#397234]/10">
           <p className="text-[9px] text-[#397239]/40 font-bold uppercase tracking-widest flex items-center gap-1.5"><Icons.Calendar /> DATE</p>
-          <p className="text-xs font-black text-[#244c21] mt-1">{isCompleted ? formatDate(task.scheduled_date) : formatDate(task.scheduled_date)}</p>
+          <p className="text-xs font-black text-[#244c21] mt-1">{formatDate(task.scheduled_date)}</p>
         </div>
         <div className="bg-[#D6E9CA]/50 rounded-2xl p-3 border border-[#397234]/10">
           <p className="text-[9px] text-[#397239]/40 font-bold uppercase tracking-widest flex items-center gap-1.5">
-            {isCompleted ? <Icons.Clock /> : <Icons.Clock />} {isCompleted ? 'DONE' : 'TIME'}
+            <Icons.Clock /> {isCompleted ? 'DONE' : 'TIME'}
           </p>
           <p className="text-xs font-black text-[#244c21] mt-1">{isCompleted ? formatTime(task.completedAt) : formatTime(task.scheduled_date)}</p>
         </div>
@@ -437,25 +532,435 @@ export default function StaffDashboard() {
 
   const getEstimatedAmount = (order) => SERVICE_PRICES[order.service_type] || order.estimated_amt || 0;
 
+  const PendingOrdersPanel = () => (
+    <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.4fr] gap-4 min-h-[540px]">
+      <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-4 shadow-sm flex flex-col">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-black text-[#244c21]">Pending Orders</h3>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Orders waiting for pickup confirmation</p>
+          </div>
+          <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">{pendingOrders.length} orders</span>
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-[#397234]/10 bg-white/70 shadow-inner flex-1">
+          <div className="grid grid-cols-[1.2fr_2fr_1fr_1fr] gap-3 border-b border-[#397234]/10 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/50">
+            <span>Order ID</span>
+            <span>Pickup Address</span>
+            <span>Estimated Amt</span>
+            <span>Action</span>
+          </div>
+
+          <div className="max-h-[420px] overflow-y-auto">
+            {pendingOrders.length === 0 ? (
+              <div className="flex h-[360px] items-center justify-center px-6 text-center">
+                <p className="text-sm font-black uppercase tracking-widest text-[#397239]/50">No pending orders available</p>
+              </div>
+            ) : (
+              pendingOrders.map((order) => (
+                <div key={order._id} className="grid grid-cols-[1.2fr_2fr_1fr_1fr] gap-3 border-b border-[#397234]/10 px-4 py-4 last:border-b-0 items-center">
+                  <div>
+                    <p className="text-sm font-black text-[#244c21]">{order._id.slice(-8).toUpperCase()}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#397239]/40">{order.service_type || 'Order'}</p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-[#244c21]">{order.location || 'Location missing'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-[#397239]">{formatCurrency(getEstimatedAmount(order))}</p>
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => confirmPickup(order)}
+                      disabled={confirmingOrderId === order._id}
+                      className="rounded-xl bg-[#397239] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {confirmingOrderId === order._id ? 'Confirming...' : 'Confirm Pickup'}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/20 p-4 shadow-sm flex flex-col min-h-[540px] overflow-hidden">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-black text-[#244c21]">Balangoda Map</h3>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Center point for Balangoda, Sri Lanka</p>
+          </div>
+          <div className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">Map</div>
+        </div>
+
+        <div className="flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner">
+          <iframe
+            title="Balangoda Sri Lanka map"
+            src={BALANGODA_MAP_SRC}
+            className="h-full w-full min-h-[480px]"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  // ─── Inquiry Panel ────────────────────────────────────────────────────────────
+  const InquiriesPanel = () => (
+    <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-5 shadow-sm">
+      {/* Header row */}
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-xl font-black text-[#244c21]">My Inquiries</h3>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">
+            Inquiries submitted under your account
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">
+            {inquiries.length} total
+          </span>
+          {pendingInquiriesCount > 0 && (
+            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-700">
+              {pendingInquiriesCount} pending
+            </span>
+          )}
+          <button
+            onClick={fetchInquiries}
+            disabled={inquiriesLoading}
+            className="rounded-xl border border-[#397234]/20 bg-white/70 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-[#397239] transition-all hover:bg-white disabled:opacity-50"
+          >
+            {inquiriesLoading ? 'Loading...' : 'Refresh'}
+          </button>
+        </div>
+      </div>
+
+      {/* Loading skeleton */}
+      {inquiriesLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-20 rounded-2xl bg-white/40 animate-pulse" />
+          ))}
+        </div>
+      ) : inquiries.length === 0 ? (
+        /* Empty state */
+        <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-[#397239]/20 bg-[#D6E9CA]/20 py-16 text-center">
+          <div className="grid h-14 w-14 place-items-center rounded-full border border-[#397234]/10 bg-[#397234]/5 text-[#397239]">
+            <Icons.Inquiry />
+          </div>
+          <div>
+            <p className="text-sm font-black uppercase tracking-widest text-[#397239]/60">No inquiries found</p>
+            <p className="mt-1 text-[10px] font-bold text-[#397239]/30 uppercase tracking-widest">
+              Inquiries linked to your account will appear here
+            </p>
+          </div>
+        </div>
+      ) : (
+        /* Inquiry list */
+        <div className="space-y-3">
+          {inquiries.map((inq) => {
+            const isExpanded = expandedInquiryId === inq._id;
+            const isReplied = inq.status === 'Replied';
+
+            return (
+              <div
+                key={inq._id}
+                className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+                  isExpanded
+                    ? 'border-[#397239]/30 bg-white shadow-md'
+                    : 'border-[#397234]/15 bg-white/60 hover:bg-white/80 hover:border-[#397234]/25'
+                }`}
+              >
+                {/* Collapsed header — always visible */}
+                <button
+                  type="button"
+                  onClick={() => setExpandedInquiryId(isExpanded ? null : inq._id)}
+                  className="w-full px-5 py-4 flex items-center justify-between gap-3 text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {/* Status dot */}
+                    <span
+                      className={`shrink-0 h-2.5 w-2.5 rounded-full ${
+                        isReplied ? 'bg-[#397239]' : 'bg-amber-400'
+                      }`}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-black text-[#244c21] truncate">
+                        {inq.subject || 'General Inquiry'}
+                      </p>
+                      <p className="text-[10px] font-bold text-[#397239]/40 uppercase tracking-widest mt-0.5">
+                        {formatDateTime(inq.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest ${
+                        isReplied
+                          ? 'bg-green-100 text-[#397239]'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}
+                    >
+                      {inq.status}
+                    </span>
+                    <span className="text-[#397239]/40">
+                      {isExpanded ? <Icons.ChevronUp /> : <Icons.ChevronDown />}
+                    </span>
+                  </div>
+                </button>
+
+                {/* Expanded body */}
+                {isExpanded && (
+                  <div className="px-5 pb-5 border-t border-[#397234]/10">
+                    {/* User info + message */}
+                    <div className="mt-4 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-4">
+                      {/* Left: meta */}
+                      <div className="space-y-3">
+                        <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50">From</p>
+                          <p className="mt-1 text-sm font-bold text-[#244c21]">{inq.userName}</p>
+                          <p className="text-xs text-[#397239]/50 font-medium">{inq.userEmail}</p>
+                        </div>
+                        <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50">Submitted</p>
+                          <p className="mt-1 text-xs font-bold text-[#244c21]">{formatDateTime(inq.createdAt)}</p>
+                        </div>
+                        {isReplied && inq.repliedAt && (
+                          <div className="rounded-2xl bg-green-50 px-4 py-3 border border-green-100">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50">Replied by</p>
+                            <p className="mt-1 text-xs font-bold text-[#244c21]">{inq.repliedBy || 'Staff'}</p>
+                            <p className="text-[10px] text-[#397239]/40 font-medium">{formatDateTime(inq.repliedAt)}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right: message + reply thread */}
+                      <div className="space-y-3">
+                        {/* Original message */}
+                        <div className="rounded-2xl bg-[#D6E9CA]/30 px-4 py-3 border border-[#397234]/10">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50 mb-2">Message</p>
+                          <p className="text-sm text-[#244c21] font-medium leading-relaxed">{inq.message}</p>
+                        </div>
+
+                        {/* Existing reply */}
+                        {isReplied && inq.adminReply && (
+                          <div className="rounded-2xl bg-[#397239]/8 px-4 py-3 border border-[#397239]/15">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/60 mb-2 flex items-center gap-1.5">
+                              <Icons.Send /> REPLY SENT
+                            </p>
+                            <p className="text-sm text-[#244c21] font-medium leading-relaxed">{inq.adminReply}</p>
+                          </div>
+                        )}
+
+                        {/* Reply composer — always show so staff can update/add another reply */}
+                        <div className="rounded-2xl bg-white border border-[#397234]/15 p-3">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50 mb-2">
+                            {isReplied ? 'Update Reply' : 'Write a Reply'}
+                          </p>
+                          <textarea
+                            rows={3}
+                            value={replyTexts[inq._id] || ''}
+                            onChange={(e) =>
+                              setReplyTexts((prev) => ({ ...prev, [inq._id]: e.target.value }))
+                            }
+                            placeholder="Type your reply here..."
+                            className="w-full resize-none rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/20 px-3 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] focus:bg-white transition-all placeholder:text-[#397239]/30"
+                          />
+                          <div className="mt-2 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => handleSendReply(inq._id)}
+                              disabled={
+                                !replyTexts[inq._id]?.trim() || sendingReply === inq._id
+                              }
+                              className="flex items-center gap-2 rounded-xl bg-[#397239] px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <Icons.Send />
+                              {sendingReply === inq._id ? 'Sending...' : 'Send Reply'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  const SettingsPanel = () => (
+    <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
+      <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-5 shadow-sm">
+        <div className="mb-5">
+          <h3 className="text-xl font-black text-[#244c21]">Settings</h3>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Update your name, availability, and bank details</p>
+        </div>
+
+        {settingsMessage && (
+          <div className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-bold ${settingsMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
+            {settingsMessage.text}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">First Name</span>
+            <input
+              value={settingsForm.firstName}
+              onChange={(e) => handleSettingsChange('firstName', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="First name"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Last Name</span>
+            <input
+              value={settingsForm.lastName}
+              onChange={(e) => handleSettingsChange('lastName', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Last name"
+            />
+          </label>
+        </div>
+
+        <div className="mt-4">
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Availability Status</span>
+            <select
+              value={settingsForm.availabilityStatus}
+              onChange={(e) => handleSettingsChange('availabilityStatus', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+            >
+              <option value="Available">Available</option>
+              <option value="Busy">Busy</option>
+              <option value="Off Duty">Off Duty</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Bank Name</span>
+            <input
+              value={settingsForm.bankDetails.bankName}
+              onChange={(e) => handleBankDetailChange('bankName', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Bank name"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Account Name</span>
+            <input
+              value={settingsForm.bankDetails.accountName}
+              onChange={(e) => handleBankDetailChange('accountName', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Account name"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Account Number</span>
+            <input
+              value={settingsForm.bankDetails.accountNumber}
+              onChange={(e) => handleBankDetailChange('accountNumber', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Account number"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Branch</span>
+            <input
+              value={settingsForm.bankDetails.branch}
+              onChange={(e) => handleBankDetailChange('branch', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Branch"
+            />
+          </label>
+        </div>
+
+        <div className="mt-5 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setSettingsForm((prev) => ({ ...prev }));
+              setSettingsMessage(null);
+            }}
+            className="rounded-2xl border border-[#397234]/20 bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-[#244c21] transition-all hover:bg-[#112A0F]/5"
+          >
+            Clear Message
+          </button>
+          <button
+            type="button"
+            onClick={saveSettings}
+            disabled={savingSettings}
+            className="rounded-2xl bg-[#397239] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {savingSettings ? 'Saving...' : 'Update Settings'}
+          </button>
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/20 p-5 shadow-sm">
+        <h3 className="text-xl font-black text-[#244c21]">Preview</h3>
+        <p className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">How your profile will appear to the team</p>
+
+        <div className="mt-5 rounded-3xl border border-[#397234]/10 bg-white/70 p-5 shadow-inner">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-full bg-[#397239] text-sm font-black text-white shadow-inner">
+              {staffInitials}
+            </div>
+            <div>
+              <p className="text-sm font-black text-[#244c21]">{staffName}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#397239]/40">{settingsForm.availabilityStatus}</p>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-3 text-sm text-[#244c21]">
+            <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#397239]/50">Bank</p>
+              <p className="mt-1 font-bold">{settingsForm.bankDetails.bankName || 'No bank added'}</p>
+            </div>
+            <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#397239]/50">Account</p>
+              <p className="mt-1 font-bold">{settingsForm.bankDetails.accountName || 'No account name added'}</p>
+              <p className="text-xs text-[#397239]/70">{settingsForm.bankDetails.accountNumber || 'No account number added'}</p>
+            </div>
+            <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#397239]/50">Branch</p>
+              <p className="mt-1 font-bold">{settingsForm.bankDetails.branch || 'No branch added'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="h-screen w-screen font-sans text-[#244c21] bg-[#f4f9f4] p-4 lg:p-3 overflow-hidden">
       <div className="flex h-full w-full gap-3">
-        
-        {/* Sidebar - Floating Rounded Card */}
+
+        {/* Sidebar */}
         <aside className="hidden lg:flex flex-col gap-4 bg-[#397234]/80 backdrop-blur-3xl border border-[#397234]/20 p-5 text-white/80 w-[240px] shrink-0 rounded-3xl shadow-2xl overflow-hidden h-full relative">
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
           <div className="flex items-center gap-3 pb-2">
             <h1 className="m-0 text-2xl font-black tracking-tighter text-white">Ecofy</h1>
           </div>
-          
+
           <nav className="flex flex-col gap-1.5 overflow-y-auto no-scrollbar flex-1">
             {menuItems.map((item) => (
               <button
                 key={item.key}
                 onClick={() => setActiveTab(item.key)}
                 className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${
-                  activeTab === item.key 
-                    ? "bg-[#397239] text-white shadow-lg shadow-black/20" 
+                  activeTab === item.key
+                    ? "bg-[#397239] text-white shadow-lg shadow-black/20"
                     : "text-white/60 hover:bg-white/5 hover:text-white"
                 }`}
               >
@@ -464,7 +969,11 @@ export default function StaffDashboard() {
                   <span className="truncate">{item.label}</span>
                 </div>
                 {item.count > 0 && (
-                  <span className="bg-white/10 px-2 py-0.5 rounded-full text-[10px] font-black">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                    item.key === 'inquiries'
+                      ? 'bg-amber-400/20 text-amber-300'
+                      : 'bg-white/10'
+                  }`}>
                     {item.count}
                   </span>
                 )}
@@ -484,7 +993,7 @@ export default function StaffDashboard() {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-          
+
           {/* Header */}
           <header className="mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
             <h2 className="m-0 text-2xl font-black tracking-tight text-[#244c21] truncate">
@@ -500,7 +1009,7 @@ export default function StaffDashboard() {
               <NotificationBell target="staff" />
               <div className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-3 py-1.5 text-xs font-black text-[#397239] backdrop-blur-sm">Staff</div>
               {!roleLoading && role === 'Admin' && (
-                <button onClick={handleSwitchDashboard} className="rounded-xl bg-[#397239] px-4 py-2 text-xs font-black text-white transition-all hover:bg-[#244c21] shadow-md" >Switch to Admin</button>
+                <button onClick={handleSwitchDashboard} className="rounded-xl bg-[#397239] px-4 py-2 text-xs font-black text-white transition-all hover:bg-[#244c21] shadow-md">Switch to Admin</button>
               )}
             </div>
           </header>
@@ -509,23 +1018,23 @@ export default function StaffDashboard() {
           <main className="flex-1 overflow-y-auto no-scrollbar lg:pr-1">
             <div className="h-full">
               {notification && (
-                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-xl text-white font-black text-sm bg-[#397239] animate-in fade-in slide-in-from-top-4 duration-300 uppercase tracking-widest">
+                <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-xl text-white font-black text-sm animate-in fade-in slide-in-from-top-4 duration-300 uppercase tracking-widest ${
+                  notification.type === 'error' ? 'bg-red-500' : 'bg-[#397239]'
+                }`}>
                   {notification.message}
                 </div>
               )}
 
-              {/* Task Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activeTab === 'pending' && (
                   <div className="col-span-full">
-                    <PendingTasksPanel
-                      pendingOrders={pendingOrders}
-                      formatCurrency={formatCurrency}
-                      getEstimatedAmount={getEstimatedAmount}
-                      confirmPickup={confirmPickup}
-                      confirmingOrderId={confirmingOrderId}
-                      mapSrc={BALANGODA_MAP_SRC}
-                    />
+                    <PendingOrdersPanel />
+                  </div>
+                )}
+
+                {activeTab === 'inquiries' && (
+                  <div className="col-span-full">
+                    <InquiriesPanel />
                   </div>
                 )}
 
@@ -569,14 +1078,14 @@ export default function StaffDashboard() {
         </div>
       </div>
 
-      {/* Mobile Elements */}
+      {/* Mobile top bar */}
       <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-[#112A0F] px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0"><h2 className="truncate text-base font-bold leading-tight">{getPageTitle()}</h2></div>
           <button onClick={() => setIsMobileMenuOpen(true)} className="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-white/10 text-white"><Icons.Menu /></button>
         </div>
       </div>
-      
+
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <button className="absolute inset-0 bg-green-950/40 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
@@ -588,8 +1097,8 @@ export default function StaffDashboard() {
             <nav className="flex flex-col gap-1">
               {menuItems.map((item) => (
                 <button key={item.key} onClick={() => { setActiveTab(item.key); setIsMobileMenuOpen(false); }} className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${activeTab === item.key ? "bg-[#397239] text-white shadow-lg" : "hover:bg-white/10"}`}>
-                   <div className="flex items-center gap-3">{item.icon} {item.label}</div>
-                   {item.count > 0 && <span className="text-[10px] opacity-60">{item.count}</span>}
+                  <div className="flex items-center gap-3">{item.icon} {item.label}</div>
+                  {item.count > 0 && <span className="text-[10px] opacity-60">{item.count}</span>}
                 </button>
               ))}
             </nav>
