@@ -29,6 +29,22 @@ const createInquiry = async (req, res) => {
       isRead: false,
     });
 
+    const staffUsers = await User.find({ role: "Staff" }).select("clerkId");
+    const staffNotifications = staffUsers
+      .filter((s) => s.clerkId)
+      .map((s) => ({
+        clerkId: s.clerkId,
+        title: "New Inquiry Received",
+        message: `${userName} submitted an inquiry: "${subject || "General Inquiry"}"`,
+        type: "Info",
+        target: "staff",
+        isRead: false,
+      }));
+
+    if (staffNotifications.length > 0) {
+      await Notification.insertMany(staffNotifications);
+    }
+
     return res.status(201).json({
       message: "Inquiry submitted successfully.",
       inquiry,

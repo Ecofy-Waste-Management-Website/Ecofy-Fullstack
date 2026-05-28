@@ -232,7 +232,7 @@ export default function StaffDashboard() {
         const filtered = (data.inquiries || []).filter(
           (inq) => inq.clerkId && inq.clerkId === user.id
         );
-        setInquiries(filtered);
+        setInquiries(data.inquiries || []);
       }
     } catch (err) {
       console.error('Failed to fetch inquiries:', err);
