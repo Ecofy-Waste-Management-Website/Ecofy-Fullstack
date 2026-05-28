@@ -31,7 +31,7 @@ const serviceRequestSchema = new Schema(
     pickupPin: { type: String, default: "" },
     status: {
       type: String,
-      enum: ["Pending", "Assigned", "In Progress","En Route", "Completed", "Delayed"],
+      enum: ["Pending", "Assigned", "In Progress","En Route", "Completed", "Delayed", "Cancelled"],
       default: "Pending",
     },
     notes: { type: String },
