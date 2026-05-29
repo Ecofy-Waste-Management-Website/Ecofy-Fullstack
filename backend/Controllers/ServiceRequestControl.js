@@ -38,6 +38,11 @@ const STATUS_NOTIFICATIONS = {
     message: "Your pickup request is back to pending status.",
     type: "Info",
   },
+  Cancelled: {
+    title: "Pickup Cancelled",
+    message: "Your pickup request has been cancelled successfully.",
+    type: "Warning",
+  },
 };
 // POST - Create a new waste collection booking
 const createBooking = async (req, res) => {

@@ -16,6 +16,7 @@ const STATUS_STYLES = {
   "En Route": "bg-cyan-100 text-cyan-700",
   Completed: "bg-green-100 text-green-700",
   Delayed: "bg-red-100 text-red-700",
+  Cancelled: "bg-gray-100 text-gray-600",
 };
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
@@ -166,6 +167,7 @@ export default function Dashboard() {
   const [selectedMapLocation, setSelectedMapLocation] = useState("");
   const [pickupCoordinates, setPickupCoordinates] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [cancellingBookingId, setCancellingBookingId] = useState(null);
 
   // ── User bookings (for stats + pickup status) ──
   const [bookings, setBookings] = useState([]);
@@ -228,6 +230,50 @@ export default function Dashboard() {
   const openProfile = () => setActiveTab("profile");
 
   const closeBookingModal = () => setSelectedBooking(null);
+
+  const handleCancelBooking = async () => {
+    if (!selectedBooking || cancellingBookingId === selectedBooking._id) return;
+
+    const confirmed = window.confirm("Cancel this order? This will mark it as cancelled and remove it from your active tracking list.");
+    if (!confirmed) return;
+
+    const email = user?.primaryEmailAddress?.emailAddress;
+    if (!email) {
+      setSearchStatus({ type: "error", text: "Unable to cancel this order right now." });
+      return;
+    }
+
+    try {
+      setCancellingBookingId(selectedBooking._id);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/bookings/${selectedBooking._id}/cancel`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer_email: email,
+          clerkId: user?.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to cancel order");
+      }
+
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking._id === selectedBooking._id ? { ...booking, status: "Cancelled", assignedStaff: null, timeline: [...(booking.timeline || []), { event: "Pickup cancelled by customer", time: new Date().toISOString() }] } : booking
+        )
+      );
+      setSelectedBooking((current) => current?._id === selectedBooking._id ? { ...current, status: "Cancelled", assignedStaff: null, timeline: [...(current.timeline || []), { event: "Pickup cancelled by customer", time: new Date().toISOString() }] } : current);
+      setSearchStatus({ type: "success", text: "Order cancelled successfully." });
+      await fetchBookings();
+    } catch (error) {
+      setSearchStatus({ type: "error", text: error.message || "Failed to cancel order." });
+    } finally {
+      setCancellingBookingId(null);
+    }
+  };
 
   const handleLocationSearch = () => {
     const value = locationQuery.trim();
@@ -419,6 +465,16 @@ export default function Dashboard() {
           </div>
 
           <div className="mt-6 flex justify-end">
+            {selectedBooking?.status !== "Completed" && selectedBooking?.status !== "Cancelled" && (
+              <button
+                type="button"
+                onClick={handleCancelBooking}
+                disabled={cancellingBookingId === selectedBooking._id}
+                className="mr-3 rounded-full border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {cancellingBookingId === selectedBooking._id ? "Cancelling..." : "Cancel Order"}
+              </button>
+            )}
             <button
               type="button"
               onClick={closeBookingModal}
