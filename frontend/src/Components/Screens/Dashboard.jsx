@@ -77,16 +77,21 @@ function GoogleMapPicker({ value, onSelect }) {
 
     const geocoder = new window.google.maps.Geocoder();
 
-    const resolveAddress = (latLng) => {
+    const resolveAddress = (latLng) => {
+      const coordinates = {
+        latitude: latLng.lat(),
+        longitude: latLng.lng(),
+      };
+
       geocoder.geocode({ location: latLng }, (results, status) => {
         if (status === "OK" && results?.[0]) {
           const address = results[0].formatted_address;
           setMapMessage(`Selected: ${address}`);
-          onSelect(address);
+          onSelect({ address, coordinates });
         } else {
           const fallback = `${latLng.lat().toFixed(5)}, ${latLng.lng().toFixed(5)}`;
           setMapMessage(`Selected coordinates: ${fallback}`);
-          onSelect(fallback);
+          onSelect({ address: fallback, coordinates });
         }
       });
     };
@@ -111,14 +116,21 @@ function GoogleMapPicker({ value, onSelect }) {
     if (!mapRef.current || !geocoderRef.current || !value || !window.google?.maps) return;
 
     geocoderRef.current.geocode({ address: value }, (results, status) => {
-      if (status === "OK" && results?.[0]) {
-        const location = results[0].geometry?.location;
-        if (location) {
-          mapRef.current.panTo(location);
-          mapRef.current.setZoom(14);
-          markerRef.current?.setPosition(location);
-        }
-      }
+      if (status === "OK" && results?.[0]) {
+        const location = results[0].geometry?.location;
+        if (location) {
+          mapRef.current.panTo(location);
+          mapRef.current.setZoom(14);
+          markerRef.current?.setPosition(location);
+          onSelect({
+            address: value,
+            coordinates: {
+              latitude: location.lat(),
+              longitude: location.lng(),
+            },
+          });
+        }
+      }
     });
   }, [value]);
 
@@ -153,6 +165,7 @@ export default function Dashboard() {
   const [searchStatus, setSearchStatus] = useState({ type: "", text: "" });
   const [pickupLocation, setPickupLocation] = useState("");
   const [selectedMapLocation, setSelectedMapLocation] = useState("");
+  const [pickupCoordinates, setPickupCoordinates] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [cancellingBookingId, setCancellingBookingId] = useState(null);
 
@@ -271,6 +284,7 @@ export default function Dashboard() {
 
     setPickupLocation(value);
     setSelectedMapLocation(value);
+	    setPickupCoordinates(null);
     setSearchStatus({ type: "success", text: `Showing ${value} on the map.` });
   };
 
@@ -746,10 +760,11 @@ export default function Dashboard() {
           <div className="flex-1">
             <GoogleMapPicker
               value={selectedMapLocation}
-              onSelect={(address) => {
-                setLocationQuery(address);
-                setPickupLocation(address);
-                setSelectedMapLocation(address);
+                onSelect={({ address, coordinates }) => {
+                  setLocationQuery(address);
+                  setPickupLocation(address);
+                  setSelectedMapLocation(address);
+                  setPickupCoordinates(coordinates);
                 setSearchStatus({ type: "success", text: `Selected location from map.` });
               }}
             />
@@ -778,6 +793,7 @@ export default function Dashboard() {
         isOpen={showPickupModal}
         onClose={() => setShowPickupModal(false)}
         initialLocation={pickupLocation}
+        initialCoordinates={pickupCoordinates}
         onSuccess={(bookingDetails) => {
           setLastBooking(bookingDetails);
           setShowPickupModal(false);
