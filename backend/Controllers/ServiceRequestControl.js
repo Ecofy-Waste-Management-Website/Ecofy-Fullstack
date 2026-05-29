@@ -215,13 +215,22 @@ const cancelBooking = async (req, res) => {
 
     await booking.save();
 
+    await Notification.create({
+      title: "Pickup Cancelled",
+      message: `${booking.customer_name} cancelled a ${booking.service_type} pickup scheduled for ${new Date(booking.scheduled_date).toLocaleDateString()}.`,
+      type: "Warning",
+      target: "admin",
+      relatedService: null,
+    });
+
     if (booking.clerkId) {
       await Notification.create({
         clerkId: booking.clerkId,
         title: "Pickup Cancelled",
-        message: "A pickup order was cancelled by the customer.",
+        message: "Your pickup order has been cancelled successfully.",
         type: "Warning",
         target: "user",
+        relatedService: null,
       });
     }
 
