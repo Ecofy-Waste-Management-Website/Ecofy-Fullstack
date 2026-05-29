@@ -13,8 +13,65 @@ const SERVICE_PRICES = {
   "Drain Cleaning": 200000,
 };
 
-const BALANGODA_MAP_SRC =
-  "https://www.google.com/maps?q=Balangoda%2C%20Sri%20Lanka&z=14&output=embed";
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+const DEFAULT_MAP_CENTER = "Balangoda, Sri Lanka";
+const MAP_LABELS = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+const getOrderMapTarget = (order) => {
+  const latitude = Number(order?.pickupCoordinates?.latitude);
+  const longitude = Number(order?.pickupCoordinates?.longitude);
+
+  if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+    return `${latitude},${longitude}`;
+  }
+
+  return typeof order?.location === "string" ? order.location.trim() : "";
+};
+
+const buildPendingOrdersMapUrl = (orders) => {
+  const map = new URL("https://maps.googleapis.com/maps/api/staticmap");
+  map.searchParams.set("size", "1200x720");
+  map.searchParams.set("scale", "2");
+  map.searchParams.set("zoom", "11");
+  map.searchParams.set("maptype", "roadmap");
+  map.searchParams.set("center", DEFAULT_MAP_CENTER);
+
+  orders.slice(0, 20).forEach((order, index) => {
+    const target = getOrderMapTarget(order);
+    if (!target) return;
+
+    const label = MAP_LABELS[index % MAP_LABELS.length];
+    map.searchParams.append("markers", `color:0x397239|label:${label}|${target}`);
+  });
+
+  if (GOOGLE_MAPS_API_KEY) {
+    map.searchParams.set("key", GOOGLE_MAPS_API_KEY);
+  }
+
+  return map.toString();
+};
+
+const buildNavigationUrl = (order) => {
+  const destination = getOrderMapTarget(order);
+  if (!destination) return "";
+
+  const url = new URL("https://www.google.com/maps/dir/");
+  url.searchParams.set("api", "1");
+  url.searchParams.set("destination", destination);
+  url.searchParams.set("travelmode", "driving");
+  return url.toString();
+};
+
+const buildMapEmbedUrl = (order) => {
+  const destination = getOrderMapTarget(order);
+  if (!destination) return "";
+
+  const url = new URL("https://www.google.com/maps");
+  url.searchParams.set("q", destination);
+  url.searchParams.set("z", "16");
+  url.searchParams.set("output", "embed");
+  return url.toString();
+};
 
 const STATUS_STYLES = {
   Pending: "bg-amber-100 text-amber-700",
@@ -123,6 +180,8 @@ export default function StaffDashboard() {
   const [notification, setNotification] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showNavigationModal, setShowNavigationModal] = useState(false);
+  const [navigationOrder, setNavigationOrder] = useState(null);
   const [displayName, setDisplayName] = useState('Staff Member');
   const [pickupPinValues, setPickupPinValues] = useState({});
   const [verifiedPickupPins, setVerifiedPickupPins] = useState({});
@@ -408,6 +467,8 @@ export default function StaffDashboard() {
         { ...order, assignedStaff: user.id, status: 'Assigned' },
         ...prev.filter((item) => item._id !== order._id),
       ]);
+      setNavigationOrder({ ...order, assignedStaff: user.id, status: 'Assigned' });
+      setShowNavigationModal(true);
       showNotification('Pickup confirmed successfully!');
       setActiveTab('active');
     } catch (err) {
@@ -755,21 +816,35 @@ export default function StaffDashboard() {
       <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/20 p-4 shadow-sm flex flex-col min-h-[540px] overflow-hidden">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-black text-[#244c21]">Balangoda Map</h3>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Center point for Balangoda, Sri Lanka</p>
+            <h3 className="text-lg font-black text-[#244c21]">Pending Orders Map</h3>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Pins for every pending pickup request</p>
           </div>
           <div className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">Map</div>
         </div>
 
-        <div className="flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner">
-          <iframe
-            title="Balangoda Sri Lanka map"
-            src={BALANGODA_MAP_SRC}
-            className="h-full w-full min-h-[480px]"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-        </div>
+        {pendingOrders.length === 0 ? (
+          <div className="flex-1 grid place-items-center rounded-3xl border border-dashed border-[#397234]/15 bg-white/60 text-center px-6">
+            <div>
+              <p className="text-sm font-black uppercase tracking-widest text-[#397239]/50">No map pins yet</p>
+              <p className="mt-2 text-xs font-medium text-[#397239]/60">Pending pickups will appear here once customers submit requests.</p>
+            </div>
+          </div>
+        ) : GOOGLE_MAPS_API_KEY ? (
+          <div className="flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner">
+            <img
+              src={buildPendingOrdersMapUrl(pendingOrders)}
+              alt="Map showing pending pickup pins"
+              className="h-full w-full min-h-[480px] object-cover"
+            />
+          </div>
+        ) : (
+          <div className="flex-1 grid place-items-center rounded-3xl border border-dashed border-[#397234]/15 bg-white/60 text-center px-6">
+            <div>
+              <p className="text-sm font-black uppercase tracking-widest text-[#397239]/50">Add Google Maps API key</p>
+              <p className="mt-2 text-xs font-medium text-[#397239]/60">Set VITE_GOOGLE_MAPS_API_KEY to render the live pins map.</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1294,6 +1369,89 @@ export default function StaffDashboard() {
             <div className="flex gap-4">
               <button onClick={() => setShowLogoutModal(false)} className="flex-1 rounded-2xl border border-white/10 bg-white/5 py-4 text-[10px] font-extrabold text-white uppercase tracking-widest transition-all hover:bg-white/10">Stay Here</button>
               <button onClick={handleSignOut} className="flex-1 rounded-2xl bg-red-500 py-4 text-[10px] font-extrabold text-white shadow-lg shadow-red-500/20 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest">Sign Out</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showNavigationModal && navigationOrder && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/65 p-4 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="w-full max-w-4xl overflow-hidden rounded-[2rem] border border-white/20 bg-[#f4f9f4] shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-start justify-between gap-4 border-b border-[#397234]/10 bg-white/80 px-6 py-5">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#397239]/50">Pickup confirmed</p>
+                <h3 className="mt-1 text-2xl font-black text-[#244c21]">Navigate to pickup location</h3>
+                <p className="mt-1 text-sm font-medium text-[#397239]/70">
+                  {navigationOrder.location || 'Location not available'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowNavigationModal(false)}
+                className="rounded-full border border-[#397234]/10 bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid gap-4 p-4 lg:grid-cols-[1.25fr_0.75fr]">
+              <div className="overflow-hidden rounded-[1.5rem] border border-[#397234]/10 bg-white shadow-inner min-h-[420px]">
+                {buildMapEmbedUrl(navigationOrder) ? (
+                  <iframe
+                    title="Pickup navigation map"
+                    src={buildMapEmbedUrl(navigationOrder)}
+                    className="h-full w-full min-h-[420px]"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                ) : (
+                  <div className="grid h-full min-h-[420px] place-items-center px-6 text-center text-[#397239]/60">
+                    No map data available for this pickup.
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col justify-between gap-4 rounded-[1.5rem] border border-[#397234]/10 bg-white/90 p-5 shadow-sm">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/40">Destination</p>
+                    <p className="mt-1 text-sm font-bold text-[#244c21]">{navigationOrder.location || 'Location not available'}</p>
+                  </div>
+
+                  <div className="rounded-2xl bg-[#D6E9CA]/35 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/40">Order</p>
+                    <p className="mt-1 text-sm font-black text-[#244c21]">{navigationOrder._id?.slice(-8)?.toUpperCase() || 'N/A'}</p>
+                    <p className="text-xs font-medium text-[#397239]/60">{navigationOrder.service_type || 'Pickup'}</p>
+                  </div>
+
+                  <div className="rounded-2xl bg-[#D6E9CA]/35 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/40">Navigation</p>
+                    <p className="mt-1 text-xs font-medium text-[#397239]/60">Open turn-by-turn directions in Google Maps and start the route to the pickup site.</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = buildNavigationUrl(navigationOrder);
+                      if (url) {
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                      }
+                    }}
+                    className="rounded-2xl bg-[#397239] px-4 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#244c21]"
+                  >
+                    Open navigation
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowNavigationModal(false)}
+                    className="rounded-2xl border border-[#397234]/10 bg-white px-4 py-3 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+                  >
+                    Continue to dashboard
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
