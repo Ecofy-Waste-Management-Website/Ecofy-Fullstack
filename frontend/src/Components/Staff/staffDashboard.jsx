@@ -88,6 +88,12 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
   ),
+  ExternalLink: () => (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 5h6m0 0v6m0-6L10 14" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 7a2 2 0 012-2h4m-6 8v6a2 2 0 002 2h6" />
+    </svg>
+  ),
   Send: () => (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -122,14 +128,14 @@ export default function StaffDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [displayName, setDisplayName] = useState('Staff Member');
-
+  const [pickupPinValues, setPickupPinValues] = useState({});
+  const [verifiedPickupPins, setVerifiedPickupPins] = useState({});
   // Inquiry state
   const [inquiries, setInquiries] = useState([]);
   const [inquiriesLoading, setInquiriesLoading] = useState(false);
   const [expandedInquiryId, setExpandedInquiryId] = useState(null);
   const [replyTexts, setReplyTexts] = useState({});
   const [sendingReply, setSendingReply] = useState(null);
-
   const [settingsForm, setSettingsForm] = useState({
     firstName: '',
     lastName: '',
@@ -340,6 +346,10 @@ export default function StaffDashboard() {
 
   const updateTaskStatus = async (taskId, newStatus) => {
     if (updatingTask === taskId) return;
+    if (newStatus === 'Completed' && activeTasks.find((task) => task._id === taskId)?.pickupPin && !verifiedPickupPins[taskId]) {
+      showNotification('Verify the pickup PIN before completing this task.', 'error');
+      return;
+    }
     setUpdatingTask(taskId);
     try {
       const res = await fetch(`${API_BASE_URL}/staff/tasks/${taskId}/status`, {
@@ -412,7 +422,81 @@ export default function StaffDashboard() {
     }
   };
 
+  const cancelPickup = async (order) => {
+    if (!user?.id || confirmingOrderId === order._id) return;
+
+    const confirmed = window.confirm('Cancel this pickup and return it to pending orders?');
+    if (!confirmed) return;
+
+    setConfirmingOrderId(order._id);
+    try {
+      const cancelRes = await fetch(`${API_BASE_URL}/service-monitoring/${order._id}/cancel`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clerkId: user.id }),
+      });
+
+      const cancelData = await cancelRes.json();
+
+      if (!cancelRes.ok) {
+        throw new Error(cancelData.message || 'Failed to cancel pickup');
+      }
+
+      setActiveTasks((prev) => prev.filter((item) => item._id !== order._id));
+      setPendingOrders((prev) => [{ ...order, status: 'Pending', assignedStaff: null }, ...prev]);
+      setPickupPinValues((prev) => {
+        const next = { ...prev };
+        delete next[order._id];
+        return next;
+      });
+      setVerifiedPickupPins((prev) => {
+        const next = { ...prev };
+        delete next[order._id];
+        return next;
+      });
+      showNotification('Pickup cancelled and returned to pending orders.');
+      setActiveTab('pending');
+    } catch (err) {
+      console.error('Failed to cancel pickup:', err);
+      showNotification(err.message || 'Failed to cancel pickup.', 'error');
+    } finally {
+      setConfirmingOrderId(null);
+    }
+  };
+
   const getStatusColor = (status) => STATUS_STYLES[status] || 'bg-gray-100 text-gray-700';
+
+  const handlePickupPinChange = (taskId, value) => {
+    setPickupPinValues((prev) => ({
+      ...prev,
+      [taskId]: value,
+    }));
+  };
+
+  const verifyPickupPin = (task) => {
+    const enteredPin = String(pickupPinValues[task._id] || '').trim();
+    const expectedPin = String(task.pickupPin || '').trim();
+
+    if (!expectedPin) {
+      showNotification('No pickup PIN is available for this order.', 'error');
+      return;
+    }
+
+    if (enteredPin && enteredPin === expectedPin) {
+      setVerifiedPickupPins((prev) => ({
+        ...prev,
+        [task._id]: true,
+      }));
+      showNotification('Pickup PIN verified successfully!');
+      return;
+    }
+
+    setVerifiedPickupPins((prev) => ({
+      ...prev,
+      [task._id]: false,
+    }));
+    showNotification('Invalid pickup PIN.', 'error');
+  };
 
   const formatDate = (date) => {
     if (!date) return 'N/A';
@@ -476,7 +560,20 @@ export default function StaffDashboard() {
       </div>
 
       <div className="bg-[#D6E9CA]/50 rounded-2xl p-4 mb-4 border border-[#397234]/10 shadow-inner">
-        <p className="text-[9px] font-bold text-[#397239]/40 uppercase tracking-widest mb-2 flex items-center gap-1.5"><Icons.MapPin /> LOCATION</p>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-[9px] font-bold text-[#397239]/40 uppercase tracking-widest flex items-center gap-1.5"><Icons.MapPin /> LOCATION</p>
+          {task.location && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(task.location)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#397239]/15 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-[#397239] transition-all hover:bg-white"
+            >
+              Open in Google Maps
+              <Icons.ExternalLink />
+            </a>
+          )}
+        </div>
         <p className="text-sm text-[#244c21] font-bold leading-relaxed truncate">{task.location || 'Location missing'}</p>
       </div>
 
@@ -492,6 +589,66 @@ export default function StaffDashboard() {
           <p className="text-xs font-black text-[#244c21] mt-1">{isCompleted ? formatTime(task.completedAt) : formatTime(task.scheduled_date)}</p>
         </div>
       </div>
+
+      {!isCompleted && (
+      <div className="grid grid-cols-1 gap-3 mb-6 md:grid-cols-3">
+        <div className="rounded-2xl border border-[#397234]/10 bg-white/60 p-3">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-[#397239]/40">Order Price</p>
+          <p className="mt-1 text-sm font-black text-[#244c21]">{formatCurrency(getEstimatedAmount(task))}</p>
+        </div>
+
+        <div className="rounded-2xl border border-[#397234]/10 bg-white/60 p-3">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-[#397239]/40">Customer Phone</p>
+          <p className="mt-1 text-sm font-black text-[#244c21] truncate">{task.customer_phone || 'Phone unavailable'}</p>
+          {task.customer_phone ? (
+            <a
+              href={`tel:${task.customer_phone}`}
+              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#397239] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-[#244c21]"
+            >
+              Call User
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#397239]/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-[#397239]/40"
+            >
+              Call User
+            </button>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-[#397234]/10 bg-white/60 p-3">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-[#397239]/40">Pickup PIN</p>
+          <div className="mt-2 flex gap-2">
+            <input
+              type="text"
+              inputMode="numeric"
+              value={pickupPinValues[task._id] || ''}
+              onChange={(event) => handlePickupPinChange(task._id, event.target.value)}
+              placeholder={task.pickupPin ? 'Enter generated PIN' : 'No PIN available'}
+              className={`min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm font-bold text-[#244c21] outline-none transition-all ${
+                verifiedPickupPins[task._id]
+                  ? 'border-green-400 bg-green-50'
+                  : 'border-[#397234]/15 bg-white/80 focus:border-[#397239]'
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => verifyPickupPin(task)}
+              className="rounded-xl bg-[#244c21] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-[#397239]"
+            >
+              Verify
+            </button>
+          </div>
+          {task.pickupPin && (
+            <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-[#397239]/45">
+              {verifiedPickupPins[task._id] ? 'PIN verified' : 'Enter the order PIN before completing'}
+            </p>
+          )}
+        </div>
+      </div>
+      )}
 
       {!isCompleted && task.notes && (
         <div className="bg-amber-50/30 rounded-2xl p-3 mb-6 border border-amber-100/30">
@@ -522,6 +679,19 @@ export default function StaffDashboard() {
           </button>
         </div>
       )}
+
+      {!isCompleted && (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => cancelPickup(task)}
+            disabled={confirmingOrderId === task._id}
+            className="w-full rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-700 transition-all hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {confirmingOrderId === task._id ? 'Cancelling...' : 'Cancel Pickup'}
+          </button>
+        </div>
+      )}
     </div>
   );
 
@@ -530,7 +700,7 @@ export default function StaffDashboard() {
     return `LKR ${value.toLocaleString()}`;
   };
 
-  const getEstimatedAmount = (order) => SERVICE_PRICES[order.service_type] || order.estimated_amt || 0;
+  const getEstimatedAmount = (order) => order.servicePrice || SERVICE_PRICES[order.service_type] || order.estimated_amt || 0;
 
   const PendingOrdersPanel = () => (
     <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.4fr] gap-4 min-h-[540px]">
@@ -1025,7 +1195,7 @@ export default function StaffDashboard() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className={`grid grid-cols-1 gap-4 ${activeTab === 'active' || activeTab === 'completed' ? '' : 'md:grid-cols-2'}`}>
                 {activeTab === 'pending' && (
                   <div className="col-span-full">
                     <PendingOrdersPanel />
@@ -1061,15 +1231,33 @@ export default function StaffDashboard() {
                 )}
 
                 {activeTab === 'active' && (
-                  <div className="col-span-full">
-                    <ActiveTasksPanel tasks={ongoingTasks} renderTaskCard={renderTaskCard} />
-                  </div>
+                  ongoingTasks.length === 0 ? (
+                    <div className="col-span-full rounded-3xl border border-dashed border-[#397239]/20 bg-[#D6E9CA]/20 p-12 text-center flex flex-col items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-[#397234]/5 flex items-center justify-center text-[#397239] border border-[#397234]/10"><Icons.ActiveTasks /></div>
+                      <p className="text-[#397239]/60 font-black uppercase tracking-widest text-[10px]">No active tasks in progress.</p>
+                    </div>
+                  ) : (
+                    ongoingTasks.map((task) => (
+                      <div key={task._id} className="col-span-full">
+                        {renderTaskCard(task)}
+                      </div>
+                    ))
+                  )
                 )}
 
                 {activeTab === 'completed' && (
-                  <div className="col-span-full">
-                    <CompleteTodayPanel tasks={completedTasks} renderTaskCard={renderTaskCard} />
-                  </div>
+                  completedTasks.length === 0 ? (
+                    <div className="col-span-full rounded-3xl border border-dashed border-[#397239]/20 bg-[#D6E9CA]/20 p-12 text-center flex flex-col items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-[#397234]/5 flex items-center justify-center text-[#397239] border border-[#397234]/10"><Icons.CompletedTasks /></div>
+                      <p className="text-[#397239]/60 font-black uppercase tracking-widest text-[10px]">No tasks completed yet today.</p>
+                    </div>
+                  ) : (
+                    completedTasks.map((task) => (
+                      <div key={task._id} className="col-span-full">
+                        {renderTaskCard(task, true)}
+                      </div>
+                    ))
+                  )
                 )}
               </div>
               <footer className="mt-8 text-[0.75rem] text-[#397239]/40 pb-6 text-center">&copy; 2026 Ecofy Waste Management</footer>

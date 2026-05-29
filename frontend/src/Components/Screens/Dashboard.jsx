@@ -16,6 +16,7 @@ const STATUS_STYLES = {
   "En Route": "bg-cyan-100 text-cyan-700",
   Completed: "bg-green-100 text-green-700",
   Delayed: "bg-red-100 text-red-700",
+  Cancelled: "bg-gray-100 text-gray-600",
 };
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
@@ -143,15 +144,17 @@ export default function Dashboard() {
   const { signOut } = useClerk();
   const navigate = useNavigate();
 
-  // ── Pickup modal ──
-  const [showPickupModal, setShowPickupModal] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [lastBooking, setLastBooking] = useState(null);
-  const [activeTab, setActiveTab] = useState("track-status");
-  const [locationQuery, setLocationQuery] = useState("");
-  const [searchStatus, setSearchStatus] = useState({ type: "", text: "" });
-  const [pickupLocation, setPickupLocation] = useState("");
-  const [selectedMapLocation, setSelectedMapLocation] = useState("");
+  // ── Pickup modal ──
+  const [showPickupModal, setShowPickupModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [lastBooking, setLastBooking] = useState(null);
+  const [activeTab, setActiveTab] = useState("track-status");
+  const [locationQuery, setLocationQuery] = useState("");
+  const [searchStatus, setSearchStatus] = useState({ type: "", text: "" });
+  const [pickupLocation, setPickupLocation] = useState("");
+  const [selectedMapLocation, setSelectedMapLocation] = useState("");
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [cancellingBookingId, setCancellingBookingId] = useState(null);
 
   // ── User bookings (for stats + pickup status) ──
   const [bookings, setBookings] = useState([]);
@@ -213,12 +216,58 @@ export default function Dashboard() {
 
   const openProfile = () => setActiveTab("profile");
 
-  const handleLocationSearch = () => {
-    const value = locationQuery.trim();
-    if (!value) {
-      setSearchStatus({ type: "error", text: "Please enter a location to search." });
-      return;
-    }
+  const closeBookingModal = () => setSelectedBooking(null);
+
+  const handleCancelBooking = async () => {
+    if (!selectedBooking || cancellingBookingId === selectedBooking._id) return;
+
+    const confirmed = window.confirm("Cancel this order? This will mark it as cancelled and remove it from your active tracking list.");
+    if (!confirmed) return;
+
+    const email = user?.primaryEmailAddress?.emailAddress;
+    if (!email) {
+      setSearchStatus({ type: "error", text: "Unable to cancel this order right now." });
+      return;
+    }
+
+    try {
+      setCancellingBookingId(selectedBooking._id);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/bookings/${selectedBooking._id}/cancel`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer_email: email,
+          clerkId: user?.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to cancel order");
+      }
+
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking._id === selectedBooking._id ? { ...booking, status: "Cancelled", assignedStaff: null, timeline: [...(booking.timeline || []), { event: "Pickup cancelled by customer", time: new Date().toISOString() }] } : booking
+        )
+      );
+      setSelectedBooking((current) => current?._id === selectedBooking._id ? { ...current, status: "Cancelled", assignedStaff: null, timeline: [...(current.timeline || []), { event: "Pickup cancelled by customer", time: new Date().toISOString() }] } : current);
+      setSearchStatus({ type: "success", text: "Order cancelled successfully." });
+      await fetchBookings();
+    } catch (error) {
+      setSearchStatus({ type: "error", text: error.message || "Failed to cancel order." });
+    } finally {
+      setCancellingBookingId(null);
+    }
+  };
+
+  const handleLocationSearch = () => {
+    const value = locationQuery.trim();
+    if (!value) {
+      setSearchStatus({ type: "error", text: "Please enter a location to search." });
+      return;
+    }
 
     setPickupLocation(value);
     setSelectedMapLocation(value);
@@ -313,52 +362,166 @@ export default function Dashboard() {
     );
   });
 
-  const TrackStatusPanel = () => (
-    <div className="space-y-6">
-      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-800">Track Status</h2>
-            <p className="mt-1 text-sm text-gray-500">See your active pickup progress and latest status updates.</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setActiveTab("schedule")}
-            className="self-start rounded-full border border-[#06a63e]/30 bg-[#06a63e]/5 px-4 py-2 text-sm font-semibold text-[#03652a] transition hover:bg-[#06a63e]/10"
-          >
-            Schedule new pickup
-          </button>
-        </div>
+  const BookingDetailsModal = () => {
+    if (!selectedBooking) return null;
+    const timelineEntries = Array.isArray(selectedBooking.timeline) ? selectedBooking.timeline : [];
 
-        <div className="mt-5 space-y-3">
-          {loadingBookings ? (
-            <p className="text-sm text-gray-400">Loading pickups…</p>
-          ) : activeBookings.length === 0 ? (
-            <p className="text-sm text-gray-400">No recent pickups to display.</p>
-          ) : (
-            activeBookings.slice(0, 5).map((b) => (
-              <div
-                key={b._id}
-                className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3"
-              >
-                <div>
-                  <p className="text-sm font-medium text-gray-700">
-                    {b.service_type} — {b.waste_category}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {b.location} · {new Date(b.scheduled_date).toLocaleDateString()}
-                  </p>
-                </div>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[b.status] || "bg-gray-100 text-gray-600"}`}
-                >
-                  {b.status}
-                </span>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
+        <div className="w-full max-w-2xl rounded-[32px] bg-white p-6 shadow-2xl border border-gray-100">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#06a63e]">Pickup Order</p>
+              <h3 className="mt-2 text-2xl font-bold text-gray-900">
+                {selectedBooking.service_type} — {selectedBooking.waste_category}
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Clicked order details and generated pickup PIN
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={closeBookingModal}
+              className="rounded-full border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-100"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Location</p>
+              <p className="mt-2 text-sm font-semibold text-gray-800">{selectedBooking.location || "Location unavailable"}</p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Scheduled Date</p>
+              <p className="mt-2 text-sm font-semibold text-gray-800">
+                {selectedBooking.scheduled_date ? new Date(selectedBooking.scheduled_date).toLocaleDateString() : "N/A"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Status</p>
+              <p className="mt-2 text-sm font-semibold text-gray-800">{selectedBooking.status || "Pending"}</p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Generated PIN</p>
+              <p className="mt-2 text-2xl font-black tracking-[0.2em] text-[#06a63e]">
+                {selectedBooking.pickupPin || "N/A"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4 md:col-span-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Assigned Staff</p>
+              <p className="mt-2 text-sm font-semibold text-gray-800">
+                {selectedBooking.assignedStaff || "Not yet assigned"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-[#06a63e]/15 bg-[#06a63e]/5 p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#03652a]">Order Notes</p>
+            <p className="mt-2 text-sm text-gray-700">
+              {selectedBooking.notes || "No notes added for this order."}
+            </p>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Live Status Timeline</p>
+              <p className="text-xs font-semibold text-gray-500">
+                {timelineEntries.length} updates
+              </p>
+            </div>
+            <div className="mt-4 max-h-56 space-y-3 overflow-y-auto pr-1">
+              {timelineEntries.length === 0 ? (
+                <p className="text-sm text-gray-500">No timeline updates yet.</p>
+              ) : (
+                timelineEntries.map((entry, index) => (
+                  <div key={`${entry.event || "event"}-${index}`} className="flex gap-3 rounded-2xl border border-white bg-white p-3 shadow-sm">
+                    <div className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#06a63e]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-gray-800">{entry.event || "Status update"}</p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {entry.time ? new Date(entry.time).toLocaleString() : "Time unavailable"}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-end">
+            {selectedBooking?.status !== "Completed" && selectedBooking?.status !== "Cancelled" && (
+              <button
+                type="button"
+                onClick={handleCancelBooking}
+                disabled={cancellingBookingId === selectedBooking._id}
+                className="mr-3 rounded-full border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {cancellingBookingId === selectedBooking._id ? "Cancelling..." : "Cancel Order"}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={closeBookingModal}
+              className="rounded-full bg-[#06a63e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#058b33]"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const TrackStatusPanel = () => (
+    <div className="space-y-6">
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800">Track Status</h2>
+            <p className="mt-1 text-sm text-gray-500">See your active pickup progress and latest status updates.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab("schedule")}
+            className="self-start rounded-full border border-[#06a63e]/30 bg-[#06a63e]/5 px-4 py-2 text-sm font-semibold text-[#03652a] transition hover:bg-[#06a63e]/10"
+          >
+            Schedule new pickup
+          </button>
+        </div>
+
+        <div className="mt-5 space-y-3">
+          {loadingBookings ? (
+            <p className="text-sm text-gray-400">Loading pickups…</p>
+          ) : activeBookings.length === 0 ? (
+            <p className="text-sm text-gray-400">No recent pickups to display.</p>
+          ) : (
+            activeBookings.slice(0, 5).map((b) => (
+              <button
+                key={b._id}
+                type="button"
+                onClick={() => setSelectedBooking(b)}
+                className="flex w-full items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-left transition hover:border-[#06a63e]/30 hover:bg-[#06a63e]/5"
+              >
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    {b.service_type} — {b.waste_category}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {b.location} · {new Date(b.scheduled_date).toLocaleDateString()}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[b.status] || "bg-gray-100 text-gray-600"}`}
+                >
+                  {b.status}
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
 
       <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Driver Location</h2>
@@ -608,17 +771,19 @@ export default function Dashboard() {
         {activeTab === "inquiry" && <InquiryPanel />}
       </main>
 
-      {/* ── Request Pickup Modal ── */}
-      <RequestPickupModal
-        isOpen={showPickupModal}
-        onClose={() => setShowPickupModal(false)}
-        initialLocation={pickupLocation}
-        onSuccess={(bookingDetails) => {
-          setLastBooking(bookingDetails);
-          setShowPickupModal(false);
-          setShowPaymentModal(true);
-        }}
-      />
+      <BookingDetailsModal />
+
+      {/* ── Request Pickup Modal ── */}
+      <RequestPickupModal
+        isOpen={showPickupModal}
+        onClose={() => setShowPickupModal(false)}
+        initialLocation={pickupLocation}
+        onSuccess={(bookingDetails) => {
+          setLastBooking(bookingDetails);
+          setShowPickupModal(false);
+          setShowPaymentModal(true);
+        }}
+      />
 
       <PaymentModal
         isOpen={showPaymentModal}

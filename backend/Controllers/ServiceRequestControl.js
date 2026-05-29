@@ -1,5 +1,16 @@
 const ServiceRequest = require("../Model/ServiceRequestModel");
 const Notification = require("../Model/NotificationModel");
+const { randomInt } = require("crypto");
+
+const SERVICE_PRICES = {
+  Household: 150000,
+  Commercial: 350000,
+  Bulk: 250000,
+  Garden: 120000,
+  "Drain Cleaning": 200000,
+};
+
+const generatePickupPin = () => String(randomInt(100000, 1000000));
 
 const STATUS_NOTIFICATIONS = {
   Assigned: {
@@ -27,6 +38,11 @@ const STATUS_NOTIFICATIONS = {
     message: "Your pickup request is back to pending status.",
     type: "Info",
   },
+  Cancelled: {
+    title: "Pickup Cancelled",
+    message: "Your pickup request has been cancelled successfully.",
+    type: "Warning",
+  },
 };
 // POST - Create a new waste collection booking
 const createBooking = async (req, res) => {
@@ -34,6 +50,7 @@ const createBooking = async (req, res) => {
     const {
       customer_name,
       customer_email,
+      customer_phone,
       clerkId,
       service_type,
       waste_category,
@@ -42,15 +59,21 @@ const createBooking = async (req, res) => {
       notes,
     } = req.body;
 
+    const servicePrice = SERVICE_PRICES[service_type] || 0;
+    const pickupPin = req.body.pickupPin || generatePickupPin();
+
     const newBooking = new ServiceRequest({
       customer_name,
       customer_email,
+      customer_phone: customer_phone || "",
       clerkId,
       service_type,
       waste_category,
       location,
       scheduled_date,
       notes,
+      servicePrice,
+      pickupPin,
     });
 
     const savedBooking = await newBooking.save();
@@ -157,9 +180,65 @@ const updateBookingStatus = async (req, res) => {
   }
 };
 
+// PATCH - Cancel a booking for the owning customer
+const cancelBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { clerkId, customer_email } = req.body;
+
+    const booking = await ServiceRequest.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (booking.status === "Completed") {
+      return res.status(400).json({ message: "Completed orders cannot be cancelled" });
+    }
+
+    if (booking.status === "Cancelled") {
+      return res.status(400).json({ message: "Order is already cancelled" });
+    }
+
+    const normalizedEmail = typeof customer_email === "string" ? customer_email.trim().toLowerCase() : "";
+    const bookingEmail = typeof booking.customer_email === "string" ? booking.customer_email.trim().toLowerCase() : "";
+    const isOwner = Boolean(normalizedEmail) && bookingEmail === normalizedEmail;
+    const isClerkOwner = Boolean(clerkId) && booking.clerkId === clerkId;
+
+    if (!isOwner && !isClerkOwner) {
+      return res.status(403).json({ message: "You can only cancel your own order" });
+    }
+
+    booking.status = "Cancelled";
+    booking.assignedStaff = null;
+    booking.timeline.push({ event: "Pickup cancelled by customer", time: new Date() });
+
+    await booking.save();
+
+    if (booking.clerkId) {
+      await Notification.create({
+        clerkId: booking.clerkId,
+        title: "Pickup Cancelled",
+        message: "A pickup order was cancelled by the customer.",
+        type: "Warning",
+        target: "user",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Booking cancelled successfully",
+      booking,
+    });
+  } catch (error) {
+    console.log("Error cancelling booking:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   createBooking,
   getAllBookings,
   getUserBookings,
   updateBookingStatus,
+  cancelBooking,
 };

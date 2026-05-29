@@ -1,6 +1,7 @@
 const express = require("express");
 const router  = express.Router();
 const ServiceRequest = require("../Model/ServiceRequestModel");
+const Notification = require("../Model/NotificationModel");
 
 // ── Broadcast helper ──────────────────────────────────────────────────────────
 // Sends a WebSocket message to every connected dashboard client.
@@ -22,9 +23,12 @@ function toFrontend(doc) {
     requestId:     `#REQ-${doc._id.toString().slice(-5).toUpperCase()}`,
     customer:      doc.customer_name,
     email:         doc.customer_email,
+    customer_phone: doc.customer_phone,
     location:      doc.location,
     type:          doc.service_type,
     wasteCategory: doc.waste_category,
+    servicePrice:  doc.servicePrice,
+    pickupPin:     doc.pickupPin,
     status:        doc.status,
     assignedStaff: doc.assignedStaff,
     submittedAt:   doc.createdAt,
@@ -140,15 +144,64 @@ router.patch("/:id/assign", async (req, res) => {
 
     const doc = await ServiceRequest.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: "Not found" });
-    // Accept either a staff display name (from Admin UI) or a clerkId (e.g. user_xxx from Clerk).
-    // No validation here — staff ownership/authorization is enforced in staffController when staff update statuses.
+    // Allow Clerk IDs (they may start with "user_") as well as plain staff names.
+    // No special-format rejection here — any string (or null) is accepted.
     if (doc.assignedStaff !== assignedStaff) {
       doc.assignedStaff = assignedStaff || null;
       const event = assignedStaff
         ? `Assigned to ${assignedStaff}`
         : "Staff unassigned";
       doc.timeline.push({ event, time: new Date() });
+
+      if (assignedStaff && doc.clerkId) {
+        await Notification.create({
+          clerkId: doc.clerkId,
+          title: "Pickup Confirmed",
+          message: "Your pickup order has been confirmed by staff. We are on the way.",
+          type: "Success",
+          target: "user",
+          relatedService: null,
+        });
+      }
+
       await doc.save();
+    }
+
+    const payload = toFrontend(doc);
+    broadcast(req, { type: "REQUEST_UPDATED", data: payload });
+    res.json({ success: true, data: payload });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ── PATCH /service-monitoring/:id/cancel ─────────────────────────────────────
+// Cancels a staff pickup, returns it to pending, and notifies the customer.
+router.patch("/:id/cancel", async (req, res) => {
+  try {
+    const { clerkId } = req.body;
+
+    const doc = await ServiceRequest.findById(req.params.id);
+    if (!doc) return res.status(404).json({ success: false, message: "Not found" });
+
+    if (clerkId && doc.assignedStaff && doc.assignedStaff !== clerkId) {
+      return res.status(403).json({ success: false, message: "You can only cancel your own assigned pickup" });
+    }
+
+    doc.assignedStaff = null;
+    doc.status = "Pending";
+    doc.timeline.push({ event: "Pickup cancelled by staff and returned to pending orders", time: new Date() });
+    await doc.save();
+
+    if (doc.clerkId) {
+      await Notification.create({
+        clerkId: doc.clerkId,
+        title: "Pickup Cancelled",
+        message: "Your pickup order was cancelled by staff and returned to pending orders.",
+        type: "Warning",
+        target: "user",
+        relatedService: null,
+      });
     }
 
     const payload = toFrontend(doc);
