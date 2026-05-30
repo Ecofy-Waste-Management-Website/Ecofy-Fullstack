@@ -55,12 +55,30 @@ const createBooking = async (req, res) => {
       service_type,
       waste_category,
       location,
+      pickupCoordinates,
       scheduled_date,
       notes,
     } = req.body;
 
     const servicePrice = SERVICE_PRICES[service_type] || 0;
     const pickupPin = req.body.pickupPin || generatePickupPin();
+    const normalizedCoordinates = pickupCoordinates
+      ? {
+          latitude:
+            typeof pickupCoordinates.latitude === "number"
+              ? pickupCoordinates.latitude
+              : Number(pickupCoordinates.latitude),
+          longitude:
+            typeof pickupCoordinates.longitude === "number"
+              ? pickupCoordinates.longitude
+              : Number(pickupCoordinates.longitude),
+        }
+      : null;
+
+    const hasValidCoordinates =
+      normalizedCoordinates &&
+      Number.isFinite(normalizedCoordinates.latitude) &&
+      Number.isFinite(normalizedCoordinates.longitude);
 
     const newBooking = new ServiceRequest({
       customer_name,
@@ -70,6 +88,7 @@ const createBooking = async (req, res) => {
       service_type,
       waste_category,
       location,
+      pickupCoordinates: hasValidCoordinates ? normalizedCoordinates : undefined,
       scheduled_date,
       notes,
       servicePrice,
@@ -215,13 +234,22 @@ const cancelBooking = async (req, res) => {
 
     await booking.save();
 
+    await Notification.create({
+      title: "Pickup Cancelled",
+      message: `${booking.customer_name} cancelled a ${booking.service_type} pickup scheduled for ${new Date(booking.scheduled_date).toLocaleDateString()}.`,
+      type: "Warning",
+      target: "admin",
+      relatedService: null,
+    });
+
     if (booking.clerkId) {
       await Notification.create({
         clerkId: booking.clerkId,
         title: "Pickup Cancelled",
-        message: "A pickup order was cancelled by the customer.",
+        message: "Your pickup order has been cancelled successfully.",
         type: "Warning",
         target: "user",
+        relatedService: null,
       });
     }
 

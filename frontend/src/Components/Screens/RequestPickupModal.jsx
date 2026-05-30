@@ -5,7 +5,13 @@ import { createPickupRequest } from "../../services/api/bookingService";
 const SERVICE_TYPES = ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
 const WASTE_CATEGORIES = ["General", "Recyclable", "Hazardous", "Electronic", "Garden"];
 
-export default function RequestPickupModal({ isOpen, onClose, onSuccess, initialLocation = "" }) {
+export default function RequestPickupModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  initialLocation = "",
+  initialCoordinates = null,
+}) {
   const { user } = useUser();
 
   const createEmptyForm = (location = "") => ({
@@ -71,6 +77,7 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
         customer_email: user?.primaryEmailAddress?.emailAddress || "",
         customer_phone: user?.phoneNumbers?.[0]?.phoneNumber || "",
         clerkId: user?.id,
+        pickupCoordinates: initialCoordinates,
         ...form,
       });
 
@@ -85,11 +92,12 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
       setTimeout(() => {
         resetForm();
         onSuccess?.({
-        ...form,
-        clerkId: user?.id,
-        email: user?.primaryEmailAddress?.emailAddress || "",
-        pickupPin: booking?.pickupPin || "",
-      });
+          ...form,
+          clerkId: user?.id,
+          email: user?.primaryEmailAddress?.emailAddress || "",
+          pickupPin: booking?.pickupPin || "",
+          pickupCoordinates: booking?.pickupCoordinates || initialCoordinates || null,
+        });
         onClose();
       }, 1500);
     } catch (error) {
