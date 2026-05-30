@@ -168,6 +168,7 @@ export default function Dashboard() {
   const [pickupCoordinates, setPickupCoordinates] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [cancellingBookingId, setCancellingBookingId] = useState(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   // ── User bookings (for stats + pickup status) ──
   const [bookings, setBookings] = useState([]);
@@ -580,7 +581,7 @@ export default function Dashboard() {
             title="Billing questions"
             description="Review your service history or ask about a recent transaction."
             actionLabel="Order history"
-            onAction={() => navigate("/service-history")}
+            onAction={() => setShowHistoryModal(true)}
           />
           <HelpCard
             title="Live assistance"
@@ -619,6 +620,48 @@ export default function Dashboard() {
       </div>
     </div>
   );
+
+const HistoryChooserModal = () => {
+  if (!showHistoryModal) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-[20px] bg-green-50 p-8 shadow-2xl border border-gray-100 text-center">
+        <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#06a63e]/20">
+          <svg className="h-6 w-6 text-[#06a63e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <h2 className="mt-3 text-xl font-bold text-gray-900">View History</h2>
+        <p className="mt-1 text-sm text-gray-500">Which history would you like to view?</p>
+
+        <div className="mt-6 flex flex-row gap-3">
+          <button
+            type="button"
+            onClick={() => { setShowHistoryModal(false); navigate("/service-history"); }}
+            className="w-full rounded-2xl bg-[#06a63e] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#058b33] active:scale-95"
+          >
+            📦 Order History
+          </button>
+          <button
+            type="button"
+            onClick={() => { setShowHistoryModal(false); navigate("/payment-history"); }}
+            className="w-full rounded-2xl bg-[#06a63e] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#058b33] active:scale-95"
+          >
+            💳 Payment History
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowHistoryModal(false)}
+          className="mt-4 text-[#397239]/60 hover:text-[#397239] text-sm  transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+};
 
   return (
     <>
@@ -689,7 +732,7 @@ export default function Dashboard() {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/service-history")}
+              onClick={() => setShowHistoryModal(true)}
               className="px-5 py-2 rounded-full font-medium text-gray-700 transition-all duration-300 hover:bg-[#66c45e] hover:text-white"
             >
               History
@@ -787,6 +830,7 @@ export default function Dashboard() {
       </main>
 
       <BookingDetailsModal />
+      <HistoryChooserModal />
 
       {/* ── Request Pickup Modal ── */}
       <RequestPickupModal
