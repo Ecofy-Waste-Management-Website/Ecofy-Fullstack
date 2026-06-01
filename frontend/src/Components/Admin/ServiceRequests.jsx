@@ -40,7 +40,7 @@ const Icons = {
 };
 
 // ── Config ─────────────────────────────────────────────────────────────────────
-const API_ORIGIN = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API_ORIGIN = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const API_BASE = `${API_ORIGIN}/service-monitoring`;
 const WS_URL = API_ORIGIN.replace(/^http/, "ws");
 

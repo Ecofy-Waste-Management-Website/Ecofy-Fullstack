@@ -1,11 +1,16 @@
-const User = require("../Model/UserModule");
+const User = require("../Model/User.js");
+const LegacyUser = require("../Model/UserModule");
 const ServiceRequest = require("../Model/ServiceRequestModel");
+const Notification = require("../Model/NotificationModel");
 
 // ── Get staff profile ────────────────────────────────
 const getStaffProfile = async (req, res) => {
   try {
     const { clerkId } = req.params;
-    const staff = await User.findOne({ clerkId, role: "Staff" });
+    const staff =
+      (await User.findOne({ clerkId, role: "Staff" })) ||
+      (await LegacyUser.findOne({ clerkId, role: "Staff" }));
+
     if (!staff) {
       return res.status(404).json({ message: "Staff member not found" });
     }
@@ -162,6 +167,17 @@ const updateTaskStatus = async (req, res) => {
         event: "Task completed by staff",
         time: new Date(),
       });
+
+      if (task.clerkId) {
+        await Notification.create({
+          clerkId: task.clerkId,
+          title: "Pickup Completed",
+          message: "Your pickup has been completed successfully.",
+          type: "Success",
+          target: "user",
+          relatedService: task._id,
+        });
+      }
     }
 
     await task.save();

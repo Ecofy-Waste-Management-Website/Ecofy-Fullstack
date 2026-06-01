@@ -6,6 +6,7 @@ const {
   getAllBookings,
   getUserBookings,
   updateBookingStatus,
+  cancelBooking,
 } = require("../Controllers/ServiceRequestControl");
 
 // POST /  -  Create a new booking
@@ -19,5 +20,8 @@ router.get("/user/:email", getUserBookings);
 
 // PATCH /:id/status  -  Update booking status (Staff/Admin)
 router.patch("/:id/status", updateBookingStatus);
+
+// PATCH /:id/cancel  -  Cancel a booking (Customer)
+router.patch("/:id/cancel", cancelBooking);
 
 module.exports = router;
