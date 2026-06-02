@@ -705,11 +705,14 @@ export default function Dashboard() {
               <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Dashboard</p>
               <p className="mt-0.5 text-sm font-black text-gray-900 truncate">{greetingName}</p>
             </div>
+            <div className="flex items-center gap-2">
+              <NotificationBell target="user" />
             <button type="button" onClick={() => setSidebarOpen(false)} className="rounded-xl p-1.5 text-gray-400 hover:bg-gray-100 lg:hidden">
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
+          </div>
           </div>
 
           {/* Nav items */}
@@ -734,13 +737,10 @@ export default function Dashboard() {
 
           {/* Sidebar footer */}
           <div className="border-t border-gray-100 p-4">
-            <div className="flex items-center gap-3">
-              <NotificationBell target="user" />
               <div className="min-w-0">
                 <p className="text-xs font-bold text-gray-700 truncate">{user?.primaryEmailAddress?.emailAddress}</p>
                 <p className="text-[10px] text-gray-400">Customer</p>
               </div>
-            </div>
           </div>
         </aside>
 
@@ -757,7 +757,7 @@ export default function Dashboard() {
             <p className="text-sm font-black text-gray-800">
               {NAV_ITEMS.find((n) => n.id === activeTab)?.icon} {NAV_ITEMS.find((n) => n.id === activeTab)?.label}
             </p>
-            <div className="w-9" />
+            <NotificationBell target="user" />
           </div>
 
           {/* Page content */}
