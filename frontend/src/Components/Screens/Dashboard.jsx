@@ -740,7 +740,7 @@ export default function Dashboard() {
         {/* ── Main ── */}
         <div className="flex-1 min-w-0 min-h-screen">
           {/* Mobile top bar */}
-          <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 lg:hidden sticky top-0 z-10 shadow-sm">
+          <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 lg:hidden sticky top-[88px] z-10 shadow-sm">
             <button type="button" onClick={() => setSidebarOpen(true)}
               className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-100">
               <Icon name="menu" className="h-5 w-5" />
@@ -751,7 +751,7 @@ export default function Dashboard() {
             <div className="w-9" />
           </div>
 
-          <main className="p-6 lg:p-8">
+          <main className="p-6 pt-28 lg:p-8 lg:pt-28">
             {renderPanel()}
           </main>
         </div>
