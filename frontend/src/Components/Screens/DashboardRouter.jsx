@@ -13,7 +13,6 @@ export default function DashboardRouter() {
 
   useEffect(() => {
     if (!isLoaded || !user) return;
-
     const fetchUserRole = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/users/${user.id}`);
@@ -23,13 +22,12 @@ export default function DashboardRouter() {
         } else {
           setRole('Customer');
         }
-      } catch (err) {
+      } catch {
         setRole('Customer');
       } finally {
         setLoading(false);
       }
     };
-
     fetchUserRole();
   }, [user, isLoaded]);
 
@@ -46,12 +44,9 @@ export default function DashboardRouter() {
 
   return (
     <div className="min-h-screen bg-green-50">
+      {/* Navbar sits fixed on top — sidebar handles its own top offset */}
       <Navbar />
-      {/* pt-28 = 24px (navbar top-6) + 64px (navbar h-16) + 16px breathing room */}
-      <div className="pt-28">
-        <Dashboard />
-      </div>
-      <Footer />
+      <Dashboard />
     </div>
   );
 }
