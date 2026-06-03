@@ -13,6 +13,12 @@ const inquirySchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    clerkId: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
     subject: {
       type: String,
       default: "General Inquiry",

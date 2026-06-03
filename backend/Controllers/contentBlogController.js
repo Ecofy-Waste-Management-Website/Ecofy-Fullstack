@@ -130,7 +130,6 @@ const createBlogPost = async (req, res) => {
       author,
       excerpt,
       content,
-      featuredImage,
       tags,
       status = 'Draft',
     } = req.body;
@@ -144,6 +143,9 @@ const createBlogPost = async (req, res) => {
     const normalizedStatus = status === 'Published' ? 'Published' : 'Draft';
     const slug = await getUniqueSlug(title);
 
+    // Get featured image URL from Cloudinary upload
+    const featuredImage = req.file ? req.file.path : '';
+
     const newPost = await ContentBlog.create({
       title,
       slug,
@@ -151,7 +153,7 @@ const createBlogPost = async (req, res) => {
       author: author || buildAuthorName(req.user),
       excerpt: excerpt || '',
       content,
-      featuredImage: featuredImage || '',
+      featuredImage,
       tags: normalizeTags(tags),
       status: normalizedStatus,
       publishedAt: normalizedStatus === 'Published' ? new Date() : null,
@@ -177,7 +179,6 @@ const updateBlogPost = async (req, res) => {
       author,
       excerpt,
       content,
-      featuredImage,
       tags,
       status,
     } = req.body;
@@ -209,8 +210,9 @@ const updateBlogPost = async (req, res) => {
       post.content = content;
     }
 
-    if (featuredImage !== undefined) {
-      post.featuredImage = featuredImage;
+    // Update featured image if new file is uploaded
+    if (req.file) {
+      post.featuredImage = req.file.path;
     }
 
     if (tags !== undefined) {

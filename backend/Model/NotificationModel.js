@@ -4,7 +4,8 @@ const notificationSchema = new mongoose.Schema(
   {
     clerkId: {
       type: String,
-      required: true,
+      required: false,
+      default:  "",
       index: true,
     },
     
@@ -32,7 +33,7 @@ const notificationSchema = new mongoose.Schema(
     },
     target: {
       type: String,
-      enum: ["user", "admin"],
+      enum: ["user", "admin", "staff"],
       default: "user",
     }
   },

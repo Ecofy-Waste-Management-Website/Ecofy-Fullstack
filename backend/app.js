@@ -17,10 +17,13 @@ const inquiryRouter = require("./Route/inquiryRoute");
 const serviceRequestRouter = require("./Route/ServiceRequestRoute");
 const adminRoutes = require("./Route/adminRoutes");
 const slaAnalyticsRouter = require("./Route/slaAnalyticsRoute");
+const analyticsRouter = require("./Route/analyticsRoute");
 const serviceMonitoringRouter = require("./Route/serviceMonitoringRoute"); 
 const authTestRouter = require("./Route/authTestRoute");
 const stripeRoute = require("./Route/stripe.route");
 const chatbotRouter = require("./Route/chatbotRoute");
+const blogRoute = require("./Route/ContentBlogRoute");
+const serviceManagementRouter = require('./Route/serviceManagementRoute');
 const app = express();
 
 
@@ -33,11 +36,23 @@ wss.on("connection", (ws) => {
   ws.on("close", () => console.log("📡 Dashboard client disconnected"));
 });
 
+wss.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.warn("WebSocket server could not bind to the requested port because it is already in use.");
+    return;
+  }
+
+  throw err;
+});
+
 // Make wss accessible inside route handlers via req.app.get("wss")
 app.set("wss", wss);
 
 //Middleware 
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 
 // Register Clerk middleware only when keys are available.
@@ -62,7 +77,6 @@ if (clerkSecretKey) {
 }
 
 app.use("/users",userRouter);
-
 app.use("/service-history", serviceHistoryRouter);
 app.use("/payment-history", paymentHistoryRouter);
 app.use("/notifications", notificationRouter);
@@ -70,11 +84,14 @@ app.use("/inquiries", inquiryRouter);
 app.use("/bookings", serviceRequestRouter);
 app.use("/admin", adminRoutes);
 app.use("/sla-analytics", slaAnalyticsRouter);
+app.use("/analytics", analyticsRouter);
 app.use("/service-monitoring", serviceMonitoringRouter);
 app.use("/staff", staffRouter);
 app.use("/auth-test", authTestRouter);
 app.use("/api/stripe", stripeRoute);
 app.use("/chatbot", chatbotRouter);
+app.use("/blog", blogRoute);
+app.use('/services', serviceManagementRouter);
 
 
 mongoose.connect(process.env.MONGO_URI, {
@@ -88,7 +105,22 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(()=> console.log("connected to MongoDB"))
 .catch((err)=> console.log(err));
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT , () =>{
-  console.log(`Server is running ! ${PORT}`);
-});
+const BASE_PORT = Number(process.env.PORT) || 5000;
+
+const listenOnPort = (port) => {
+  server.once("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.warn(`Port ${port} is already in use. Retrying on ${port + 1}...`);
+      listenOnPort(port + 1);
+      return;
+    }
+
+    throw err;
+  });
+
+  server.listen(port, () => {
+    console.log(`Server is running ! ${port}`);
+  });
+};
+
+listenOnPort(BASE_PORT);
