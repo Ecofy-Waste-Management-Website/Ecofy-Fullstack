@@ -704,7 +704,7 @@ export default function Dashboard() {
             <p className="mt-0.5 text-sm font-bold text-gray-800 truncate">{greetingName}</p>
             <p className="text-xs text-gray-400 truncate">{user?.primaryEmailAddress?.emailAddress}</p>
           </div>
-          </div>
+          
 
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
@@ -735,6 +735,8 @@ export default function Dashboard() {
             <button type="button" onClick={() => setSidebarOpen(false)} className="rounded-xl p-1.5 text-gray-400 hover:bg-gray-100 lg:hidden">
               <Icon name="close" className="h-4 w-4" />
             </button>
+            </div>
+            </aside>
           {/* Sidebar footer */}
           <div className="border-t border-gray-100 p-4">
               <div className="min-w-0">
@@ -742,7 +744,7 @@ export default function Dashboard() {
                 <p className="text-[10px] text-gray-400">Customer</p>
               </div>
           </div>
-        </aside>
+        
 
         {/* ── Main ── */}
         <div className="flex-1 min-w-0 min-h-screen">
@@ -763,6 +765,7 @@ export default function Dashboard() {
           </main>
         </div>
       </div>
+      
 
       <BookingDetailsModal />
       <HistoryChooserModal />
