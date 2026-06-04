@@ -660,6 +660,11 @@ export default function Dashboard() {
 
   return (
     <>
+      {/* Fixed Notification Bell — top right */}
+      <div className="fixed top-10 right-15 z-50">
+        <NotificationBell target="user" />
+      </div>
+
       {/* Subtle background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-20">
         <svg className="absolute top-40 left-72 w-24 h-24 text-[#218845] animate-wobble" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
@@ -731,19 +736,11 @@ export default function Dashboard() {
 
           {/* Footer */}
           <div className="border-t border-gray-100 p-4 flex items-center justify-between">
-            <NotificationBell target="user" />
             <button type="button" onClick={() => setSidebarOpen(false)} className="rounded-xl p-1.5 text-gray-400 hover:bg-gray-100 lg:hidden">
               <Icon name="close" className="h-4 w-4" />
             </button>
             </div>
             </aside>
-          {/* Sidebar footer */}
-          <div className="border-t border-gray-100 p-4">
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-gray-700 truncate">{user?.primaryEmailAddress?.emailAddress}</p>
-                <p className="text-[10px] text-gray-400">Customer</p>
-              </div>
-          </div>
         
 
         {/* ── Main ── */}
@@ -757,7 +754,7 @@ export default function Dashboard() {
             <p className="text-sm font-bold text-gray-800">
               {NAV_ITEMS.find((n) => n.id === activeTab)?.label}
             </p>
-            <NotificationBell target="user" />
+            <div className="w-9" /> 
           </div>
 
           <main className="p-6 pt-28 lg:p-8 lg:pt-28">
