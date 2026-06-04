@@ -660,6 +660,11 @@ export default function Dashboard() {
 
   return (
     <>
+      {/* Fixed Notification Bell — top right */}
+      <div className="fixed top-10 right-15 z-50">
+        <NotificationBell target="user" />
+      </div>
+
       {/* Subtle background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-20">
         <svg className="absolute top-40 left-72 w-24 h-24 text-[#218845] animate-wobble" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
@@ -704,6 +709,7 @@ export default function Dashboard() {
             <p className="mt-0.5 text-sm font-bold text-gray-800 truncate">{greetingName}</p>
             <p className="text-xs text-gray-400 truncate">{user?.primaryEmailAddress?.emailAddress}</p>
           </div>
+          
 
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
@@ -730,12 +736,12 @@ export default function Dashboard() {
 
           {/* Footer */}
           <div className="border-t border-gray-100 p-4 flex items-center justify-between">
-            <NotificationBell target="user" />
             <button type="button" onClick={() => setSidebarOpen(false)} className="rounded-xl p-1.5 text-gray-400 hover:bg-gray-100 lg:hidden">
               <Icon name="close" className="h-4 w-4" />
             </button>
-          </div>
-        </aside>
+            </div>
+            </aside>
+        
 
         {/* ── Main ── */}
         <div className="flex-1 min-w-0 min-h-screen">
@@ -748,7 +754,7 @@ export default function Dashboard() {
             <p className="text-sm font-bold text-gray-800">
               {NAV_ITEMS.find((n) => n.id === activeTab)?.label}
             </p>
-            <div className="w-9" />
+            <div className="w-9" /> 
           </div>
 
           <main className="p-6 pt-28 lg:p-8 lg:pt-28">
@@ -756,6 +762,7 @@ export default function Dashboard() {
           </main>
         </div>
       </div>
+      
 
       <BookingDetailsModal />
       <HistoryChooserModal />
