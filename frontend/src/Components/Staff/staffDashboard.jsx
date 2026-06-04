@@ -416,6 +416,20 @@ export default function StaffDashboard() {
       if (res.ok) {
         if (newStatus === 'Completed') {
           const task = activeTasks.find(t => t._id === taskId);
+          
+          await fetch(`${API_BASE_URL}/notifications`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              clerkId: user.id,
+              target: 'staff',
+              title: 'Task Completed',
+              message: `You completed the ${task?.service_type || 'service'} order for ${task?.customer_name || 'a customer'}.`,
+              type: 'Success',
+              isRead: false,
+            }),
+          });
+
           setActiveTasks(prev => prev.filter(t => t._id !== taskId));
           setCompletedTasks(prev => [{ ...task, status: 'Completed', completedAt: new Date() }, ...prev]);
           showNotification('Task completed successfully!');
@@ -461,6 +475,18 @@ export default function StaffDashboard() {
       if (!statusRes.ok) {
         throw new Error(statusData.message || 'Failed to confirm pickup');
       }
+
+      await fetch(`${API_BASE_URL}/notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clerkId: user.id,                          // personal — only this staff member
+          target: 'staff',
+          title: 'Pickup Confirmed',
+          message: `You picked up order #${order._id.slice(-8).toUpperCase()} (${order.service_type || 'Service'}) at ${order.location || 'unknown location'}.`,
+          isRead: false,
+        }),
+      });
 
       setPendingOrders((prev) => prev.filter((item) => item._id !== order._id));
       setActiveTasks((prev) => [

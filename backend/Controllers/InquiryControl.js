@@ -29,6 +29,14 @@ const createInquiry = async (req, res) => {
       isRead: false,
     });
 
+    await Notification.create({
+      clerkId: "",           // broadcast to all staff
+      target: "staff",
+      title: "New Inquiry Received",
+      message: `${newInquiry.userName || 'A user'} submitted an inquiry: "${newInquiry.subject || 'General Inquiry'}"`,
+      isRead: false,
+    });
+
     const staffUsers = await User.find({ role: "Staff" }).select("clerkId");
     const staffNotifications = staffUsers
       .filter((s) => s.clerkId)
