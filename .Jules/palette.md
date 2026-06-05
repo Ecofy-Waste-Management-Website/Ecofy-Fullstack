@@ -1,3 +1,0 @@
-## 2024-05-16 - Contact Form Accessibility and Feedback
-**Learning:** Standard React components often lack basic semantic HTML properties. Adding `htmlFor` on labels and `id` on inputs, along with wrapping them in a `<form>`, enables screen reader associations and 'Enter' to submit. Providing visual feedback (`isSubmitting`) prevents multi-click submissions and improves user experience.
-**Action:** Always ensure that form inputs have correctly associated labels and that long-running tasks have an explicit loading state to provide visual feedback.
