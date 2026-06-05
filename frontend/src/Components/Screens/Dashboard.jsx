@@ -21,7 +21,6 @@ const STATUS_STYLES = {
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 const DEFAULT_MAP_CENTER = { lat: 6.9271, lng: 79.8612 };
 
-// ── SVG Icon Components ───────────────────────────────────────────────────
 const Icon = ({ name, className = "h-5 w-5" }) => {
   const icons = {
     home: <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />,
@@ -46,7 +45,6 @@ const Icon = ({ name, className = "h-5 w-5" }) => {
   );
 };
 
-// ── Nav items with SVG icon names ─────────────────────────────────────────
 const NAV_ITEMS = [
   { id: "home",             icon: "home",       label: "Home" },
   { id: "schedule",         icon: "truck",      label: "Schedule Pickup" },
@@ -211,7 +209,6 @@ export default function Dashboard() {
     setSearchStatus({ type: "success", text: `Showing "${v}" on the map.` });
   };
 
-  // ── Shared ────────────────────────────────────────────────────────────────
   const HelpCard = ({ title, description, actionLabel, onAction }) => (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm flex flex-col gap-3">
       <div>
@@ -319,7 +316,6 @@ export default function Dashboard() {
   // ── Panels ────────────────────────────────────────────────────────────────
   const HomePanel = () => (
     <div className="space-y-6">
-      {/* Greeting */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#06a63e] to-[#047a2e] p-7 text-white shadow-md">
         <svg className="absolute -right-4 -top-4 h-40 w-40 opacity-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.5V11m0 0a5 5 0 0 1 5-5h2.5c0 4.5-2 6.5-4 8l-3.5 3m0-11a5 5 0 0 0-5-5H7c0 4.5 2 6.5 4 8l3.5 3" />
@@ -333,7 +329,6 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
           { icon: "truck",      label: "Active Pickups", value: loadingBookings ? "—" : activeBookings.length,    border: "border-amber-200",  bg: "bg-amber-50",  color: "text-amber-600" },
@@ -351,7 +346,6 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Active Pickups */}
       <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-5">
           <div>
@@ -537,9 +531,9 @@ export default function Dashboard() {
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
-          { icon: "creditCard", label: "Total Paid",      value: `LKR ${totalPaid.toLocaleString()}`,                                                          border: "border-blue-200",   bg: "bg-blue-50",   color: "text-blue-600" },
-          { icon: "clock",      label: "Transactions",    value: payments.length,                                                                               border: "border-green-200",  bg: "bg-green-50",  color: "text-green-600" },
-          { icon: "sparkles",   label: "Avg per Booking", value: `LKR ${payments.length > 0 ? Math.round(totalPaid / payments.length).toLocaleString() : 0}`,  border: "border-purple-200", bg: "bg-purple-50", color: "text-purple-600" },
+          { icon: "creditCard", label: "Total Paid",      value: `LKR ${totalPaid.toLocaleString()}`,                                                         border: "border-blue-200",   bg: "bg-blue-50",   color: "text-blue-600" },
+          { icon: "clock",      label: "Transactions",    value: payments.length,                                                                              border: "border-green-200",  bg: "bg-green-50",  color: "text-green-600" },
+          { icon: "sparkles",   label: "Avg per Booking", value: `LKR ${payments.length > 0 ? Math.round(totalPaid / payments.length).toLocaleString() : 0}`, border: "border-purple-200", bg: "bg-purple-50", color: "text-purple-600" },
         ].map(({ icon, label, value, border, bg, color }) => (
           <div key={label} className={`rounded-3xl border bg-white p-5 shadow-sm ${border}`}>
             <div className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl ${bg}`}>
@@ -660,12 +654,12 @@ export default function Dashboard() {
 
   return (
     <>
-      {/* Fixed Notification Bell — top right */}
-      <div className="fixed top-10 right-15 z-50">
+      {/* Notification Bell — fixed top right, aligned with navbar */}
+      <div className="fixed top-0 right-6 z-50 flex h-[88px] items-center">
         <NotificationBell target="user" />
       </div>
 
-      {/* Subtle background */}
+      {/* Background decoration */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-20">
         <svg className="absolute top-40 left-72 w-24 h-24 text-[#218845] animate-wobble" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -687,40 +681,24 @@ export default function Dashboard() {
           transition-transform duration-300 ease-in-out
           lg:sticky lg:translate-x-0 lg:shadow-sm
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          w-64
-          /* full height from very top so no gap */
-          top-0 h-screen
+          w-64 top-0 h-screen
         `}>
-
-          {/* Logo area — matches navbar height (top-6 + h-16 = 88px) */}
+          {/* Logo — fills the same height as the navbar (88px) */}
           <div className="flex h-[88px] items-center gap-3 border-b border-gray-100 px-5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#06a63e]">
               <Icon name="recycle" className="h-5 w-5 text-white" />
             </div>
-            <div>
-              <p className="text-base font-black text-gray-900 leading-tight">Ecofy</p>
-              <p className="text-[11px] text-gray-400 leading-tight">Customer Portal</p>
-            </div>
+            <p className="text-base font-black text-gray-900">Ecofy</p>
           </div>
 
-          {/* User info */}
-          <div className="px-5 py-4 border-b border-gray-100">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Signed in as</p>
-            <p className="mt-0.5 text-sm font-bold text-gray-800 truncate">{greetingName}</p>
-            <p className="text-xs text-gray-400 truncate">{user?.primaryEmailAddress?.emailAddress}</p>
-          </div>
-          
-
-          {/* Nav */}
-          <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+          {/* Nav items */}
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
             {NAV_ITEMS.map((item) => {
               const isActive = activeTab === item.id;
               return (
                 <button key={item.id} type="button" onClick={() => navigate2Tab(item.id)}
                   className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-[#06a63e] text-white"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    isActive ? "bg-[#06a63e] text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                   }`}>
                   <Icon name={item.icon} className="h-[18px] w-[18px] shrink-0" />
                   <span>{item.label}</span>
@@ -734,16 +712,13 @@ export default function Dashboard() {
             })}
           </nav>
 
-          {/* Footer */}
-          <div className="border-t border-gray-100 p-4 flex items-center justify-between">
-            <button type="button" onClick={() => setSidebarOpen(false)} className="rounded-xl p-1.5 text-gray-400 hover:bg-gray-100 lg:hidden">
-              <Icon name="close" className="h-4 w-4" />
-            </button>
-            </div>
-            </aside>
-        
+          {/* Sidebar footer */}
+          <div className="border-t border-gray-100 px-5 py-4">
+            <p className="text-xs text-gray-400">Ecofy © 2026</p>
+          </div>
+        </aside>
 
-        {/* ── Main ── */}
+        {/* ── Main content ── */}
         <div className="flex-1 min-w-0 min-h-screen">
           {/* Mobile top bar */}
           <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 lg:hidden sticky top-[88px] z-10 shadow-sm">
@@ -754,7 +729,7 @@ export default function Dashboard() {
             <p className="text-sm font-bold text-gray-800">
               {NAV_ITEMS.find((n) => n.id === activeTab)?.label}
             </p>
-            <div className="w-9" /> 
+            <div className="w-9" />
           </div>
 
           <main className="p-6 pt-28 lg:p-8 lg:pt-28">
@@ -762,7 +737,6 @@ export default function Dashboard() {
           </main>
         </div>
       </div>
-      
 
       <BookingDetailsModal />
       <HistoryChooserModal />
