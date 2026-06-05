@@ -655,7 +655,7 @@ export default function Dashboard() {
   return (
     <>
       {/* Notification Bell — fixed top right, aligned with navbar */}
-      <div className="fixed top-0 right-6 z-50 flex h-[88px] items-center">
+     <div className="fixed top-8 right-28 z-50 flex items-center">
         <NotificationBell target="user" />
       </div>
 
