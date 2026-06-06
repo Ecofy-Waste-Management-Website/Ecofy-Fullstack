@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from "@clerk/clerk-react";
 import Dashboard from './Dashboard';
-import AdminDashboard from '../Admin/adminDashboard';
 import Navbar from '../Main/Top-Header-Section/navbar/navbar';
 import Footer from '../Main/Footer/footer';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
 
 export default function DashboardRouter() {
   const { user, isLoaded } = useUser();
@@ -15,46 +13,40 @@ export default function DashboardRouter() {
 
   useEffect(() => {
     if (!isLoaded || !user) return;
-
-    console.log('DashboardRouter: Clerk user loaded, ID =', user.id);
-
     const fetchUserRole = async () => {
       try {
-        const url = `${API_BASE_URL}/users/${user.id}`;
-        console.log('DashboardRouter: Fetching role from', url);
-        const response = await fetch(url);
+        const response = await fetch(`${API_BASE_URL}/users/${user.id}`);
         if (response.ok) {
           const data = await response.json();
-          console.log('DashboardRouter: Role fetched =', data.user.role);
           setRole(data.user.role);
         } else {
-          console.log('DashboardRouter: User not found in DB, defaulting to Customer');
           setRole('Customer');
         }
-      } catch (err) {
-        console.error('DashboardRouter: Failed to fetch user role:', err);
+      } catch {
         setRole('Customer');
       } finally {
         setLoading(false);
       }
     };
-
     fetchUserRole();
   }, [user, isLoaded]);
 
   if (!isLoaded || loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <p style={{ fontSize: '1.1rem', color: '#6b7280' }}>Loading dashboard...</p>
+      <div className="flex min-h-screen items-center justify-center bg-green-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 rounded-full border-2 border-[#06a63e] border-t-transparent animate-spin" />
+          <p className="text-sm text-gray-500">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-green-50">
+      {/* Navbar sits fixed on top — sidebar handles its own top offset */}
       <Navbar />
       <Dashboard />
-      <Footer />
     </div>
   );
 }

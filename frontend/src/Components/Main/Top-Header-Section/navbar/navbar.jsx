@@ -96,7 +96,7 @@ export default function Navbar() {
 
   return (
     <header ref={navRef} className="fixed top-6 left-0 right-0 z-50 w-full px-4 sm:px-6 lg:px-8">
-      <nav className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6 rounded-full border border-white/20 bg-white/10 backdrop-blur-[50px] shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+      <nav className="mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 rounded-full border border-white/20 bg-white/10 backdrop-blur-[50px] shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
           
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">

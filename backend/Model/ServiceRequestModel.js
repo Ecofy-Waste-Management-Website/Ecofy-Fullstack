@@ -26,6 +26,10 @@ const serviceRequestSchema = new Schema(
       required: true,
     },
     location: { type: String, required: true },
+    pickupCoordinates: {
+      latitude: { type: Number, default: null },
+      longitude: { type: Number, default: null },
+    },
     scheduled_date: { type: Date, required: true },
     servicePrice: { type: Number, default: 0 },
     pickupPin: { type: String, default: "" },

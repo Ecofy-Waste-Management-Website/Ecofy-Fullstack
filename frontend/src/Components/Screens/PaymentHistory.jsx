@@ -50,10 +50,39 @@ function PaymentHistory() {
     <div style={{
       background: 'linear-gradient(135deg, #F8FAFC 0%, #EEF2F6 100%)',
       minHeight: '100vh',
-      padding: '48px 24px',
+      padding: '100px 20px 40px',
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
     }}>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+       <button
+  onClick={() => window.history.back()}
+  style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    background: 'white',
+    border: '1.5px solid #1B4D3D',
+    color: '#1B4D3D',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    padding: '10px 20px',
+    borderRadius: '12px',
+    marginBottom: '24px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    transition: 'all 0.2s ease',
+  }}
+  onMouseEnter={e => {
+    e.currentTarget.style.background = '#1B4D3D';
+    e.currentTarget.style.color = 'white';
+  }}
+  onMouseLeave={e => {
+    e.currentTarget.style.background = 'white';
+    e.currentTarget.style.color = '#1B4D3D';
+  }}
+>
+  ← Back
+</button>
         
         {/* Header Section */}
         <div style={{

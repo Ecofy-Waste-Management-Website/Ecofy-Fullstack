@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser , useClerk } from "@clerk/clerk-react";
 
 function Section({ title, subtitle, children }) {
   return (
@@ -35,6 +35,7 @@ function Field({ label, value, onChange, type = "text", placeholder, disabled })
 
 export default function ProfileSettings() {
   const { user, isLoaded } = useUser();
+  const { openUserProfile } = useClerk();
 
   const [profile, setProfile] = useState({
     firstName: user?.firstName || "",
@@ -175,7 +176,7 @@ export default function ProfileSettings() {
               <p className="text-xs text-gray-400 mt-0.5">Change your account password</p>
             </div>
             <button
-              onClick={() => window.open("https://accounts.ecofy.app/user", "_blank")}
+              onClick={() => openUserProfile()}
               className="rounded-lg border border-indigo-300 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition"
             >
               Change Password
@@ -188,7 +189,7 @@ export default function ProfileSettings() {
               <p className="text-xs text-gray-400 mt-0.5">Add an extra layer of security</p>
             </div>
             <button
-              onClick={() => window.open("https://accounts.ecofy.app/user", "_blank")}
+              onClick={() => openUserProfile()}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition"
             >
               Manage
