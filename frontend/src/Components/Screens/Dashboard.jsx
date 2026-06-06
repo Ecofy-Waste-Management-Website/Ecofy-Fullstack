@@ -53,7 +53,7 @@ const NAV_ITEMS = [
   { id: "payments",         icon: "creditCard", label: "Payments" },
   { id: "inquiry",          icon: "chat",       label: "Inquiry" },
   { id: "profile",          icon: "user",       label: "Profile" },
-  { id: "special-services", icon: "sparkles",   label: "Services" },
+  //{ id: "special-services", icon: "sparkles",   label: "Services" },
 ];
 
 function GoogleMapPicker({ value, onSelect }) {
