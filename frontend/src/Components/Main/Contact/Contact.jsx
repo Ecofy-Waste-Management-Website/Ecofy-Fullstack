@@ -136,9 +136,10 @@ export default function Contact() {
 
             {/* Emergency notice */}
             <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
-              <p className="text-sm font-bold text-red-700 mb-1">🚨 Emergency Services</p>
+              <p className="text-sm font-bold text-red-700 mb-1"> Emergency Services</p>
               <p className="text-xs text-red-600 leading-relaxed">
-                For urgent waste collection needs outside business hours, call us directly on our emergency line.
+                For urgent waste collection needs outside business hours.
+                <p>Emergency Hotline: +94 77 6777 052</p>
               </p>
             </div>
           </div>
