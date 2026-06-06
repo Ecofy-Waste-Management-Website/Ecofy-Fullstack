@@ -7,18 +7,23 @@ const FaqCard = ({ question, answer }) => (
   </div>
 );
 
+const EMPTY_FORM = { name: '', email: '', subject: '', message: '' };
+
 export default function Contact() {
-  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError('');
+
     try {
-      const res = await fetch('http://localhost:5000/inquiries', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/inquiries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -28,13 +33,19 @@ export default function Contact() {
           message: formData.message,
         }),
       });
+
+      const data = await res.json();
+
       if (res.ok) {
+        // Clear form and show success
+        setFormData(EMPTY_FORM);
         setSubmitted(true);
-        setTimeout(() => setSubmitted(false), 4000);
-        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setError(data.message || 'Something went wrong. Please try again.');
       }
     } catch (err) {
       console.error('Failed to send message:', err);
+      setError('Unable to connect to server. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }
@@ -93,7 +104,7 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-[#D6E9CA]">
 
-      {/* ── Hero ── */}
+      {/* Hero */}
       <div className="relative overflow-hidden bg-[#397234] pt-36 pb-20 px-4 text-center">
         <svg className="absolute -right-8 -top-8 h-48 w-48 opacity-10" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={0.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.5V11m0 0a5 5 0 0 1 5-5h2.5c0 4.5-2 6.5-4 8l-3.5 3m0-11a5 5 0 0 0-5-5H7c0 4.5 2 6.5 4 8l3.5 3" />
@@ -103,11 +114,11 @@ export default function Contact() {
         </svg>
         <h1 className="text-5xl font-black text-white tracking-tight mb-4">Get in Touch</h1>
         <p className="text-lg text-green-100/80 font-medium max-w-md mx-auto">
-         Have questions about our services? We're here to help you with all your waste management needs.
+          Have questions about our services? We're here to help you with all your waste management needs.
         </p>
       </div>
 
-      {/* ── Contact Info + Form (side by side) ── */}
+      {/* Contact Info + Form */}
       <div className="mx-auto max-w-6xl px-4 py-16">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
 
@@ -117,7 +128,6 @@ export default function Contact() {
               <h2 className="text-xl font-black text-[#244c21] mb-1">Contact Information</h2>
               <p className="text-sm text-[#397234]/60">Reach us through any of these channels.</p>
             </div>
-
             <div className="space-y-4">
               {contactItems.map(({ icon, label, lines }) => (
                 <div key={label} className="flex items-start gap-4 rounded-2xl bg-white/60 border border-[#397234]/10 p-4">
@@ -133,80 +143,103 @@ export default function Contact() {
                 </div>
               ))}
             </div>
-
-            {/* Emergency notice */}
             <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
-              <p className="text-sm font-bold text-red-700 mb-1"> Emergency Services</p>
+              <p className="text-sm font-bold text-red-700 mb-1">🚨 Emergency Services</p>
               <p className="text-xs text-red-600 leading-relaxed">
-                For urgent waste collection needs outside business hours.
-                <p>Emergency Hotline: +94 77 6777 052</p>
+                For urgent waste collection needs outside business hours.<br />
+                Emergency Hotline: +94 77 6777 052
               </p>
             </div>
           </div>
 
-          {/* Right — Form */}
+          {/* Right — Form or Success */}
           <div className="lg:col-span-3">
-            <div className="rounded-3xl bg-white/60 border border-[#397234]/10 p-8 shadow-sm">
-              <h2 className="text-xl font-black text-[#244c21] mb-1">Send us an Inquiry</h2>
-              <p className="text-sm text-[#397234]/60 mb-7">
-                Fill out the form and we'll get back to you as soon as possible.
-              </p>
-
-              {submitted && (
-                <div className="mb-6 flex items-center gap-3 rounded-2xl bg-[#D6E9CA] border border-[#397234]/20 px-5 py-4">
-                  <span className="text-lg">✅</span>
-                  <p className="text-sm font-semibold text-[#244c21]">Message sent! We'll get back to you soon.</p>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-semibold text-[#244c21] mb-2">
-                    Full Name <span className="text-red-400">*</span>
-                  </label>
-                  <input type="text" name="name" value={formData.name} onChange={handleChange}
-                    placeholder="Enter your full name" required className={inputClass} />
+            {submitted ? (
+              /* ── Success state ── */
+              <div className="rounded-3xl bg-white/60 border border-[#397234]/10 p-8 shadow-sm flex flex-col items-center justify-center text-center min-h-[400px] gap-5">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#D6E9CA]">
+                  <svg className="h-10 w-10 text-[#397234]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-[#244c21] mb-2">
-                    Email Address <span className="text-red-400">*</span>
-                  </label>
-                  <input type="email" name="email" value={formData.email} onChange={handleChange}
-                    placeholder="Enter your email" required className={inputClass} />
+                  <h3 className="text-2xl font-black text-[#244c21] mb-2">Message Sent!</h3>
+                  <p className="text-sm text-[#397234]/70 max-w-sm">
+                    Thank you for reaching out. We've received your inquiry and will get back to you as soon as possible.
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-[#244c21] mb-2">
-                    Subject <span className="text-red-400">*</span>
-                  </label>
-                  <input type="text" name="subject" value={formData.subject} onChange={handleChange}
-                    placeholder="Brief description of your inquiry" required className={inputClass} />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-[#244c21] mb-2">
-                    Message <span className="text-red-400">*</span>
-                  </label>
-                  <textarea name="message" value={formData.message} onChange={handleChange}
-                    placeholder="Please provide detailed information about your inquiry..."
-                    rows={6} required className={inputClass} />
-                </div>
-                <button type="submit" disabled={isSubmitting}
-                  className="w-full rounded-2xl bg-[#397234] py-3.5 text-sm font-bold text-white transition hover:bg-[#244c21] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                  {isSubmitting ? (
-                    <>
-                      <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Sending...
-                    </>
-                  ) : "Send Message"}
+                <button
+                  type="button"
+                  onClick={() => setSubmitted(false)}
+                  className="mt-2 rounded-2xl border border-[#397234]/30 bg-[#D6E9CA] px-6 py-2.5 text-sm font-bold text-[#244c21] hover:bg-[#397234]/20 transition"
+                >
+                  Send another message
                 </button>
-              </form>
-            </div>
+              </div>
+            ) : (
+              /* ── Form ── */
+              <div className="rounded-3xl bg-white/60 border border-[#397234]/10 p-8 shadow-sm">
+                <h2 className="text-xl font-black text-[#244c21] mb-1">Send us an Inquiry</h2>
+                <p className="text-sm text-[#397234]/60 mb-7">
+                  Fill out the form and we'll get back to you as soon as possible.
+                </p>
+
+                {error && (
+                  <div className="mb-5 flex items-center gap-3 rounded-2xl bg-red-50 border border-red-200 px-5 py-4">
+                    <span className="text-lg">⚠️</span>
+                    <p className="text-sm font-semibold text-red-700">{error}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-[#244c21] mb-2">
+                      Full Name <span className="text-red-400">*</span>
+                    </label>
+                    <input type="text" name="name" value={formData.name} onChange={handleChange}
+                      placeholder="Enter your full name" required className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#244c21] mb-2">
+                      Email Address <span className="text-red-400">*</span>
+                    </label>
+                    <input type="email" name="email" value={formData.email} onChange={handleChange}
+                      placeholder="Enter your email" required className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#244c21] mb-2">
+                      Subject <span className="text-red-400">*</span>
+                    </label>
+                    <input type="text" name="subject" value={formData.subject} onChange={handleChange}
+                      placeholder="Brief description of your inquiry" required className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#244c21] mb-2">
+                      Message <span className="text-red-400">*</span>
+                    </label>
+                    <textarea name="message" value={formData.message} onChange={handleChange}
+                      placeholder="Please provide detailed information about your inquiry..."
+                      rows={6} required className={inputClass} />
+                  </div>
+                  <button type="submit" disabled={isSubmitting}
+                    className="w-full rounded-2xl bg-[#397234] py-3.5 text-sm font-bold text-white transition hover:bg-[#244c21] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Sending...
+                      </>
+                    ) : "Send Message"}
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* ── FAQ Section ── */}
+        {/* FAQ */}
         <div className="mt-20">
           <div className="text-center mb-10">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#397234] mb-4">
@@ -223,7 +256,6 @@ export default function Contact() {
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );
