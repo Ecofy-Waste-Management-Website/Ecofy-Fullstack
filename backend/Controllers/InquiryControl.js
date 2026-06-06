@@ -20,8 +20,9 @@ const createInquiry = async (req, res) => {
       message,
     });
 
+    // Admin notification
     await Notification.create({
-      clerkId: "",                          
+      clerkId: "",
       title: "New Inquiry Received",
       message: `${userName} submitted an inquiry: "${subject || "General Inquiry"}"`,
       type: "Info",
@@ -29,14 +30,16 @@ const createInquiry = async (req, res) => {
       isRead: false,
     });
 
+    // Staff broadcast notification — fixed: use `inquiry` not `newInquiry`
     await Notification.create({
-      clerkId: "",           // broadcast to all staff
+      clerkId: "",
       target: "staff",
       title: "New Inquiry Received",
-      message: `${newInquiry.userName || 'A user'} submitted an inquiry: "${newInquiry.subject || 'General Inquiry'}"`,
+      message: `${inquiry.userName} submitted an inquiry: "${inquiry.subject || "General Inquiry"}"`,
       isRead: false,
     });
 
+    // Individual staff notifications
     const staffUsers = await User.find({ role: "Staff" }).select("clerkId");
     const staffNotifications = staffUsers
       .filter((s) => s.clerkId)
@@ -101,7 +104,9 @@ const replyToInquiry = async (req, res) => {
     let notificationClerkId = updatedInquiry.clerkId || "";
 
     if (!notificationClerkId && updatedInquiry.userEmail) {
-      const matchedUser = await User.findOne({ email: updatedInquiry.userEmail.toLowerCase() });
+      const matchedUser = await User.findOne({
+        email: updatedInquiry.userEmail.toLowerCase(),
+      });
       notificationClerkId = matchedUser?.clerkId || "";
     }
 
