@@ -53,7 +53,7 @@ const NAV_ITEMS = [
   { id: "payments",         icon: "creditCard", label: "Payments" },
   { id: "inquiry",          icon: "chat",       label: "Inquiry" },
   { id: "profile",          icon: "user",       label: "Profile" },
-  { id: "special-services", icon: "sparkles",   label: "Services" },
+  //{ id: "special-services", icon: "sparkles",   label: "Services" },
 ];
 
 function GoogleMapPicker({ value, onSelect }) {
@@ -323,10 +323,6 @@ export default function Dashboard() {
         <p className="text-sm text-white/70 font-medium">{getGreeting()},</p>
         <h1 className="mt-0.5 text-3xl font-black tracking-tight">{greetingName}</h1>
         <p className="mt-2 text-sm text-white/75 max-w-sm">Manage your waste pickups, track orders, and get instant support.</p>
-        <button type="button" onClick={() => setShowPickupModal(true)}
-          className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-2.5 text-sm font-bold text-[#06a63e] shadow hover:bg-green-50 active:scale-95 transition">
-          <Icon name="truck" className="h-4 w-4" /> Schedule a Pickup
-        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
