@@ -6,11 +6,11 @@ import NotificationBell from "../Main/Top-Header-Section/NotificationBell/Notifi
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const SERVICE_PRICES = {
-  Household: 150000,
-  Commercial: 350000,
-  Bulk: 250000,
-  Garden: 120000,
-  "Drain Cleaning": 200000,
+  Household: 1500,
+  Commercial: 3500,
+  Bulk: 2500,
+  Garden: 1200,
+  "Drain Cleaning": 2000,
 };
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
