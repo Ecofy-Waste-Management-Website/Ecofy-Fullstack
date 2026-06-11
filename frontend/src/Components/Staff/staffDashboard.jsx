@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
@@ -50,6 +50,174 @@ const buildPendingOrdersMapUrl = (orders) => {
 
   return map.toString();
 };
+
+const loadGoogleMapsScript = () => {
+  if (!GOOGLE_MAPS_API_KEY) return Promise.resolve(false);
+  if (window.google?.maps) return Promise.resolve(true);
+
+  const existingScript = document.getElementById("google-maps-js");
+  if (existingScript) {
+    return new Promise((resolve, reject) => {
+      existingScript.addEventListener("load", () => resolve(true), { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("Google Maps failed to load.")), { once: true });
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.id = "google-maps-js";
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => reject(new Error("Google Maps failed to load."));
+    document.head.appendChild(script);
+  });
+};
+
+const getPendingOrderPins = (orders) =>
+  orders
+    .map((order, index) => {
+      const target = getOrderMapTarget(order);
+      if (!target) return null;
+
+      return {
+        order,
+        target,
+        label: MAP_LABELS[index % MAP_LABELS.length],
+      };
+    })
+    .filter(Boolean);
+
+function PendingOrdersMapCanvas({ orders }) {
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markersRef = useRef([]);
+  const geocoderRef = useRef(null);
+  const [mapState, setMapState] = useState({ loading: true, message: "" });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const initializeMap = async () => {
+      try {
+        const loaded = await loadGoogleMapsScript();
+        if (!loaded || cancelled) {
+          setMapState({ loading: false, message: "Add VITE_GOOGLE_MAPS_API_KEY to enable live map pins." });
+          return;
+        }
+
+        if (!mapContainerRef.current) return;
+
+        const google = window.google;
+        const geocoder = new google.maps.Geocoder();
+        geocoderRef.current = geocoder;
+
+        const resolvedPins = [];
+        for (const [index, order] of orders.slice(0, 20).entries()) {
+          const target = getOrderMapTarget(order);
+          if (!target) continue;
+
+          const label = MAP_LABELS[index % MAP_LABELS.length];
+          if (/^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/.test(target)) {
+            const [lat, lng] = target.split(",").map(Number);
+            resolvedPins.push({ order, label, position: { lat, lng }, target });
+            continue;
+          }
+
+          // Geocode freeform addresses so named pickup locations can still be pinned.
+          // If geocoding fails, the order will remain in the directory below the map.
+          const position = await new Promise((resolve) => {
+            geocoder.geocode({ address: target }, (results, status) => {
+              if (status === "OK" && results?.[0]?.geometry?.location) {
+                const loc = results[0].geometry.location;
+                resolve({ lat: loc.lat(), lng: loc.lng() });
+              } else {
+                resolve(null);
+              }
+            });
+          });
+
+          if (position) {
+            resolvedPins.push({ order, label, position, target });
+          }
+        }
+
+        if (cancelled) return;
+
+        if (mapRef.current) {
+          markersRef.current.forEach((marker) => marker.setMap(null));
+          markersRef.current = [];
+        }
+
+        const center = resolvedPins[0]?.position || { lat: 6.9271, lng: 79.8612 };
+        const map = new google.maps.Map(mapContainerRef.current, {
+          center,
+          zoom: resolvedPins.length > 1 ? 11 : 13,
+          gestureHandling: "greedy",
+          streetViewControl: false,
+          mapTypeControl: false,
+          fullscreenControl: false,
+          clickableIcons: false,
+        });
+
+        const bounds = new google.maps.LatLngBounds();
+        resolvedPins.forEach(({ position, label, order }) => {
+          const marker = new google.maps.Marker({
+            map,
+            position,
+            label,
+            title: `${order._id?.slice(-8)?.toUpperCase() || "Order"} • ${order.location || "Pickup location"}`,
+          });
+          markersRef.current.push(marker);
+          bounds.extend(position);
+        });
+
+        if (resolvedPins.length > 1) {
+          map.fitBounds(bounds, 48);
+        }
+
+        mapRef.current = map;
+        setMapState({
+          loading: false,
+          message: resolvedPins.length > 0 ? `Pinned ${resolvedPins.length} location${resolvedPins.length === 1 ? "" : "s"}.` : "No geocodable pickup locations were found yet.",
+        });
+      } catch (error) {
+        if (!cancelled) {
+          setMapState({ loading: false, message: error instanceof Error ? error.message : "Google Maps failed to load." });
+        }
+      }
+    };
+
+    initializeMap();
+
+    return () => {
+      cancelled = true;
+      markersRef.current.forEach((marker) => marker.setMap(null));
+      markersRef.current = [];
+    };
+  }, [orders]);
+
+  return (
+    <div className="relative min-h-[320px] flex-1 bg-[#eff5ea]">
+      <div ref={mapContainerRef} className="h-full w-full min-h-[320px]" />
+      {mapState.loading && (
+        <div className="absolute inset-0 grid place-items-center bg-white/75 text-center">
+          <div>
+            <p className="text-sm font-black uppercase tracking-widest text-[#397239]/55">Loading map</p>
+            <p className="mt-2 text-xs font-medium text-[#397239]/60">Rendering pickup pins...</p>
+          </div>
+        </div>
+      )}
+      {!mapState.loading && mapState.message && (
+        <div className="absolute left-4 right-4 top-4 rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-lg backdrop-blur">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#397239]/45">Map status</p>
+          <p className="mt-1 text-sm font-bold text-[#244c21]">{mapState.message}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const buildNavigationUrl = (order) => {
   const destination = getOrderMapTarget(order);
@@ -784,6 +952,8 @@ export default function StaffDashboard() {
   };
 
   const getEstimatedAmount = (order) => order.servicePrice || SERVICE_PRICES[order.service_type] || order.estimated_amt || 0;
+  const pendingOrderPins = getPendingOrderPins(pendingOrders);
+  const unresolvedPendingOrders = pendingOrders.length - pendingOrderPins.length;
 
   const PendingOrdersPanel = () => (
     <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.4fr] gap-4 min-h-[540px]">
@@ -845,7 +1015,7 @@ export default function StaffDashboard() {
             <h3 className="text-lg font-black text-[#244c21]">Pending Orders Map</h3>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Pins for every pending pickup request</p>
           </div>
-          <div className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">Map</div>
+          <div className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">{pendingOrderPins.length} pins</div>
         </div>
 
         {pendingOrders.length === 0 ? (
@@ -856,12 +1026,47 @@ export default function StaffDashboard() {
             </div>
           </div>
         ) : GOOGLE_MAPS_API_KEY ? (
-          <div className="flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner">
-            <img
-              src={buildPendingOrdersMapUrl(pendingOrders)}
-              alt="Map showing pending pickup pins"
-              className="h-full w-full min-h-[480px] object-cover"
-            />
+          <div className="flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner flex flex-col">
+            <div className="flex flex-wrap items-center gap-2 border-b border-[#397234]/10 bg-[#f7fbf4] px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/60">
+              <span className="rounded-full bg-[#397239]/10 px-3 py-1 text-[#397239]">{pendingOrderPins.length} pinned</span>
+              {unresolvedPendingOrders > 0 && (
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-700">{unresolvedPendingOrders} without coordinates</span>
+              )}
+              <span className="rounded-full bg-white px-3 py-1 text-[#397239]/70">Live markers from pending bookings</span>
+            </div>
+
+            <PendingOrdersMapCanvas orders={pendingOrders} />
+
+            <div className="relative -mt-4 mx-4 mb-4 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-xl backdrop-blur">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#397239]/45">Pin directory</p>
+                    <p className="mt-1 text-sm font-black text-[#244c21]">Quick access to each pickup target</p>
+                  </div>
+                  <span className="rounded-full bg-[#D6E9CA]/60 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#397239]">
+                    {pendingOrderPins.length}
+                  </span>
+                </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                  {pendingOrderPins.slice(0, 4).map(({ order, label, target }) => (
+                    <div key={order._id} className="rounded-xl border border-[#397234]/10 bg-[#f8fbf5] px-3 py-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#397239]/45">Pin {label}</p>
+                          <p className="truncate text-xs font-bold text-[#244c21]">{order.location || target}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNavigationOrder(order)}
+                          className="shrink-0 rounded-full bg-[#397239] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white transition hover:bg-[#244c21]"
+                        >
+                          View route
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+            </div>
           </div>
         ) : (
           <div className="flex-1 grid place-items-center rounded-3xl border border-dashed border-[#397234]/15 bg-white/60 text-center px-6">
