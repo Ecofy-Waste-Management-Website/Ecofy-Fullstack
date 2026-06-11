@@ -15,7 +15,12 @@ const SERVICE_PRICES = {
   "Drain Cleaning": 2000,
 };
 
-const LEAFLET_MAP_CENTER = [6.9271, 79.8612];
+const BALANGODA_MAP_CENTER = [6.6617, 80.6937];
+const BALANGODA_MAP_BOUNDS = L.latLngBounds(
+  [6.54, 80.56],
+  [6.79, 80.84]
+);
+const LEAFLET_MAP_CENTER = BALANGODA_MAP_CENTER;
 const MAP_LABELS = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 const getOrderMapTarget = (order) => {
@@ -88,25 +93,25 @@ const createPinIcon = (label) => L.divIcon({
   className: '',
   html: `
     <div style="
-      width: 34px;
-      height: 34px;
+      width: 42px;
+      height: 42px;
       border-radius: 9999px 9999px 9999px 4px;
-      background: #397239;
+      background: #1f6f36;
       color: white;
       display: grid;
       place-items: center;
       font-weight: 900;
-      font-size: 11px;
-      box-shadow: 0 10px 18px rgba(57, 114, 57, 0.35);
+      font-size: 14px;
+      box-shadow: 0 14px 24px rgba(17, 42, 15, 0.36), 0 0 0 8px rgba(255, 255, 255, 0.55);
       transform: rotate(-45deg);
-      border: 2px solid rgba(255,255,255,0.9);
+      border: 3px solid #ffffff;
     ">
       <span style="transform: rotate(45deg);">${label}</span>
     </div>
   `,
-  iconSize: [34, 34],
-  iconAnchor: [17, 34],
-  popupAnchor: [0, -30],
+  iconSize: [42, 42],
+  iconAnchor: [21, 42],
+  popupAnchor: [0, -36],
 });
 
 function PendingOrdersMapCanvas({ orders, onRouteSelect }) {
@@ -123,11 +128,14 @@ function PendingOrdersMapCanvas({ orders, onRouteSelect }) {
       const map = L.map(mapContainerRef.current, {
         zoomControl: true,
         scrollWheelZoom: true,
-      }).setView(LEAFLET_MAP_CENTER, 11);
+        maxBounds: BALANGODA_MAP_BOUNDS,
+        maxBoundsViscosity: 0.8,
+      }).setView(BALANGODA_MAP_CENTER, 14);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
         maxZoom: 19,
+        minZoom: 12,
       }).addTo(map);
 
       mapRef.current = map;
@@ -215,10 +223,16 @@ function PendingOrdersMapCanvas({ orders, onRouteSelect }) {
         bounds.extend([position.lat, position.lng]);
       });
 
-      if (resolvedPins.length > 1) {
-        map.fitBounds(bounds.pad(0.2));
+      if (resolvedPins.length > 1 && bounds.isValid()) {
+        const balangodaBounds = bounds.pad(0.22).extend(BALANGODA_MAP_CENTER);
+        map.fitBounds(balangodaBounds, {
+          maxZoom: 15,
+          padding: [36, 36],
+        });
       } else if (resolvedPins.length === 1) {
-        map.setView([resolvedPins[0].position.lat, resolvedPins[0].position.lng], 13);
+        map.setView([resolvedPins[0].position.lat, resolvedPins[0].position.lng], 15);
+      } else {
+        map.setView(BALANGODA_MAP_CENTER, 14);
       }
 
       setMapState({
@@ -245,12 +259,6 @@ function PendingOrdersMapCanvas({ orders, onRouteSelect }) {
             <p className="text-sm font-black uppercase tracking-widest text-[#397239]/55">Loading map</p>
             <p className="mt-2 text-xs font-medium text-[#397239]/60">Rendering pickup pins...</p>
           </div>
-        </div>
-      )}
-      {!mapState.loading && mapState.message && (
-        <div className="absolute left-4 right-4 top-4 rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-lg backdrop-blur">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#397239]/45">Map status</p>
-          <p className="mt-1 text-sm font-bold text-[#244c21]">{mapState.message}</p>
         </div>
       )}
     </div>
