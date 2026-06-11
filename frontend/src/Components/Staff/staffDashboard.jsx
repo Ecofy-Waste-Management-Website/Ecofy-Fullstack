@@ -23,11 +23,24 @@ const BALANGODA_MAP_BOUNDS = L.latLngBounds(
 const LEAFLET_MAP_CENTER = BALANGODA_MAP_CENTER;
 const MAP_LABELS = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+const isInsideBalangodaArea = (latitude, longitude) =>
+  BALANGODA_MAP_BOUNDS.contains([latitude, longitude]);
+
+const getBalangodaSearchQuery = (target) => {
+  const query = target.trim();
+  if (/balangoda|sri lanka/i.test(query)) return query;
+  return `${query}, Balangoda, Ratnapura, Sri Lanka`;
+};
+
 const getOrderMapTarget = (order) => {
   const latitude = Number(order?.pickupCoordinates?.latitude);
   const longitude = Number(order?.pickupCoordinates?.longitude);
 
-  if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+  if (
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    isInsideBalangodaArea(latitude, longitude)
+  ) {
     return `${latitude},${longitude}`;
   }
 
@@ -54,7 +67,9 @@ const geocodePendingOrderTarget = async (target) => {
   const url = new URL('https://nominatim.openstreetmap.org/search');
   url.searchParams.set('format', 'jsonv2');
   url.searchParams.set('limit', '1');
-  url.searchParams.set('q', target);
+  url.searchParams.set('q', getBalangodaSearchQuery(target));
+  url.searchParams.set('viewbox', '80.56,6.79,80.84,6.54');
+  url.searchParams.set('bounded', '1');
 
   const response = await fetch(url.toString(), {
     headers: {
@@ -128,8 +143,6 @@ function PendingOrdersMapCanvas({ orders, onRouteSelect }) {
       const map = L.map(mapContainerRef.current, {
         zoomControl: true,
         scrollWheelZoom: true,
-        maxBounds: BALANGODA_MAP_BOUNDS,
-        maxBoundsViscosity: 0.8,
       }).setView(BALANGODA_MAP_CENTER, 14);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -178,9 +191,12 @@ function PendingOrdersMapCanvas({ orders, onRouteSelect }) {
             })()
           : await geocodePendingOrderTarget(target);
 
-        if (position) {
-          resolvedPins.push({ order, label, position, target });
-        }
+        resolvedPins.push({
+          order,
+          label,
+          position: position || { lat: BALANGODA_MAP_CENTER[0], lng: BALANGODA_MAP_CENTER[1] },
+          target,
+        });
       }
 
       if (cancelled) return;

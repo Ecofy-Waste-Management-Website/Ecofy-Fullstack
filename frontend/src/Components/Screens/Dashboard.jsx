@@ -19,7 +19,7 @@ const STATUS_STYLES = {
 };
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
-const DEFAULT_MAP_CENTER = { lat: 6.9271, lng: 79.8612 };
+const DEFAULT_MAP_CENTER = { lat: 6.6617, lng: 80.6937 };
 
 const Icon = ({ name, className = "h-5 w-5" }) => {
   const icons = {
