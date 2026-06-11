@@ -129,7 +129,7 @@ const createPinIcon = (label) => L.divIcon({
   popupAnchor: [0, -36],
 });
 
-function PendingOrdersMapCanvas({ orders, onRouteSelect }) {
+function PendingOrdersMapCanvas({ orders, onOrderSelect }) {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
@@ -209,8 +209,8 @@ function PendingOrdersMapCanvas({ orders, onRouteSelect }) {
         }).addTo(map);
 
         marker.on('click', () => {
-          if (typeof onRouteSelect === 'function') {
-            onRouteSelect(order);
+          if (typeof onOrderSelect === 'function') {
+            onOrderSelect(order);
           }
         });
 
@@ -218,18 +218,19 @@ function PendingOrdersMapCanvas({ orders, onRouteSelect }) {
           <div style="min-width: 180px; font-family: system-ui, sans-serif;">
             <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #397239; margin-bottom: 4px;">Pin ${label}</div>
             <div style="font-size: 14px; font-weight: 800; color: #244c21; margin-bottom: 4px;">${order.location || 'Pickup location'}</div>
-            <div style="font-size: 12px; color: #397239; margin-bottom: 8px;">${order.service_type || 'Pending order'} • ${order._id?.slice(-8)?.toUpperCase() || 'N/A'}</div>
-            <button type="button" data-route-button="true" style="border: none; border-radius: 9999px; background: #397239; color: white; font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 12px; cursor: pointer;">View route</button>
+            <div style="font-size: 12px; color: #397239; margin-bottom: 4px;">${order.customer_name || 'Customer'} • ${order.service_type || 'Pending order'}</div>
+            <div style="font-size: 12px; color: #397239; margin-bottom: 8px;">Order ${order._id?.slice(-8)?.toUpperCase() || 'N/A'}</div>
+            <button type="button" data-order-button="true" style="border: none; border-radius: 9999px; background: #397239; color: white; font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 12px; cursor: pointer;">View details</button>
           </div>
         `);
 
         marker.on('popupopen', (event) => {
           const popupElement = event.popup.getElement();
-          const button = popupElement?.querySelector('[data-route-button="true"]');
+          const button = popupElement?.querySelector('[data-order-button="true"]');
           if (button) {
             button.addEventListener('click', () => {
-              if (typeof onRouteSelect === 'function') {
-                onRouteSelect(order);
+              if (typeof onOrderSelect === 'function') {
+                onOrderSelect(order);
               }
             }, { once: true });
           }
@@ -264,7 +265,7 @@ function PendingOrdersMapCanvas({ orders, onRouteSelect }) {
     return () => {
       cancelled = true;
     };
-  }, [orders, onRouteSelect, mapReady]);
+  }, [orders, onOrderSelect, mapReady]);
 
   return (
     <div className="relative min-h-[320px] flex-1 bg-[#eff5ea]">
@@ -711,6 +712,7 @@ export default function StaffDashboard() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showNavigationModal, setShowNavigationModal] = useState(false);
   const [navigationOrder, setNavigationOrder] = useState(null);
+  const [selectedPendingOrder, setSelectedPendingOrder] = useState(null);
   const [displayName, setDisplayName] = useState('Staff Member');
   const [pickupPinValues, setPickupPinValues] = useState({});
   const [verifiedPickupPins, setVerifiedPickupPins] = useState({});
@@ -737,6 +739,9 @@ export default function StaffDashboard() {
 
   const staffName = displayName;
   const staffInitials = staffName.split(" ").map(n => n[0] || "").join("").toUpperCase();
+  const openPendingOrderDetails = (order) => {
+    setSelectedPendingOrder(order);
+  };
   const openNavigationForOrder = (order) => {
     setNavigationOrder(order);
     setShowNavigationModal(true);
@@ -1026,6 +1031,7 @@ export default function StaffDashboard() {
         { ...order, assignedStaff: user.id, status: 'Assigned' },
         ...prev.filter((item) => item._id !== order._id),
       ]);
+      setSelectedPendingOrder(null);
       setNavigationOrder({ ...order, assignedStaff: user.id, status: 'Assigned' });
       setShowNavigationModal(true);
       showNotification('Pickup confirmed successfully!');
@@ -1316,7 +1322,19 @@ export default function StaffDashboard() {
     return `LKR ${value.toLocaleString()}`;
   };
 
+  const formatOrderDate = (value) => {
+    if (!value) return 'N/A';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   const getEstimatedAmount = (order) => order.servicePrice || SERVICE_PRICES[order.service_type] || order.estimated_amt || 0;
+  const renderOrderDetailValue = (value) => value || 'N/A';
   const pendingOrderPins = getPendingOrderPins(pendingOrders);
   const unresolvedPendingOrders = pendingOrders.length - pendingOrderPins.length;
 
@@ -1346,7 +1364,19 @@ export default function StaffDashboard() {
               </div>
             ) : (
               pendingOrders.map((order) => (
-                <div key={order._id} className="grid grid-cols-[1.2fr_2fr_1fr_1fr] gap-3 border-b border-[#397234]/10 px-4 py-4 last:border-b-0 items-center">
+                <div
+                  key={order._id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openPendingOrderDetails(order)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      openPendingOrderDetails(order);
+                    }
+                  }}
+                  className="grid w-full cursor-pointer grid-cols-[1.2fr_2fr_1fr_1fr] items-center gap-3 border-b border-[#397234]/10 px-4 py-4 text-left transition hover:bg-[#D6E9CA]/25 focus:bg-[#D6E9CA]/25 focus:outline-none last:border-b-0"
+                >
                   <div>
                     <p className="text-sm font-black text-[#244c21]">{order._id.slice(-8).toUpperCase()}</p>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-[#397239]/40">{order.service_type || 'Order'}</p>
@@ -1360,7 +1390,10 @@ export default function StaffDashboard() {
                   <div>
                     <button
                       type="button"
-                      onClick={() => confirmPickup(order)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        confirmPickup(order);
+                      }}
                       disabled={confirmingOrderId === order._id}
                       className="rounded-xl bg-[#397239] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
                     >
@@ -1400,7 +1433,7 @@ export default function StaffDashboard() {
               <span className="rounded-full bg-white px-3 py-1 text-[#397239]/70">OpenStreetMap live markers</span>
             </div>
 
-            <PendingOrdersMapCanvas orders={pendingOrders} onRouteSelect={openNavigationForOrder} />
+            <PendingOrdersMapCanvas orders={pendingOrders} onOrderSelect={openPendingOrderDetails} />
 
             <div className="relative -mt-4 mx-4 mb-4 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-xl backdrop-blur">
                 <div className="flex items-center justify-between gap-3">
@@ -1414,21 +1447,22 @@ export default function StaffDashboard() {
                 </div>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
                   {pendingOrderPins.slice(0, 4).map(({ order, label, target }) => (
-                    <div key={order._id} className="rounded-xl border border-[#397234]/10 bg-[#f8fbf5] px-3 py-2">
+                    <button
+                      key={order._id}
+                      type="button"
+                      onClick={() => openPendingOrderDetails(order)}
+                      className="rounded-xl border border-[#397234]/10 bg-[#f8fbf5] px-3 py-2 text-left transition hover:bg-[#D6E9CA]/35"
+                    >
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#397239]/45">Pin {label}</p>
                           <p className="truncate text-xs font-bold text-[#244c21]">{order.location || target}</p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => openNavigationForOrder(order)}
-                          className="shrink-0 rounded-full bg-[#397239] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white transition hover:bg-[#244c21]"
-                        >
-                          View route
-                        </button>
+                        <span className="shrink-0 rounded-full bg-[#397239] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white">
+                          Details
+                        </span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
             </div>
@@ -1958,6 +1992,120 @@ export default function StaffDashboard() {
             <div className="flex gap-4">
               <button onClick={() => setShowLogoutModal(false)} className="flex-1 rounded-2xl border border-white/10 bg-white/5 py-4 text-[10px] font-extrabold text-white uppercase tracking-widest transition-all hover:bg-white/10">Stay Here</button>
               <button onClick={handleSignOut} className="flex-1 rounded-2xl bg-red-500 py-4 text-[10px] font-extrabold text-white shadow-lg shadow-red-500/20 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest">Sign Out</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedPendingOrder && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/65 p-4 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/20 bg-[#f4f9f4] shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-start justify-between gap-4 border-b border-[#397234]/10 bg-white/85 px-6 py-5">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#397239]/50">Pending order details</p>
+                <h3 className="mt-1 text-2xl font-black text-[#244c21]">
+                  Order #{selectedPendingOrder._id?.slice(-8)?.toUpperCase() || 'N/A'}
+                </h3>
+                <p className="mt-1 text-sm font-bold text-[#397239]/70">
+                  {renderOrderDetailValue(selectedPendingOrder.location)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedPendingOrder(null)}
+                className="rounded-full border border-[#397234]/10 bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid gap-4 p-5 md:grid-cols-2">
+              <section className="rounded-2xl border border-[#397234]/10 bg-white/85 p-4 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Customer</p>
+                <dl className="mt-4 space-y-3 text-sm">
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Name</dt>
+                    <dd className="mt-1 font-black text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.customer_name)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Email</dt>
+                    <dd className="mt-1 break-words font-bold text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.customer_email)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Phone</dt>
+                    <dd className="mt-1 font-bold text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.customer_phone)}</dd>
+                  </div>
+                </dl>
+              </section>
+
+              <section className="rounded-2xl border border-[#397234]/10 bg-white/85 p-4 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Pickup</p>
+                <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Service</dt>
+                    <dd className="mt-1 font-black text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.service_type)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Waste</dt>
+                    <dd className="mt-1 font-bold text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.waste_category)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Date</dt>
+                    <dd className="mt-1 font-bold text-[#244c21]">{formatOrderDate(selectedPendingOrder.scheduled_date)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">PIN</dt>
+                    <dd className="mt-1 font-black text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.pickupPin)}</dd>
+                  </div>
+                </dl>
+              </section>
+
+              <section className="rounded-2xl border border-[#397234]/10 bg-white/85 p-4 shadow-sm md:col-span-2">
+                <div className="grid gap-4 md:grid-cols-[1fr_0.6fr]">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Address</p>
+                    <p className="mt-2 text-sm font-bold leading-relaxed text-[#244c21]">
+                      {renderOrderDetailValue(selectedPendingOrder.location)}
+                    </p>
+                    {selectedPendingOrder.notes && (
+                      <>
+                        <p className="mt-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Notes</p>
+                        <p className="mt-2 text-sm font-medium leading-relaxed text-[#244c21]">{selectedPendingOrder.notes}</p>
+                      </>
+                    )}
+                  </div>
+                  <div className="rounded-2xl bg-[#D6E9CA]/45 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Estimated amount</p>
+                    <p className="mt-2 text-2xl font-black text-[#244c21]">
+                      {formatCurrency(getEstimatedAmount(selectedPendingOrder))}
+                    </p>
+                    <p className="mt-2 text-xs font-bold text-[#397239]/60">
+                      Status: {selectedPendingOrder.status || 'Pending'}
+                    </p>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div className="flex flex-col gap-3 border-t border-[#397234]/10 bg-white/80 px-5 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPendingOrder(null);
+                  openNavigationForOrder(selectedPendingOrder);
+                }}
+                className="rounded-2xl border border-[#397234]/10 bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+              >
+                View route
+              </button>
+              <button
+                type="button"
+                onClick={() => confirmPickup(selectedPendingOrder)}
+                disabled={confirmingOrderId === selectedPendingOrder._id}
+                className="rounded-2xl bg-[#397239] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {confirmingOrderId === selectedPendingOrder._id ? 'Confirming...' : 'Confirm Pickup'}
+              </button>
             </div>
           </div>
         </div>
