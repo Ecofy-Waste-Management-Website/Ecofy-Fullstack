@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
@@ -13,8 +15,7 @@ const SERVICE_PRICES = {
   "Drain Cleaning": 2000,
 };
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
-const DEFAULT_MAP_CENTER = "Balangoda, Sri Lanka";
+const LEAFLET_MAP_CENTER = [6.9271, 79.8612];
 const MAP_LABELS = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 const getOrderMapTarget = (order) => {
@@ -26,53 +27,6 @@ const getOrderMapTarget = (order) => {
   }
 
   return typeof order?.location === "string" ? order.location.trim() : "";
-};
-
-const buildPendingOrdersMapUrl = (orders) => {
-  const map = new URL("https://maps.googleapis.com/maps/api/staticmap");
-  map.searchParams.set("size", "1200x720");
-  map.searchParams.set("scale", "2");
-  map.searchParams.set("zoom", "11");
-  map.searchParams.set("maptype", "roadmap");
-  map.searchParams.set("center", DEFAULT_MAP_CENTER);
-
-  orders.slice(0, 20).forEach((order, index) => {
-    const target = getOrderMapTarget(order);
-    if (!target) return;
-
-    const label = MAP_LABELS[index % MAP_LABELS.length];
-    map.searchParams.append("markers", `color:0x397239|label:${label}|${target}`);
-  });
-
-  if (GOOGLE_MAPS_API_KEY) {
-    map.searchParams.set("key", GOOGLE_MAPS_API_KEY);
-  }
-
-  return map.toString();
-};
-
-const loadGoogleMapsScript = () => {
-  if (!GOOGLE_MAPS_API_KEY) return Promise.resolve(false);
-  if (window.google?.maps) return Promise.resolve(true);
-
-  const existingScript = document.getElementById("google-maps-js");
-  if (existingScript) {
-    return new Promise((resolve, reject) => {
-      existingScript.addEventListener("load", () => resolve(true), { once: true });
-      existingScript.addEventListener("error", () => reject(new Error("Google Maps failed to load.")), { once: true });
-    });
-  }
-
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.id = "google-maps-js";
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve(true);
-    script.onerror = () => reject(new Error("Google Maps failed to load."));
-    document.head.appendChild(script);
-  });
 };
 
 const getPendingOrderPins = (orders) =>
@@ -89,114 +43,183 @@ const getPendingOrderPins = (orders) =>
     })
     .filter(Boolean);
 
-function PendingOrdersMapCanvas({ orders }) {
+const isCoordinateTarget = (target) => /^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/.test(target);
+
+const geocodePendingOrderTarget = async (target) => {
+  const url = new URL('https://nominatim.openstreetmap.org/search');
+  url.searchParams.set('format', 'jsonv2');
+  url.searchParams.set('limit', '1');
+  url.searchParams.set('q', target);
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  if (!Array.isArray(data) || !data[0]) return null;
+
+  const latitude = Number(data[0].lat);
+  const longitude = Number(data[0].lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+  return { lat: latitude, lng: longitude };
+};
+
+const createPinIcon = (label) => L.divIcon({
+  className: '',
+  html: `
+    <div style="
+      width: 34px;
+      height: 34px;
+      border-radius: 9999px 9999px 9999px 4px;
+      background: #397239;
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 11px;
+      box-shadow: 0 10px 18px rgba(57, 114, 57, 0.35);
+      transform: rotate(-45deg);
+      border: 2px solid rgba(255,255,255,0.9);
+    ">
+      <span style="transform: rotate(45deg);">${label}</span>
+    </div>
+  `,
+  iconSize: [34, 34],
+  iconAnchor: [17, 34],
+  popupAnchor: [0, -30],
+});
+
+function PendingOrdersMapCanvas({ orders, onRouteSelect }) {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
-  const geocoderRef = useRef(null);
-  const [mapState, setMapState] = useState({ loading: true, message: "" });
+  const [mapReady, setMapReady] = useState(false);
+  const [mapState, setMapState] = useState({ loading: true, message: "Loading OpenStreetMap pins..." });
 
   useEffect(() => {
-    let cancelled = false;
+    const initializeMap = () => {
+      if (!mapContainerRef.current || mapRef.current) return;
 
-    const initializeMap = async () => {
-      try {
-        const loaded = await loadGoogleMapsScript();
-        if (!loaded || cancelled) {
-          setMapState({ loading: false, message: "Add VITE_GOOGLE_MAPS_API_KEY to enable live map pins." });
-          return;
-        }
+      const map = L.map(mapContainerRef.current, {
+        zoomControl: true,
+        scrollWheelZoom: true,
+      }).setView(LEAFLET_MAP_CENTER, 11);
 
-        if (!mapContainerRef.current) return;
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }).addTo(map);
 
-        const google = window.google;
-        const geocoder = new google.maps.Geocoder();
-        geocoderRef.current = geocoder;
-
-        const resolvedPins = [];
-        for (const [index, order] of orders.slice(0, 20).entries()) {
-          const target = getOrderMapTarget(order);
-          if (!target) continue;
-
-          const label = MAP_LABELS[index % MAP_LABELS.length];
-          if (/^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/.test(target)) {
-            const [lat, lng] = target.split(",").map(Number);
-            resolvedPins.push({ order, label, position: { lat, lng }, target });
-            continue;
-          }
-
-          // Geocode freeform addresses so named pickup locations can still be pinned.
-          // If geocoding fails, the order will remain in the directory below the map.
-          const position = await new Promise((resolve) => {
-            geocoder.geocode({ address: target }, (results, status) => {
-              if (status === "OK" && results?.[0]?.geometry?.location) {
-                const loc = results[0].geometry.location;
-                resolve({ lat: loc.lat(), lng: loc.lng() });
-              } else {
-                resolve(null);
-              }
-            });
-          });
-
-          if (position) {
-            resolvedPins.push({ order, label, position, target });
-          }
-        }
-
-        if (cancelled) return;
-
-        if (mapRef.current) {
-          markersRef.current.forEach((marker) => marker.setMap(null));
-          markersRef.current = [];
-        }
-
-        const center = resolvedPins[0]?.position || { lat: 6.9271, lng: 79.8612 };
-        const map = new google.maps.Map(mapContainerRef.current, {
-          center,
-          zoom: resolvedPins.length > 1 ? 11 : 13,
-          gestureHandling: "greedy",
-          streetViewControl: false,
-          mapTypeControl: false,
-          fullscreenControl: false,
-          clickableIcons: false,
-        });
-
-        const bounds = new google.maps.LatLngBounds();
-        resolvedPins.forEach(({ position, label, order }) => {
-          const marker = new google.maps.Marker({
-            map,
-            position,
-            label,
-            title: `${order._id?.slice(-8)?.toUpperCase() || "Order"} • ${order.location || "Pickup location"}`,
-          });
-          markersRef.current.push(marker);
-          bounds.extend(position);
-        });
-
-        if (resolvedPins.length > 1) {
-          map.fitBounds(bounds, 48);
-        }
-
-        mapRef.current = map;
-        setMapState({
-          loading: false,
-          message: resolvedPins.length > 0 ? `Pinned ${resolvedPins.length} location${resolvedPins.length === 1 ? "" : "s"}.` : "No geocodable pickup locations were found yet.",
-        });
-      } catch (error) {
-        if (!cancelled) {
-          setMapState({ loading: false, message: error instanceof Error ? error.message : "Google Maps failed to load." });
-        }
-      }
+      mapRef.current = map;
+      setMapReady(true);
+      setMapState({ loading: false, message: 'OpenStreetMap loaded.' });
     };
 
     initializeMap();
 
     return () => {
-      cancelled = true;
-      markersRef.current.forEach((marker) => marker.setMap(null));
+      markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
   }, [orders]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const renderPins = async () => {
+      const map = mapRef.current;
+      if (!map || !mapReady) return;
+
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+
+      const resolvedPins = [];
+      for (const [index, order] of orders.slice(0, 20).entries()) {
+        const target = getOrderMapTarget(order);
+        if (!target) continue;
+
+        const label = MAP_LABELS[index % MAP_LABELS.length];
+        const position = isCoordinateTarget(target)
+          ? (() => {
+              const [lat, lng] = target.split(',').map(Number);
+              return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+            })()
+          : await geocodePendingOrderTarget(target);
+
+        if (position) {
+          resolvedPins.push({ order, label, position, target });
+        }
+      }
+
+      if (cancelled) return;
+
+      const bounds = L.latLngBounds([]);
+      resolvedPins.forEach(({ position, label, order }) => {
+        const marker = L.marker([position.lat, position.lng], {
+          icon: createPinIcon(label),
+          title: `${order._id?.slice(-8)?.toUpperCase() || 'Order'} • ${order.location || 'Pickup location'}`,
+        }).addTo(map);
+
+        marker.on('click', () => {
+          if (typeof onRouteSelect === 'function') {
+            onRouteSelect(order);
+          }
+        });
+
+        marker.bindPopup(`
+          <div style="min-width: 180px; font-family: system-ui, sans-serif;">
+            <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #397239; margin-bottom: 4px;">Pin ${label}</div>
+            <div style="font-size: 14px; font-weight: 800; color: #244c21; margin-bottom: 4px;">${order.location || 'Pickup location'}</div>
+            <div style="font-size: 12px; color: #397239; margin-bottom: 8px;">${order.service_type || 'Pending order'} • ${order._id?.slice(-8)?.toUpperCase() || 'N/A'}</div>
+            <button type="button" data-route-button="true" style="border: none; border-radius: 9999px; background: #397239; color: white; font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 12px; cursor: pointer;">View route</button>
+          </div>
+        `);
+
+        marker.on('popupopen', (event) => {
+          const popupElement = event.popup.getElement();
+          const button = popupElement?.querySelector('[data-route-button="true"]');
+          if (button) {
+            button.addEventListener('click', () => {
+              if (typeof onRouteSelect === 'function') {
+                onRouteSelect(order);
+              }
+            }, { once: true });
+          }
+        });
+
+        markersRef.current.push(marker);
+        bounds.extend([position.lat, position.lng]);
+      });
+
+      if (resolvedPins.length > 1) {
+        map.fitBounds(bounds.pad(0.2));
+      } else if (resolvedPins.length === 1) {
+        map.setView([resolvedPins[0].position.lat, resolvedPins[0].position.lng], 13);
+      }
+
+      setMapState({
+        loading: false,
+        message: resolvedPins.length > 0
+          ? `Pinned ${resolvedPins.length} location${resolvedPins.length === 1 ? '' : 's'}.`
+          : 'No geocodable pickup locations were found yet.',
+      });
+    };
+
+    renderPins();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [orders, onRouteSelect, mapReady]);
 
   return (
     <div className="relative min-h-[320px] flex-1 bg-[#eff5ea]">
@@ -1025,17 +1048,17 @@ export default function StaffDashboard() {
               <p className="mt-2 text-xs font-medium text-[#397239]/60">Pending pickups will appear here once customers submit requests.</p>
             </div>
           </div>
-        ) : GOOGLE_MAPS_API_KEY ? (
+        ) : (
           <div className="flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner flex flex-col">
             <div className="flex flex-wrap items-center gap-2 border-b border-[#397234]/10 bg-[#f7fbf4] px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/60">
               <span className="rounded-full bg-[#397239]/10 px-3 py-1 text-[#397239]">{pendingOrderPins.length} pinned</span>
               {unresolvedPendingOrders > 0 && (
                 <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-700">{unresolvedPendingOrders} without coordinates</span>
               )}
-              <span className="rounded-full bg-white px-3 py-1 text-[#397239]/70">Live markers from pending bookings</span>
+              <span className="rounded-full bg-white px-3 py-1 text-[#397239]/70">OpenStreetMap live markers</span>
             </div>
 
-            <PendingOrdersMapCanvas orders={pendingOrders} />
+            <PendingOrdersMapCanvas orders={pendingOrders} onRouteSelect={(order) => setNavigationOrder(order)} />
 
             <div className="relative -mt-4 mx-4 mb-4 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-xl backdrop-blur">
                 <div className="flex items-center justify-between gap-3">
@@ -1066,13 +1089,6 @@ export default function StaffDashboard() {
                     </div>
                   ))}
                 </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 grid place-items-center rounded-3xl border border-dashed border-[#397234]/15 bg-white/60 text-center px-6">
-            <div>
-              <p className="text-sm font-black uppercase tracking-widest text-[#397239]/50">Add Google Maps API key</p>
-              <p className="mt-2 text-xs font-medium text-[#397239]/60">Set VITE_GOOGLE_MAPS_API_KEY to render the live pins map.</p>
             </div>
           </div>
         )}
