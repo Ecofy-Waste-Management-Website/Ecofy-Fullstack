@@ -341,7 +341,7 @@ const UserManagement = () => {
                           </p>
                           <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${getStatusTone(user.status)}`}>
                             {user.status || "Unknown"}
-                          </Badge>
+                          </span>
                         </div>
                         <p className="truncate text-xs text-[#397239]/50">{user.email}</p>
                         <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
@@ -417,7 +417,7 @@ const UserManagement = () => {
                                 </span>
                                 <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${getStatusTone(item.status)}`}>
                                   {item.status || "Unknown"}
-                                </Badge>
+                                </span>
                               </div>
                               <h5 className="mt-3 text-sm font-black text-[#244c21]">{item.title}</h5>
                               <p className="mt-1 text-xs text-[#397239]/50">{item.subtitle || "No additional details"}</p>

@@ -179,7 +179,7 @@ export default function ContentBlogManagement() {
     <section className="space-y-6 text-[#244c21]">
 
       {/* ── HEADER ── */}
-      <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 shadow-sm">
+      <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-2xl p-6 shadow-sm">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h3 className="m-0 text-2xl font-black tracking-tight text-[#244c21]">Blog Management</h3>
@@ -232,13 +232,13 @@ export default function ContentBlogManagement() {
       {/* ── ALERTS ── */}
       {error && (
         <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-5 py-4 text-xs font-bold text-red-500 shadow-sm flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
+          <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse shrink-0" />
           {error}
         </div>
       )}
       {message && (
         <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/80 px-5 py-4 text-xs font-bold text-[#397239] shadow-sm flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#397239] flex-shrink-0" />
+          <span className="h-1.5 w-1.5 rounded-full bg-[#397239] shrink-0" />
           {message}
         </div>
       )}
@@ -248,7 +248,7 @@ export default function ContentBlogManagement() {
 
         {/* ── POSTS LIST ── */}
         <div className="lg:col-span-1">
-          <div className="sticky top-6 rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-[40px] shadow-sm overflow-hidden">
+          <div className="sticky top-6 rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-2xl shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-[#397234]/10 flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-[#397239]" />
               <p className="m-0 text-[10px] font-black uppercase tracking-widest text-[#244c21]">
@@ -296,7 +296,7 @@ export default function ContentBlogManagement() {
                       </h4>
                       <p className="m-0 mt-0.5 text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest">{post.author || "No author"}</p>
                     </div>
-                    <span className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest ${
+                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest ${
                       post.status === "Published"
                         ? "bg-[#397239]/15 text-[#397239]"
                         : "bg-[#112A0F]/8 text-[#244c21]/60"
@@ -326,7 +326,7 @@ export default function ContentBlogManagement() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                       Delete
-                    </Button>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -337,11 +337,11 @@ export default function ContentBlogManagement() {
         {/* ── EDITOR ── */}
         <div className="lg:col-span-2">
           {editorForm ? (
-            <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-[40px] shadow-sm overflow-hidden">
+            <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-2xl shadow-sm overflow-hidden">
 
               {/* Editor header */}
               <div className="px-6 py-5 border-b border-[#397234]/10 flex items-center gap-4">
-                <div className="h-10 w-10 flex-shrink-0 rounded-2xl bg-[#397239]/15 flex items-center justify-center text-[#397239]">
+                <div className="h-10 w-10 shrink-0 rounded-2xl bg-[#397239]/15 flex items-center justify-center text-[#397239]">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
@@ -490,7 +490,7 @@ export default function ContentBlogManagement() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   {loading ? "Publishing..." : "Publish"}
-                </Button>
+                  </button>
               </div>
             </div>
           ) : (
@@ -512,7 +512,7 @@ export default function ContentBlogManagement() {
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 overflow-hidden border border-[#397234]/10">
             <div className="px-6 py-6 border-b border-red-100 bg-red-50/50">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 flex-shrink-0 rounded-2xl bg-red-100 flex items-center justify-center">
+                <div className="h-10 w-10 shrink-0 rounded-2xl bg-red-100 flex items-center justify-center">
                   <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
@@ -543,7 +543,7 @@ export default function ContentBlogManagement() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
                 Delete
-              </Button>
+              </button>
             </div>
           </div>
         </div>
