@@ -19,7 +19,7 @@ const locations = [
 
 const serviceTypes = ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
 const wasteCategories = ["General", "Recyclable", "Hazardous", "Electronic", "Garden"];
-const statuses = ["Pending", "Assigned", "In Progress", "En Route"];
+const statuses = ["Assigned", "In Progress", "En Route", "Completed"];
 const customers = [
   { name: "Kamal Perera", email: "kamal@gmail.com" },
   { name: "Nimal Silva", email: "nimal@gmail.com" },
