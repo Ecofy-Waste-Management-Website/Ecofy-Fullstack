@@ -268,8 +268,8 @@ function PendingOrdersMapCanvas({ orders, onOrderSelect }) {
   }, [orders, onOrderSelect, mapReady]);
 
   return (
-    <div className="relative min-h-[320px] flex-1 bg-[#eff5ea]">
-      <div ref={mapContainerRef} className="h-full w-full min-h-[320px]" />
+    <div className="relative z-0 min-h-[320px] flex-1 isolate bg-[#eff5ea]">
+      <div ref={mapContainerRef} className="relative z-0 h-full w-full min-h-[320px]" />
       {mapState.loading && (
         <div className="absolute inset-0 grid place-items-center bg-white/75 text-center">
           <div>
@@ -1424,7 +1424,7 @@ export default function StaffDashboard() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner flex flex-col">
+          <div className="relative z-0 flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner flex flex-col isolate">
             <div className="flex flex-wrap items-center gap-2 border-b border-[#397234]/10 bg-[#f7fbf4] px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/60">
               <span className="rounded-full bg-[#397239]/10 px-3 py-1 text-[#397239]">{pendingOrderPins.length} pinned</span>
               {unresolvedPendingOrders > 0 && (
@@ -1859,7 +1859,7 @@ export default function StaffDashboard() {
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
 
           {/* Header */}
-          <header className="mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
+          <header className="relative z-[1000] mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
             <h2 className="m-0 text-2xl font-black tracking-tight text-[#244c21] truncate">
               {getPageTitle()}
             </h2>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -12,6 +12,17 @@ function timeAgo(dateStr) {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
+function formatDateTime(dateStr) {
+  if (!dateStr) return "Not available";
+  return new Date(dateStr).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 const TYPE_STYLES = {
   Alert:   "bg-red-100 text-red-800",
   Warning: "bg-amber-100 text-amber-800",
@@ -23,18 +34,12 @@ export default function NotificationBell({ target = "user" }) {
   const { user } = useUser();
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
   const panelRef = useRef(null);
 
-  // Fetch on mount and every 60 seconds
-  useEffect(() => {
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
-    const fetch = () => fetchNotifications();
-    fetch();
-    const interval = setInterval(fetch, 60_000);
-    return () => clearInterval(interval);
-  }, [user]);
 
-  const fetchNotifications = async () => {
     try {
       const res = await window.fetch(`${API_BASE_URL}/notifications/${user.id}?target=${target}`);
       if (!res.ok) return;
@@ -43,13 +48,24 @@ export default function NotificationBell({ target = "user" }) {
     } catch (err) {
       console.error("Failed to fetch notifications", err);
     }
-  };
+  }, [target, user]);
+
+  // Fetch on mount and every 60 seconds
+  useEffect(() => {
+    const initialFetch = setTimeout(fetchNotifications, 0);
+    const interval = setInterval(fetchNotifications, 60_000);
+    return () => {
+      clearTimeout(initialFetch);
+      clearInterval(interval);
+    };
+  }, [fetchNotifications]);
 
   // Close panel on outside click
   useEffect(() => {
     const handler = (e) => {
       if (panelRef.current && !panelRef.current.contains(e.target)) {
         setOpen(false);
+        setExpandedId(null);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -79,10 +95,21 @@ export default function NotificationBell({ target = "user" }) {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   };
 
+  const toggleNotification = (id) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  const handleNotificationKeyDown = (e, id) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleNotification(id);
+    }
+  };
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
-    <div className="relative" ref={panelRef}>
+    <div className="relative z-[10000]" ref={panelRef}>
       {/* Bell Button */}
       <button
         onClick={() => setOpen((prev) => !prev)}
@@ -101,7 +128,7 @@ export default function NotificationBell({ target = "user" }) {
 
       {/* Dropdown Panel */}
       {open && (
-        <div className="absolute right-0 top-[calc(100%+10px)] z-[100] w-[360px] rounded-2xl border border-green-100 bg-white shadow-xl shadow-green-900/10 overflow-hidden">
+        <div className="absolute right-0 top-[calc(100%+10px)] z-[10000] w-[360px] rounded-2xl border border-green-100 bg-white shadow-xl shadow-green-900/10 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-green-50">
             <p className="text-sm font-bold text-gray-800 m-0">
@@ -127,10 +154,18 @@ export default function NotificationBell({ target = "user" }) {
             {notifications.length === 0 ? (
               <p className="py-10 text-center text-sm text-gray-400">No notifications yet.</p>
             ) : (
-              notifications.map((item) => (
+              notifications.map((item) => {
+                const isExpanded = expandedId === item._id;
+
+                return (
                 <div
                   key={item._id}
-                  className={`flex gap-3 px-4 py-3 border-b border-gray-50 last:border-0 transition-colors ${
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  onClick={() => toggleNotification(item._id)}
+                  onKeyDown={(e) => handleNotificationKeyDown(e, item._id)}
+                  className={`flex gap-3 px-4 py-3 border-b border-gray-50 last:border-0 cursor-pointer transition-colors hover:bg-green-50/70 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-200 ${
                     item.isRead ? "bg-white" : "bg-green-50/50"
                   }`}
                 >
@@ -144,6 +179,11 @@ export default function NotificationBell({ target = "user" }) {
                   </div>
 
                   <div className="flex-1 min-w-0">
+                    {item.title && (
+                      <p className={`text-[0.72rem] leading-snug m-0 mb-0.5 ${item.isRead ? "text-gray-500" : "text-gray-700 font-bold"}`}>
+                        {item.title}
+                      </p>
+                    )}
                     <p className={`text-[0.8rem] leading-snug m-0 mb-1 ${item.isRead ? "text-gray-500" : "text-gray-800 font-semibold"}`}>
                       {item.message}
                     </p>
@@ -152,18 +192,53 @@ export default function NotificationBell({ target = "user" }) {
                         {item.type}
                       </span>
                       <span className="text-[0.65rem] text-gray-400">{timeAgo(item.createdAt)}</span>
+                      <span className="ml-auto text-[0.65rem] font-semibold text-green-600">
+                        {isExpanded ? "hide details" : "view details"}
+                      </span>
                       {!item.isRead && (
                         <button
                           onClick={(e) => handleMarkAsRead(item._id, e)}
-                          className="ml-auto text-[0.65rem] text-gray-400 hover:text-green-600 hover:underline bg-transparent border-none cursor-pointer p-0"
+                          className="text-[0.65rem] text-gray-400 hover:text-green-600 hover:underline bg-transparent border-none cursor-pointer p-0"
                         >
                           mark read
                         </button>
                       )}
                     </div>
+
+                    {isExpanded && (
+                      <div className="mt-3 rounded-xl border border-green-100 bg-white px-3 py-3 shadow-sm">
+                        <p className="m-0 text-[0.72rem] font-bold uppercase tracking-wide text-green-700">
+                          Notification details
+                        </p>
+                        <p className="mt-2 mb-0 text-[0.78rem] leading-relaxed text-gray-700">
+                          {item.message}
+                        </p>
+                        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-[0.68rem]">
+                          <div>
+                            <dt className="font-bold text-gray-400">Type</dt>
+                            <dd className="m-0 text-gray-700">{item.type || "Info"}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-bold text-gray-400">Status</dt>
+                            <dd className="m-0 text-gray-700">{item.isRead ? "Read" : "Unread"}</dd>
+                          </div>
+                          <div className="col-span-2">
+                            <dt className="font-bold text-gray-400">Received</dt>
+                            <dd className="m-0 text-gray-700">{formatDateTime(item.createdAt)}</dd>
+                          </div>
+                          {item.updatedAt && item.updatedAt !== item.createdAt && (
+                            <div className="col-span-2">
+                              <dt className="font-bold text-gray-400">Last updated</dt>
+                              <dd className="m-0 text-gray-700">{formatDateTime(item.updatedAt)}</dd>
+                            </div>
+                          )}
+                        </dl>
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
