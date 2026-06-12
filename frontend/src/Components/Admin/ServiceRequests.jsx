@@ -47,6 +47,12 @@ function typeColor(t) {
   }[t] || "#444";
 }
 
+function formatAssignedStaff(value) {
+  if (!value) return null;
+  if (STAFF_LIST.includes(value)) return value;
+  return "Assigned Staff";
+}
+
 // ── KPI Cards ──────────────────────────────────────────────────────────────────
 // ── KPI Cards ──────────────────────────────────────────────────────────────────
 function KPIGrid({ stats }) {
@@ -378,7 +384,7 @@ export default function ServiceRequests() {
                     </td>
                     <td className="px-8 py-5">
                       {r.assignedStaff
-                        ? <span className="font-bold text-[#397239]">{r.assignedStaff}</span>
+                        ? <span className="font-bold text-[#397239]">{formatAssignedStaff(r.assignedStaff)}</span>
                         : <span className="text-[#397239]/20 italic font-medium">Unassigned</span>}
                     </td>
                   <td className="px-8 py-5">
