@@ -1477,7 +1477,7 @@ export default function StaffDashboard() {
   );
 
   // ─── Inquiry Panel ────────────────────────────────────────────────────────────
-  const InquiriesPanel = () => (
+  const renderInquiriesPanel = () => (
     <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-5 shadow-sm">
       {/* Header row */}
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -1625,13 +1625,19 @@ export default function StaffDashboard() {
                         )}
 
                         {/* Reply composer — always show so staff can update/add another reply */}
-                        <div className="rounded-2xl bg-white border border-[#397234]/15 p-3">
+                        <div
+                          className="rounded-2xl bg-white border border-[#397234]/15 p-3"
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50 mb-2">
                             {isReplied ? 'Update Reply' : 'Write a Reply'}
                           </p>
                           <textarea
                             rows={3}
                             value={replyTexts[inq._id] || ''}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                             onChange={(e) =>
                               setReplyTexts((prev) => ({ ...prev, [inq._id]: e.target.value }))
                             }
@@ -1641,7 +1647,11 @@ export default function StaffDashboard() {
                           <div className="mt-2 flex justify-end">
                             <button
                               type="button"
-                              onClick={() => handleSendReply(inq._id)}
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSendReply(inq._id);
+                              }}
                               disabled={
                                 !replyTexts[inq._id]?.trim() || sendingReply === inq._id
                               }
@@ -1868,12 +1878,6 @@ export default function StaffDashboard() {
               {getPageTitle()}
             </h2>
             <div className="flex items-center gap-3">
-              <div className="relative w-[280px]">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#397239]/40">
-                  <Icons.Search />
-                </span>
-                <input type="text" className="w-full rounded-2xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-[8px_12px_8px_38px] text-sm text-[#244c21] outline-none transition-all focus:border-[#397239] focus:bg-white focus:shadow-md placeholder:text-[#397239]/40" placeholder="Search tasks..." />
-              </div>
               <NotificationBell target="staff" />
               <div className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-3 py-1.5 text-xs font-black text-[#397239] backdrop-blur-sm">Staff</div>
               {!roleLoading && role === 'Admin' && (
@@ -1902,7 +1906,7 @@ export default function StaffDashboard() {
 
                 {activeTab === 'inquiries' && (
                   <div className="col-span-full">
-                    <InquiriesPanel />
+                    {renderInquiriesPanel()}
                   </div>
                 )}
 
