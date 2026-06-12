@@ -72,6 +72,19 @@ const userSchema = new Schema(
             type: String,
             default: '',
         }
+        ,
+        availabilityStatus: {
+            type: String,
+            enum: ['Available', 'Busy', 'Off Duty'],
+            default: 'Available',
+        },
+
+        bankDetails: {
+            bankName: { type: String, default: '' },
+            accountName: { type: String, default: '' },
+            accountNumber: { type: String, default: '' },
+            branch: { type: String, default: '' },
+        }
 
     },
 

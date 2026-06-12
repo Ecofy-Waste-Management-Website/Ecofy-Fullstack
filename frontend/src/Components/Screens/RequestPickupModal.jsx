@@ -5,7 +5,13 @@ import { createPickupRequest } from "../../services/api/bookingService";
 const SERVICE_TYPES = ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
 const WASTE_CATEGORIES = ["General", "Recyclable", "Hazardous", "Electronic", "Garden"];
 
-export default function RequestPickupModal({ isOpen, onClose, onSuccess, initialLocation = "" }) {
+export default function RequestPickupModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  initialLocation = "",
+  initialCoordinates = null,
+}) {
   const { user } = useUser();
 
   const createEmptyForm = (location = "") => ({
@@ -65,26 +71,42 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
       setSubmitting(true);
       setStatus({ type: "", text: "" });
 
+<<<<<<< HEAD
       const createdBooking = await createPickupRequest({
+=======
+      const booking = await createPickupRequest({
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
         customer_name:
           `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
           user?.username ||
           "Ecofy Customer",
         customer_email: user?.primaryEmailAddress?.emailAddress || "",
+<<<<<<< HEAD
         customer_phone: form.customer_phone || user?.phoneNumbers?.[0]?.phoneNumber || "",
+=======
+        customer_phone: user?.phoneNumbers?.[0]?.phoneNumber || "",
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
         clerkId: user?.id,
+        pickupCoordinates: initialCoordinates,
         ...form,
       });
 
       setStatus({
         type: "success",
+<<<<<<< HEAD
         text: `Pickup request submitted successfully! 🎉 Your pickup PIN is ${createdBooking?.pickupPin || createdBooking?.pickup_pin || "saved in your booking record"}.`,
+=======
+        text: booking?.pickupPin
+          ? `Pickup request submitted successfully! Your order PIN is ${booking.pickupPin}.`
+          : "Pickup request submitted successfully! 🎉",
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
       });
 
       // Auto-close after a brief pause so the user sees the success message
       setTimeout(() => {
         resetForm();
         onSuccess?.({
+<<<<<<< HEAD
         ...form,
         clerkId: user?.id,
         email: user?.primaryEmailAddress?.emailAddress || "",
@@ -92,6 +114,14 @@ export default function RequestPickupModal({ isOpen, onClose, onSuccess, initial
         pickupPin: createdBooking?.pickupPin || createdBooking?.pickup_pin || "",
           price: createdBooking?.price || createdBooking?.estimated_amt || "",
       });
+=======
+          ...form,
+          clerkId: user?.id,
+          email: user?.primaryEmailAddress?.emailAddress || "",
+          pickupPin: booking?.pickupPin || "",
+          pickupCoordinates: booking?.pickupCoordinates || initialCoordinates || null,
+        });
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
         onClose();
       }, 1500);
     } catch (error) {

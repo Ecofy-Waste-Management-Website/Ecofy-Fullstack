@@ -22,6 +22,11 @@ const serviceMonitoringRouter = require("./Route/serviceMonitoringRoute");
 const authTestRouter = require("./Route/authTestRoute");
 const stripeRoute = require("./Route/stripe.route");
 const chatbotRouter = require("./Route/chatbotRoute");
+<<<<<<< HEAD
+=======
+const blogRoute = require("./Route/ContentBlogRoute");
+const serviceManagementRouter = require('./Route/serviceManagementRoute');
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
 const app = express();
 
 
@@ -32,6 +37,15 @@ const wss = new WebSocketServer({ server });
 wss.on("connection", (ws) => {
   console.log("📡 Dashboard client connected");
   ws.on("close", () => console.log("📡 Dashboard client disconnected"));
+});
+
+wss.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.warn("WebSocket server could not bind to the requested port because it is already in use.");
+    return;
+  }
+
+  throw err;
 });
 
 // Make wss accessible inside route handlers via req.app.get("wss")
@@ -77,6 +91,11 @@ app.use("/staff", staffRouter);
 app.use("/auth-test", authTestRouter);
 app.use("/api/stripe", stripeRoute);
 app.use("/chatbot", chatbotRouter);
+<<<<<<< HEAD
+=======
+app.use("/blog", blogRoute);
+app.use('/services', serviceManagementRouter);
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
 
 
 mongoose.connect(process.env.MONGO_URI, {
@@ -90,7 +109,22 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(()=> console.log("connected to MongoDB"))
 .catch((err)=> console.log(err));
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT , () =>{
-  console.log(`Server is running ! ${PORT}`);
-});
+const BASE_PORT = Number(process.env.PORT) || 5000;
+
+const listenOnPort = (port) => {
+  server.once("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.warn(`Port ${port} is already in use. Retrying on ${port + 1}...`);
+      listenOnPort(port + 1);
+      return;
+    }
+
+    throw err;
+  });
+
+  server.listen(port, () => {
+    console.log(`Server is running ! ${port}`);
+  });
+};
+
+listenOnPort(BASE_PORT);

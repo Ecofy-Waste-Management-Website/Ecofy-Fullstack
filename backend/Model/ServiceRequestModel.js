@@ -13,7 +13,11 @@ const serviceRequestSchema = new Schema(
   {
     customer_name: { type: String, required: true },
     customer_email: { type: String, required: true },
+<<<<<<< HEAD
     customer_phone: { type: String, default: null },
+=======
+    customer_phone: { type: String, default: "" },
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
     clerkId: { type: String, default: null, index: true },
     service_type: {
       type: String,
@@ -26,10 +30,16 @@ const serviceRequestSchema = new Schema(
       required: true,
     },
     location: { type: String, required: true },
+    pickupCoordinates: {
+      latitude: { type: Number, default: null },
+      longitude: { type: Number, default: null },
+    },
     scheduled_date: { type: Date, required: true },
+    servicePrice: { type: Number, default: 0 },
+    pickupPin: { type: String, default: "" },
     status: {
       type: String,
-      enum: ["Pending", "Assigned", "In Progress","En Route", "Completed", "Delayed"],
+      enum: ["Pending", "Assigned", "In Progress","En Route", "Completed", "Delayed", "Cancelled"],
       default: "Pending",
     },
     notes: { type: String },

@@ -1,5 +1,15 @@
+<<<<<<< HEAD
 const User = require("../Model/UserModule");
 const { clerkClient } = require("@clerk/clerk-sdk-node");
+=======
+const User = require("../Model/User.js");
+const LegacyUser = require("../Model/UserModule");
+const PaymentHistory = require("../Model/PaymentHistoryModel");
+const ServiceHistory = require("../Model/ServiceHistoryModel");
+const ServiceRequest = require("../Model/ServiceRequestModel");
+const { clerkClient } = require("@clerk/clerk-sdk-node");
+const Notification = require("../Model/NotificationModel");
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
 
 const jwt = require("jsonwebtoken");
 
@@ -28,6 +38,14 @@ const createUser = async (req, res) => {
     });
 
     await newUser.save();
+
+    await Notification.create({
+      title: "New User Registered",
+      message: `${firstName} ${lastName || ""} (${email}) has just created an account.`,
+      type: "Info",
+      target: "admin",
+    });
+
     res.status(201).json({ message: "New User created Successfully!", user: newUser });
   } catch (err) {
     console.log(err);
@@ -35,30 +53,115 @@ const createUser = async (req, res) => {
   }
 };
 
-// const login = async (req, res) => {
-//   try {
-//     const { email } = req.body;
-//     const user = await User.findOne({ email: email });
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found!" });
-//     }
-//     res.status(200).json({ message: "Login successful", user });
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json({ message: "Internal server Error" });
-//   }
-// };
+const normalizeUser = (user, source) => ({
+  ...user.toObject(),
+  source,
+});
 
-// // Get all users (Admin dashboard)
-// const getAllUsers = async (req, res) => {
-//   try {
-//     const users = await User.find().select("-__v");
-//     res.status(200).json({ message: "Users fetched successfully", users });
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json({ message: "Internal server Error" });
-//   }
-// };
+const buildOrderHistory = (user, payments, serviceHistory, bookings) => {
+  const timeline = [
+    ...payments.map((payment) => ({
+      id: payment._id,
+      type: "Payment",
+      title: payment.description || "Payment recorded",
+      subtitle: `${payment.paymentMethod || "Payment"} • ${payment.currency || "USD"}`,
+      status: payment.status,
+      amount: payment.amount,
+      date: payment.paidAt || payment.createdAt,
+      raw: payment,
+    })),
+    ...serviceHistory.map((item) => ({
+      id: item._id,
+      type: "Service",
+      title: item.serviceName,
+      subtitle: item.serviceType,
+      status: item.status,
+      amount: item.cost,
+      date: item.completedDate || item.scheduledDate || item.createdAt,
+      raw: item,
+    })),
+    ...bookings.map((booking) => ({
+      id: booking._id,
+      type: "Booking",
+      title: booking.service_type || "Waste pickup order",
+      subtitle: booking.waste_category || booking.location || booking.customer_email,
+      status: booking.status,
+      amount: booking.total_amount || booking.amount || null,
+      date: booking.scheduled_date || booking.createdAt,
+      raw: booking,
+    })),
+  ]
+    .filter((item) => item.date)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  return {
+    user,
+    totals: {
+      payments: payments.length,
+      services: serviceHistory.length,
+      bookings: bookings.length,
+      items: timeline.length,
+    },
+    timeline,
+    payments,
+    serviceHistory,
+    bookings,
+  };
+};
+
+// Get all users (Admin dashboard)
+const getAllUsers = async (req, res) => {
+  try {
+    const [primaryUsers, legacyUsers] = await Promise.all([
+      User.find().sort({ createdAt: -1 }).select("-password -__v"),
+      LegacyUser.find().sort({ createdAt: -1 }).select("-__v"),
+    ]);
+
+    const seen = new Set();
+    const users = [...primaryUsers.map((user) => normalizeUser(user, "User")), ...legacyUsers.map((user) => normalizeUser(user, "LegacyUser"))].filter((user) => {
+      const key = user.clerkId || user.email;
+      if (!key || seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+
+    res.status(200).json({ message: "Users fetched successfully", users });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal server Error" });
+  }
+};
+
+const getUserOrderHistory = async (req, res) => {
+  try {
+    const { clerkId } = req.params;
+    const user =
+      (await User.findOne({ clerkId }).select("-password -__v")) ||
+      (await LegacyUser.findOne({ clerkId }).select("-__v"));
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const [payments, serviceHistory, bookings] = await Promise.all([
+      PaymentHistory.find({ clerkId }).sort({ createdAt: -1 }).select("-__v"),
+      ServiceHistory.find({ clerkId }).sort({ scheduledDate: -1 }).select("-__v"),
+      ServiceRequest.find({ clerkId }).sort({ createdAt: -1 }),
+    ]);
+
+    const payload = buildOrderHistory(user, payments, serviceHistory, bookings);
+
+    res.status(200).json({
+      message: "User order history fetched successfully",
+      ...payload,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal server Error" });
+  }
+};
 
 // Get single user profile by clerkId
 const getUserByClerkId = async (req, res) => {
@@ -74,13 +177,18 @@ const getUserByClerkId = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 const updateStaffSettings = async (req, res) => {
+=======
+const updateUserSettings = async (req, res) => {
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
   try {
     const { clerkId } = req.params;
     const {
       firstName,
       lastName,
       availabilityStatus,
+<<<<<<< HEAD
       bankAccountName,
       bankName,
       bankAccountNumber,
@@ -95,15 +203,51 @@ const updateStaffSettings = async (req, res) => {
     const nextFirstName = typeof firstName === "string" ? firstName.trim() : user.firstName;
     const nextLastName = typeof lastName === "string" ? lastName.trim() : user.lastName || "";
     const nextAvailabilityStatus = typeof availabilityStatus === "string" ? availabilityStatus.trim() : user.availabilityStatus || "Available";
+=======
+      bankDetails,
+    } = req.body;
+
+    const user =
+      (await User.findOne({ clerkId })) ||
+      (await LegacyUser.findOne({ clerkId }));
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const nextFirstName = typeof firstName === "string" ? firstName.trim() : user.firstName;
+    const nextLastName = typeof lastName === "string" ? lastName.trim() : user.lastName;
+    const nextAvailability = typeof availabilityStatus === "string" ? availabilityStatus.trim() : user.availabilityStatus || "Available";
+    const nextBankDetails = {
+      bankName: typeof bankDetails?.bankName === "string" ? bankDetails.bankName.trim() : user.bankDetails?.bankName || "",
+      accountName: typeof bankDetails?.accountName === "string" ? bankDetails.accountName.trim() : user.bankDetails?.accountName || "",
+      accountNumber: typeof bankDetails?.accountNumber === "string" ? bankDetails.accountNumber.trim() : user.bankDetails?.accountNumber || "",
+      branch: typeof bankDetails?.branch === "string" ? bankDetails.branch.trim() : user.bankDetails?.branch || "",
+    };
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
 
     if (!nextFirstName) {
       return res.status(400).json({ message: "First name is required" });
     }
 
+<<<<<<< HEAD
     if (!["Available", "Busy", "Unavailable"].includes(nextAvailabilityStatus)) {
       return res.status(400).json({ message: "Invalid availability status" });
     }
 
+=======
+    if (!['Available', 'Busy', 'Off Duty'].includes(nextAvailability)) {
+      return res.status(400).json({ message: "Invalid availability status" });
+    }
+
+    user.firstName = nextFirstName;
+    user.lastName = nextLastName;
+    user.availabilityStatus = nextAvailability;
+    user.bankDetails = nextBankDetails;
+
+    await user.save();
+
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
     if (user.clerkId) {
       await clerkClient.users.updateUser(user.clerkId, {
         firstName: nextFirstName,
@@ -111,6 +255,7 @@ const updateStaffSettings = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
     user.firstName = nextFirstName;
     user.lastName = nextLastName;
     user.availabilityStatus = nextAvailabilityStatus;
@@ -123,11 +268,19 @@ const updateStaffSettings = async (req, res) => {
 
     return res.status(200).json({
       message: "Staff settings updated successfully",
+=======
+    return res.status(200).json({
+      message: "Settings updated successfully",
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
       user,
     });
   } catch (err) {
     console.log(err);
+<<<<<<< HEAD
     res.status(500).json({ message: "Internal server Error" });
+=======
+    return res.status(500).json({ message: "Internal server Error" });
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51
   }
 };
 
@@ -194,5 +347,9 @@ const updateStaffSettings = async (req, res) => {
 //     res.status(500).json({ message: "Internal server Error" });
 //   }
 // };
+<<<<<<< HEAD
 // module.exports = { createUser, login, getAllUsers, getUserByClerkId, updateUser, updateUserStatus, deleteUser };
 module.exports = { createUser, getUserByClerkId, updateStaffSettings };
+=======
+module.exports = { createUser, getAllUsers, getUserByClerkId, getUserOrderHistory, updateUserSettings };
+>>>>>>> 82531a44c1376e2b94d39bfb7bae5901e89b6d51

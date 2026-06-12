@@ -20,6 +20,42 @@ const createInquiry = async (req, res) => {
       message,
     });
 
+    // Admin notification
+    await Notification.create({
+      clerkId: "",
+      title: "New Inquiry Received",
+      message: `${userName} submitted an inquiry: "${subject || "General Inquiry"}"`,
+      type: "Info",
+      target: "admin",
+      isRead: false,
+    });
+
+    // Staff broadcast notification — fixed: use `inquiry` not `newInquiry`
+    await Notification.create({
+      clerkId: "",
+      target: "staff",
+      title: "New Inquiry Received",
+      message: `${inquiry.userName} submitted an inquiry: "${inquiry.subject || "General Inquiry"}"`,
+      isRead: false,
+    });
+
+    // Individual staff notifications
+    const staffUsers = await User.find({ role: "Staff" }).select("clerkId");
+    const staffNotifications = staffUsers
+      .filter((s) => s.clerkId)
+      .map((s) => ({
+        clerkId: s.clerkId,
+        title: "New Inquiry Received",
+        message: `${userName} submitted an inquiry: "${subject || "General Inquiry"}"`,
+        type: "Info",
+        target: "staff",
+        isRead: false,
+      }));
+
+    if (staffNotifications.length > 0) {
+      await Notification.insertMany(staffNotifications);
+    }
+
     return res.status(201).json({
       message: "Inquiry submitted successfully.",
       inquiry,
@@ -68,7 +104,9 @@ const replyToInquiry = async (req, res) => {
     let notificationClerkId = updatedInquiry.clerkId || "";
 
     if (!notificationClerkId && updatedInquiry.userEmail) {
-      const matchedUser = await User.findOne({ email: updatedInquiry.userEmail.toLowerCase() });
+      const matchedUser = await User.findOne({
+        email: updatedInquiry.userEmail.toLowerCase(),
+      });
       notificationClerkId = matchedUser?.clerkId || "";
     }
 

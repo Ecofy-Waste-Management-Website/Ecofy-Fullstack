@@ -32,7 +32,7 @@ const serviceRequests = [
     waste_category: "General",
     location: "Maharagama",
     scheduled_date: new Date("2026-03-27"),
-    status: "Pending",
+    status: "Assigned",
     notes: "Old furniture removal",
   },
   {
@@ -72,7 +72,7 @@ const serviceRequests = [
     waste_category: "General",
     location: "Colombo 07",
     scheduled_date: new Date("2026-04-01"),
-    status: "Pending",
+    status: "Assigned",
     notes: "Weekly office waste collection",
   },
   {
