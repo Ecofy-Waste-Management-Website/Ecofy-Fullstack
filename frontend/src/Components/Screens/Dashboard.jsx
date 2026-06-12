@@ -650,8 +650,16 @@ export default function Dashboard() {
 
   return (
     <>
-      {/* Notification Bell — fixed top right, aligned with navbar */}
-     <div className="fixed top-8 right-28 z-50 flex items-center">
+      {/* Top-right actions */}
+      <div className="fixed top-8 right-4 z-50 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => navigate('/landing')}
+          className="inline-flex h-9 items-center gap-2 rounded-full border border-green-100 bg-white px-4 text-sm font-semibold text-green-700 shadow-sm transition-colors hover:bg-green-50"
+        >
+          <Icon name="home" className="h-4 w-4" />
+          <span className="hidden sm:inline">Landing Page</span>
+        </button>
         <NotificationBell target="user" />
       </div>
 

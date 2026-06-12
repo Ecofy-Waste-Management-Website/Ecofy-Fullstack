@@ -107,7 +107,7 @@ const createBooking = async (req, res) => {
     await Notification.create({
       clerkId: "",             // empty = broadcast to all staff
       title: "New Pickup Request",
-      message:`A new ${newOrder.service_type || 'service'} request was submitted at ${newOrder.location || 'unknown location'}.`,
+      message:`A new ${savedBooking.service_type || 'service'} request was submitted at ${savedBooking.location || 'unknown location'}.`,
       type: "Info",
       target: "staff",
     });

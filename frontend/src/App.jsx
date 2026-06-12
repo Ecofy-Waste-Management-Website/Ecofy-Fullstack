@@ -63,6 +63,15 @@ export default function App() {
         </>
       } />
 
+      {/* Public Landing Page */}
+      <Route path="/landing" element={
+        <>
+          <Navbar />
+          <Hero />
+          <Footer />
+        </>
+      } />
+
 
       {/* Redirect after login */}
       <Route path="/redirect" element={
