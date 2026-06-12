@@ -5,9 +5,15 @@ const getNotifications = async (req, res) => {
   try {
     const { clerkId } = req.params;
     const { target } = req.query;
-    const filter = target === "admin"
-      ? { target: "admin" }
-      : { clerkId, ...(target ? { target } : {}) };
+
+    const filter = {
+      target,
+      $or: [
+        { clerkId },           // personal notifications for this user
+        { clerkId: "" },       // broadcast notifications for this role
+      ],
+    };
+    
     const records = await Notification.find(filter)
       .sort({ createdAt: -1 })
       .select("-__v");

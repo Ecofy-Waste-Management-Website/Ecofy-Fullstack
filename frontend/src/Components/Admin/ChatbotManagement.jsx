@@ -15,15 +15,11 @@ export default function ChatbotManagement() {
         setLoading(true);
         setError(null);
         const res = await fetch(`${API_BASE_URL}/chatbot/sessions`);
-        if (!res.ok) {
-          // If endpoint not implemented, fallback to mock data
-          throw new Error('No sessions endpoint');
-        }
+        if (!res.ok) throw new Error('No sessions endpoint');
         const data = await res.json();
         if (!mounted) return;
         setSessions(Array.isArray(data.sessions) ? data.sessions : []);
       } catch (err) {
-        // Fallback mock data to allow UI inspection
         const mock = [
           {
             id: 's1',
@@ -94,25 +90,31 @@ export default function ChatbotManagement() {
         {error && <div className="mt-3 text-xs text-yellow-700">{error}</div>}
       </div>
 
-      {/* Modal */}
+      {/* Modal — single Close button in header only */}
       {selected && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-2xl rounded-3xl border border-white/30 bg-white/95 backdrop-blur-xl shadow-2xl overflow-hidden">
+            {/* Header with single Close button */}
             <div className="flex items-center justify-between p-4 border-b border-white/20">
               <div>
                 <h4 className="text-lg font-600">Conversation — {selected.user?.name || 'User'}</h4>
                 <p className="text-xs text-gray-500">{selected.user?.email || ''}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setSelected(null)} className="rounded-full p-2 bg-gray-100 hover:bg-gray-200">Close</button>
-              </div>
+              <button
+                onClick={() => setSelected(null)}
+                className="rounded-full px-4 py-2 text-sm font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 transition"
+              >
+                Close
+              </button>
             </div>
+
+            {/* Messages */}
             <div className="p-4 max-h-[60vh] overflow-y-auto">
               {Array.isArray(selected.messages) && selected.messages.length > 0 ? (
                 selected.messages.map((m, idx) => (
                   <div key={idx} className={`mb-3 flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[78%] rounded-xl px-4 py-2 ${m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
-                      <div className="text-xs text-gray-400 mb-1">{m.role.toUpperCase()} • {new Date(m.time || m.timestamp || Date.now()).toLocaleString()}</div>
+                      <div className="text-xs opacity-60 mb-1">{m.role.toUpperCase()} • {new Date(m.time || m.timestamp || Date.now()).toLocaleString()}</div>
                       <div className="text-sm">{m.text}</div>
                     </div>
                   </div>
@@ -120,9 +122,6 @@ export default function ChatbotManagement() {
               ) : (
                 <div className="p-6 text-center text-sm text-gray-500">No messages for this session.</div>
               )}
-            </div>
-            <div className="p-4 border-t border-white/20 text-right">
-              <button onClick={() => setSelected(null)} className="rounded-full bg-blue-500 px-4 py-2 text-sm font-600 text-white">Close</button>
             </div>
           </div>
         </div>

@@ -33,7 +33,7 @@ const notificationSchema = new mongoose.Schema(
     },
     target: {
       type: String,
-      enum: ["user", "admin"],
+      enum: ["user", "admin", "staff"],
       default: "user",
     }
   },
