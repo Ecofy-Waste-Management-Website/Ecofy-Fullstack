@@ -52,107 +52,6 @@ const TYPE_ICONS = {
   ),
 };
 
-// ── Detail Modal ──────────────────────────────────────────────────────────────
-function NotificationDetail({ notification, onClose }) {
-  const styles = TYPE_STYLES[notification.type] || TYPE_STYLES.Info;
-
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onClose]);
-
-  return (
-    // Backdrop
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ backgroundColor: "rgba(0,0,0,0.35)", backdropFilter: "blur(2px)" }}
-      onClick={onClose}
-    >
-      {/* Card — stop propagation so clicking inside doesn't close */}
-      <div
-        className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-        style={{ animation: "slideUp 0.2s ease" }}
-      >
-        {/* Coloured top bar */}
-        <div className={`flex items-center gap-3 px-5 py-4 ${styles.badge}`}>
-          {/* Icon circle */}
-          <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${styles.icon}`}>
-            {TYPE_ICONS[notification.type] || TYPE_ICONS.Info}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide opacity-70 m-0">
-              {notification.type}
-            </p>
-            <p className="text-sm font-bold text-gray-900 m-0 leading-snug truncate">
-              {notification.title}
-            </p>
-          </div>
-          {/* Close */}
-          <button
-            onClick={onClose}
-            className="ml-2 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-black/10 hover:bg-black/20 transition-colors border-none cursor-pointer"
-            aria-label="Close"
-          >
-            <svg className="h-3.5 w-3.5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="px-5 py-4">
-          {/* Summary message */}
-          <p className="text-sm font-semibold text-gray-800 m-0 mb-3 leading-snug">
-            {notification.message}
-          </p>
-
-          {/* Full description — only if it exists and differs from message */}
-          {notification.description && notification.description !== notification.message && (
-            <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 mb-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 m-0 mb-1">
-                Details
-              </p>
-              <p className="text-sm text-gray-700 m-0 leading-relaxed whitespace-pre-wrap">
-                {notification.description}
-              </p>
-            </div>
-          )}
-
-          {/* Metadata row */}
-          <div className="flex items-center gap-2 flex-wrap mt-2">
-            <svg className="h-3.5 w-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-xs text-gray-400">{formatFullDate(notification.createdAt)}</span>
-            <span className="text-xs text-gray-300 mx-1">·</span>
-            <span className="text-xs text-gray-400">{timeAgo(notification.createdAt)}</span>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-5 pb-4 pt-1">
-          <button
-            onClick={onClose}
-            className="w-full rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors py-2.5 text-sm font-semibold text-gray-700 border-none cursor-pointer"
-          >
-            Dismiss
-          </button>
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(16px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0)    scale(1);    }
-        }
-      `}</style>
-    </div>
-  );
-}
-
 // ── Main Bell Component ───────────────────────────────────────────────────────
 export default function NotificationBell({ target = "user" }) {
   const { user } = useUser();
@@ -216,17 +115,6 @@ export default function NotificationBell({ target = "user" }) {
     e.stopPropagation();
     await markAsRead(id);
   };
-
-  // ── Open detail + auto-mark as read ─────────────────────────────────────
-  const handleOpenDetail = async (notification) => {
-    setSelected(notification);
-    setOpen(false); // close the dropdown while modal is open
-    if (!notification.isRead) {
-      await markAsRead(notification._id);
-    }
-  };
-
-  const handleCloseDetail = () => setSelected(null);
 
   // ── Mark all read ────────────────────────────────────────────────────────
   const handleMarkAllRead = async () => {
