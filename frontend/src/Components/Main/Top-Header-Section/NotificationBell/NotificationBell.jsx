@@ -3,7 +3,6 @@ import { useUser } from "@clerk/clerk-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-
 function timeAgo(dateStr) {
   const s = Math.round((Date.now() - new Date(dateStr)) / 1000);
   if (s < 60) return `${s}s ago`;
@@ -24,12 +23,36 @@ function formatDateTime(dateStr) {
 }
 
 const TYPE_STYLES = {
-  Alert:   "bg-red-100 text-red-800",
-  Warning: "bg-amber-100 text-amber-800",
-  Info:    "bg-blue-100 text-blue-800",
-  Success: "bg-green-100 text-green-800",
+  Alert:   { badge: "bg-red-100 text-red-800",   icon: "bg-red-500",   dot: "bg-red-500"   },
+  Warning: { badge: "bg-amber-100 text-amber-800", icon: "bg-amber-500", dot: "bg-amber-500" },
+  Info:    { badge: "bg-blue-100 text-blue-800",  icon: "bg-blue-500",  dot: "bg-blue-500"  },
+  Success: { badge: "bg-green-100 text-green-800", icon: "bg-green-500", dot: "bg-green-500" },
 };
 
+const TYPE_ICONS = {
+  Alert: (
+    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+    </svg>
+  ),
+  Warning: (
+    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+    </svg>
+  ),
+  Info: (
+    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
+    </svg>
+  ),
+  Success: (
+    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+  ),
+};
+
+// ── Main Bell Component ───────────────────────────────────────────────────────
 export default function NotificationBell({ target = "user" }) {
   const { user } = useUser();
   const [notifications, setNotifications] = useState([]);
@@ -41,7 +64,9 @@ export default function NotificationBell({ target = "user" }) {
     if (!user) return;
 
     try {
-      const res = await window.fetch(`${API_BASE_URL}/notifications/${user.id}?target=${target}`);
+      const res = await window.fetch(
+        `${API_BASE_URL}/notifications/${user.id}?target=${target}`
+      );
       if (!res.ok) return;
       const data = await res.json();
       setNotifications(data.notifications);
@@ -60,7 +85,7 @@ export default function NotificationBell({ target = "user" }) {
     };
   }, [fetchNotifications]);
 
-  // Close panel on outside click
+  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (panelRef.current && !panelRef.current.contains(e.target)) {
@@ -72,10 +97,12 @@ export default function NotificationBell({ target = "user" }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleMarkAsRead = async (id, e) => {
-    e.stopPropagation();
+  // ── Mark single as read ──────────────────────────────────────────────────
+  const markAsRead = async (id) => {
     try {
-      await window.fetch(`${API_BASE_URL}/notifications/${id}/read`, { method: "PATCH" });
+      await window.fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+        method: "PATCH",
+      });
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
       );
@@ -84,12 +111,19 @@ export default function NotificationBell({ target = "user" }) {
     }
   };
 
+  const handleMarkAsRead = async (id, e) => {
+    e.stopPropagation();
+    await markAsRead(id);
+  };
+
+  // ── Mark all read ────────────────────────────────────────────────────────
   const handleMarkAllRead = async () => {
-    // Call individual PATCH for each unread (no bulk endpoint exists yet)
     const unread = notifications.filter((n) => !n.isRead);
     await Promise.all(
       unread.map((n) =>
-        window.fetch(`${API_BASE_URL}/notifications/${n._id}/read`, { method: "PATCH" })
+        window.fetch(`${API_BASE_URL}/notifications/${n._id}/read`, {
+          method: "PATCH",
+        })
       )
     );
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
