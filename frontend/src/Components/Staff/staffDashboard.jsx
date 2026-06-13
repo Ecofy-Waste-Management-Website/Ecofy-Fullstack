@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
@@ -13,65 +15,593 @@ const SERVICE_PRICES = {
   "Drain Cleaning": 2000,
 };
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
-const DEFAULT_MAP_CENTER = "Balangoda, Sri Lanka";
+const BALANGODA_MAP_CENTER = [6.6617, 80.6937];
+const BALANGODA_MAP_BOUNDS = L.latLngBounds(
+  [6.54, 80.56],
+  [6.79, 80.84]
+);
+const LEAFLET_MAP_CENTER = BALANGODA_MAP_CENTER;
 const MAP_LABELS = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+const isInsideBalangodaArea = (latitude, longitude) =>
+  BALANGODA_MAP_BOUNDS.contains([latitude, longitude]);
+
+const getBalangodaSearchQuery = (target) => {
+  const query = target.trim();
+  if (/balangoda|sri lanka/i.test(query)) return query;
+  return `${query}, Balangoda, Ratnapura, Sri Lanka`;
+};
 
 const getOrderMapTarget = (order) => {
   const latitude = Number(order?.pickupCoordinates?.latitude);
   const longitude = Number(order?.pickupCoordinates?.longitude);
 
-  if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+  if (
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    isInsideBalangodaArea(latitude, longitude)
+  ) {
     return `${latitude},${longitude}`;
   }
 
   return typeof order?.location === "string" ? order.location.trim() : "";
 };
 
-const buildPendingOrdersMapUrl = (orders) => {
-  const map = new URL("https://maps.googleapis.com/maps/api/staticmap");
-  map.searchParams.set("size", "1200x720");
-  map.searchParams.set("scale", "2");
-  map.searchParams.set("zoom", "11");
-  map.searchParams.set("maptype", "roadmap");
-  map.searchParams.set("center", DEFAULT_MAP_CENTER);
+const getPendingOrderPins = (orders) =>
+  orders
+    .map((order, index) => {
+      const target = getOrderMapTarget(order);
+      if (!target) return null;
 
-  orders.slice(0, 20).forEach((order, index) => {
-    const target = getOrderMapTarget(order);
-    if (!target) return;
+      return {
+        order,
+        target,
+        label: MAP_LABELS[index % MAP_LABELS.length],
+      };
+    })
+    .filter(Boolean);
 
-    const label = MAP_LABELS[index % MAP_LABELS.length];
-    map.searchParams.append("markers", `color:0x397239|label:${label}|${target}`);
+const isCoordinateTarget = (target) => /^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/.test(target);
+
+const geocodePendingOrderTarget = async (target) => {
+  const url = new URL('https://nominatim.openstreetmap.org/search');
+  url.searchParams.set('format', 'jsonv2');
+  url.searchParams.set('limit', '1');
+  url.searchParams.set('q', getBalangodaSearchQuery(target));
+  url.searchParams.set('viewbox', '80.56,6.79,80.84,6.54');
+  url.searchParams.set('bounded', '1');
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      Accept: 'application/json',
+    },
   });
 
-  if (GOOGLE_MAPS_API_KEY) {
-    map.searchParams.set("key", GOOGLE_MAPS_API_KEY);
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  if (!Array.isArray(data) || !data[0]) return null;
+
+  const latitude = Number(data[0].lat);
+  const longitude = Number(data[0].lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+  return { lat: latitude, lng: longitude };
+};
+
+const resolveOrderDestination = async (order) => {
+  const target = getOrderMapTarget(order);
+  if (!target) return null;
+
+  if (isCoordinateTarget(target)) {
+    const [lat, lng] = target.split(',').map(Number);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      return { lat, lng };
+    }
+    return null;
   }
 
-  return map.toString();
+  return geocodePendingOrderTarget(target);
 };
 
-const buildNavigationUrl = (order) => {
-  const destination = getOrderMapTarget(order);
-  if (!destination) return "";
+const createPinIcon = (label) => L.divIcon({
+  className: '',
+  html: `
+    <div style="
+      width: 42px;
+      height: 42px;
+      border-radius: 9999px 9999px 9999px 4px;
+      background: #1f6f36;
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 14px;
+      box-shadow: 0 14px 24px rgba(17, 42, 15, 0.36), 0 0 0 8px rgba(255, 255, 255, 0.55);
+      transform: rotate(-45deg);
+      border: 3px solid #ffffff;
+    ">
+      <span style="transform: rotate(45deg);">${label}</span>
+    </div>
+  `,
+  iconSize: [42, 42],
+  iconAnchor: [21, 42],
+  popupAnchor: [0, -36],
+});
 
-  const url = new URL("https://www.google.com/maps/dir/");
-  url.searchParams.set("api", "1");
-  url.searchParams.set("destination", destination);
-  url.searchParams.set("travelmode", "driving");
+function PendingOrdersMapCanvas({ orders, onOrderSelect }) {
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markersRef = useRef([]);
+  const [mapReady, setMapReady] = useState(false);
+  const [mapState, setMapState] = useState({ loading: true, message: "Loading OpenStreetMap pins..." });
+
+  useEffect(() => {
+    const initializeMap = () => {
+      if (!mapContainerRef.current || mapRef.current) return;
+
+      const map = L.map(mapContainerRef.current, {
+        zoomControl: true,
+        scrollWheelZoom: true,
+      }).setView(BALANGODA_MAP_CENTER, 14);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+        minZoom: 12,
+      }).addTo(map);
+
+      mapRef.current = map;
+      setMapReady(true);
+      setMapState({ loading: false, message: 'OpenStreetMap loaded.' });
+    };
+
+    initializeMap();
+
+    return () => {
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, [orders]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const renderPins = async () => {
+      const map = mapRef.current;
+      if (!map || !mapReady) return;
+
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+
+      const resolvedPins = [];
+      for (const [index, order] of orders.slice(0, 20).entries()) {
+        const target = getOrderMapTarget(order);
+        if (!target) continue;
+
+        const label = MAP_LABELS[index % MAP_LABELS.length];
+        const position = isCoordinateTarget(target)
+          ? (() => {
+              const [lat, lng] = target.split(',').map(Number);
+              return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+            })()
+          : await geocodePendingOrderTarget(target);
+
+        resolvedPins.push({
+          order,
+          label,
+          position: position || { lat: BALANGODA_MAP_CENTER[0], lng: BALANGODA_MAP_CENTER[1] },
+          target,
+        });
+      }
+
+      if (cancelled) return;
+
+      const bounds = L.latLngBounds([]);
+      resolvedPins.forEach(({ position, label, order }) => {
+        const marker = L.marker([position.lat, position.lng], {
+          icon: createPinIcon(label),
+          title: `${order._id?.slice(-8)?.toUpperCase() || 'Order'} • ${order.location || 'Pickup location'}`,
+        }).addTo(map);
+
+        marker.on('click', () => {
+          if (typeof onOrderSelect === 'function') {
+            onOrderSelect(order);
+          }
+        });
+
+        marker.bindPopup(`
+          <div style="min-width: 180px; font-family: system-ui, sans-serif;">
+            <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #397239; margin-bottom: 4px;">Pin ${label}</div>
+            <div style="font-size: 14px; font-weight: 800; color: #244c21; margin-bottom: 4px;">${order.location || 'Pickup location'}</div>
+            <div style="font-size: 12px; color: #397239; margin-bottom: 4px;">${order.customer_name || 'Customer'} • ${order.service_type || 'Pending order'}</div>
+            <div style="font-size: 12px; color: #397239; margin-bottom: 8px;">Order ${order._id?.slice(-8)?.toUpperCase() || 'N/A'}</div>
+            <button type="button" data-order-button="true" style="border: none; border-radius: 9999px; background: #397239; color: white; font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 12px; cursor: pointer;">View details</button>
+          </div>
+        `);
+
+        marker.on('popupopen', (event) => {
+          const popupElement = event.popup.getElement();
+          const button = popupElement?.querySelector('[data-order-button="true"]');
+          if (button) {
+            button.addEventListener('click', () => {
+              if (typeof onOrderSelect === 'function') {
+                onOrderSelect(order);
+              }
+            }, { once: true });
+          }
+        });
+
+        markersRef.current.push(marker);
+        bounds.extend([position.lat, position.lng]);
+      });
+
+      if (resolvedPins.length > 1 && bounds.isValid()) {
+        const balangodaBounds = bounds.pad(0.22).extend(BALANGODA_MAP_CENTER);
+        map.fitBounds(balangodaBounds, {
+          maxZoom: 15,
+          padding: [36, 36],
+        });
+      } else if (resolvedPins.length === 1) {
+        map.setView([resolvedPins[0].position.lat, resolvedPins[0].position.lng], 15);
+      } else {
+        map.setView(BALANGODA_MAP_CENTER, 14);
+      }
+
+      setMapState({
+        loading: false,
+        message: resolvedPins.length > 0
+          ? `Pinned ${resolvedPins.length} location${resolvedPins.length === 1 ? '' : 's'}.`
+          : 'No geocodable pickup locations were found yet.',
+      });
+    };
+
+    renderPins();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [orders, onOrderSelect, mapReady]);
+
+  return (
+    <div className="relative z-0 min-h-[320px] flex-1 isolate bg-[#eff5ea]">
+      <div ref={mapContainerRef} className="relative z-0 h-full w-full min-h-[320px]" />
+      {mapState.loading && (
+        <div className="absolute inset-0 grid place-items-center bg-white/75 text-center">
+          <div>
+            <p className="text-sm font-black uppercase tracking-widest text-[#397239]/55">Loading map</p>
+            <p className="mt-2 text-xs font-medium text-[#397239]/60">Rendering pickup pins...</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const formatRouteDistance = (meters) => {
+  if (!Number.isFinite(meters)) return "N/A";
+  if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
+  return `${Math.round(meters)} m`;
+};
+
+const formatRouteDuration = (seconds) => {
+  if (!Number.isFinite(seconds)) return "N/A";
+  const totalMinutes = Math.round(seconds / 60);
+  if (totalMinutes >= 60) {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}h ${minutes}m`;
+  }
+  return `${totalMinutes} min`;
+};
+
+const buildOpenStreetMapDirectionsUrl = (origin, destination) => {
+  if (!origin || !destination) return "";
+
+  const url = new URL("https://www.openstreetmap.org/directions");
+  url.searchParams.set("engine", "fossgis_osrm_car");
+  url.searchParams.set(
+    "route",
+    `${origin.lat},${origin.lng};${destination.lat},${destination.lng}`
+  );
   return url.toString();
 };
 
-const buildMapEmbedUrl = (order) => {
-  const destination = getOrderMapTarget(order);
-  if (!destination) return "";
+const createLabeledMarkerIcon = (label, backgroundColor = "#397239") => L.divIcon({
+  className: "",
+  html: `
+    <div style="
+      width: 34px;
+      height: 34px;
+      border-radius: 9999px;
+      background: ${backgroundColor};
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 11px;
+      box-shadow: 0 10px 18px rgba(57, 114, 57, 0.35);
+      border: 2px solid rgba(255,255,255,0.9);
+    ">
+      <span>${label}</span>
+    </div>
+  `,
+  iconSize: [34, 34],
+  iconAnchor: [17, 34],
+  popupAnchor: [0, -30],
+});
 
-  const url = new URL("https://www.google.com/maps");
-  url.searchParams.set("q", destination);
-  url.searchParams.set("z", "16");
-  url.searchParams.set("output", "embed");
-  return url.toString();
-};
+function PickupNavigationMap({ order }) {
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const destinationMarkerRef = useRef(null);
+  const originMarkerRef = useRef(null);
+  const routeLayerRef = useRef(null);
+  const [destinationPoint, setDestinationPoint] = useState(null);
+  const [originPoint, setOriginPoint] = useState(null);
+  const [routeSummary, setRouteSummary] = useState(null);
+  const [mapState, setMapState] = useState({ loading: true, message: "Loading route map..." });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const initializeMap = async () => {
+      setDestinationPoint(null);
+      setOriginPoint(null);
+      setRouteSummary(null);
+      setMapState({ loading: true, message: "Resolving pickup location..." });
+
+      const destination = await resolveOrderDestination(order);
+      if (cancelled) return;
+
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+
+      if (!mapContainerRef.current) return;
+
+      const map = L.map(mapContainerRef.current, {
+        zoomControl: true,
+        scrollWheelZoom: true,
+      }).setView(destination || LEAFLET_MAP_CENTER, destination ? 13 : 11);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }).addTo(map);
+
+      mapRef.current = map;
+      setDestinationPoint(destination);
+
+      if (destination) {
+        destinationMarkerRef.current = L.marker([destination.lat, destination.lng], {
+          icon: createLabeledMarkerIcon("D", "#397239"),
+        }).addTo(map);
+        destinationMarkerRef.current.bindPopup(`
+          <div style="min-width: 180px; font-family: system-ui, sans-serif;">
+            <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #397239; margin-bottom: 4px;">Destination</div>
+            <div style="font-size: 14px; font-weight: 800; color: #244c21; margin-bottom: 4px;">${order?.location || "Pickup location"}</div>
+            <div style="font-size: 12px; color: #397239;">${order?._id?.slice(-8)?.toUpperCase() || "N/A"}</div>
+          </div>
+        `);
+
+        map.setView([destination.lat, destination.lng], 13);
+        setMapState({ loading: false, message: "Destination pinned. Click the route button to draw the OSRM line." });
+      } else {
+        setMapState({ loading: false, message: "No pickup coordinates available for this order." });
+      }
+    };
+
+    initializeMap();
+
+    return () => {
+      cancelled = true;
+      routeLayerRef.current?.remove();
+      routeLayerRef.current = null;
+      originMarkerRef.current?.remove();
+      originMarkerRef.current = null;
+      destinationMarkerRef.current?.remove();
+      destinationMarkerRef.current = null;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, [order]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const drawRoute = async () => {
+      if (!mapRef.current || !destinationPoint) return;
+
+      routeLayerRef.current?.remove();
+      routeLayerRef.current = null;
+      originMarkerRef.current?.remove();
+      originMarkerRef.current = null;
+      setRouteSummary(null);
+
+      if (!originPoint) {
+        setMapState((prev) => ({ ...prev, message: "Use your current location to draw an OSRM pickup route." }));
+        return;
+      }
+
+      setMapState({ loading: true, message: "Fetching OSRM pickup route..." });
+
+      const routeUrl = new URL("https://router.project-osrm.org/route/v1/driving/");
+      routeUrl.pathname += `${originPoint.lng},${originPoint.lat};${destinationPoint.lng},${destinationPoint.lat}`;
+      routeUrl.searchParams.set("overview", "full");
+      routeUrl.searchParams.set("geometries", "geojson");
+      routeUrl.searchParams.set("steps", "false");
+
+      const response = await fetch(routeUrl.toString());
+      if (!response.ok) {
+        throw new Error("OSRM route service is unavailable right now.");
+      }
+
+      const data = await response.json();
+      const route = data?.routes?.[0];
+      if (!route?.geometry) {
+        throw new Error("No OSRM route could be calculated for this pickup.");
+      }
+
+      if (cancelled || !mapRef.current) return;
+
+      routeLayerRef.current = L.geoJSON(route.geometry, {
+        style: {
+          color: "#397239",
+          weight: 5,
+          opacity: 0.9,
+        },
+      }).addTo(mapRef.current);
+
+      originMarkerRef.current = L.marker([originPoint.lat, originPoint.lng], {
+        icon: createLabeledMarkerIcon("S", "#244c21"),
+      }).addTo(mapRef.current);
+      originMarkerRef.current.bindPopup(`
+        <div style="min-width: 160px; font-family: system-ui, sans-serif;">
+          <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #244c21; margin-bottom: 4px;">Start</div>
+          <div style="font-size: 12px; font-weight: 700; color: #244c21;">Your current location</div>
+        </div>
+      `);
+
+      const bounds = routeLayerRef.current.getBounds();
+      if (bounds.isValid()) {
+        mapRef.current.fitBounds(bounds.pad(0.2));
+      }
+
+      setRouteSummary({
+        distance: route.distance,
+        duration: route.duration,
+      });
+      setMapState({
+        loading: false,
+        message: `OSRM route ready: ${formatRouteDistance(route.distance)} • ${formatRouteDuration(route.duration)}.`,
+      });
+    };
+
+    drawRoute().catch((error) => {
+      if (!cancelled) {
+        setMapState({ loading: false, message: error instanceof Error ? error.message : "Failed to draw OSRM route." });
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [originPoint, destinationPoint]);
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      setMapState({ loading: false, message: "Geolocation is not supported in this browser." });
+      return;
+    }
+
+    setMapState({ loading: true, message: "Requesting your current location..." });
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setOriginPoint({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      () => {
+        setMapState({ loading: false, message: "Location access was denied. Allow it to draw the route." });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  const handleClearRoute = () => {
+    setOriginPoint(null);
+    setRouteSummary(null);
+    routeLayerRef.current?.remove();
+    routeLayerRef.current = null;
+    originMarkerRef.current?.remove();
+    originMarkerRef.current = null;
+    if (mapRef.current && destinationPoint) {
+      mapRef.current.setView([destinationPoint.lat, destinationPoint.lng], 13);
+    }
+    setMapState((prev) => ({
+      ...prev,
+      loading: false,
+      message: destinationPoint
+        ? "Route cleared. Use your location to draw it again."
+        : "No pickup coordinates available for this order.",
+    }));
+  };
+
+  const handleOpenDirections = () => {
+    if (!originPoint || !destinationPoint) return;
+    const url = buildOpenStreetMapDirectionsUrl(originPoint, destinationPoint);
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  return (
+    <div className="relative min-h-[420px] flex-1 bg-[#eff5ea]">
+      <div ref={mapContainerRef} className="h-full w-full min-h-[420px]" />
+      {mapState.loading && (
+        <div className="absolute inset-0 grid place-items-center bg-white/75 text-center">
+          <div>
+            <p className="text-sm font-black uppercase tracking-widest text-[#397239]/55">Loading route</p>
+            <p className="mt-2 text-xs font-medium text-[#397239]/60">Resolving the pickup route...</p>
+          </div>
+        </div>
+      )}
+      {!mapState.loading && mapState.message && (
+        <div className="absolute left-4 right-4 top-4 rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-lg backdrop-blur">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#397239]/45">Route status</p>
+          <p className="mt-1 text-sm font-bold text-[#244c21]">{mapState.message}</p>
+        </div>
+      )}
+      <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-3 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-xl backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#397239]/45">Route controls</p>
+          <p className="text-sm font-bold text-[#244c21]">
+            {routeSummary
+              ? `${formatRouteDistance(routeSummary.distance)} • ${formatRouteDuration(routeSummary.duration)}`
+              : "Draw a live OSRM route from your current location."}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleUseMyLocation}
+            className="rounded-full bg-[#397239] px-4 py-2 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#244c21]"
+          >
+            Use my location
+          </button>
+          <button
+            type="button"
+            onClick={handleClearRoute}
+            className="rounded-full border border-[#397234]/10 bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+          >
+            Clear route
+          </button>
+          <button
+            type="button"
+            onClick={handleOpenDirections}
+            disabled={!originPoint || !destinationPoint}
+            className="rounded-full border border-[#397234]/10 bg-[#D6E9CA]/40 px-4 py-2 text-xs font-black uppercase tracking-widest text-[#244c21] transition hover:bg-[#D6E9CA]/70 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Open directions
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const STATUS_STYLES = {
   Pending: "bg-amber-100 text-amber-700",
@@ -182,6 +712,7 @@ export default function StaffDashboard() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showNavigationModal, setShowNavigationModal] = useState(false);
   const [navigationOrder, setNavigationOrder] = useState(null);
+  const [selectedPendingOrder, setSelectedPendingOrder] = useState(null);
   const [displayName, setDisplayName] = useState('Staff Member');
   const [pickupPinValues, setPickupPinValues] = useState({});
   const [verifiedPickupPins, setVerifiedPickupPins] = useState({});
@@ -208,6 +739,13 @@ export default function StaffDashboard() {
 
   const staffName = displayName;
   const staffInitials = staffName.split(" ").map(n => n[0] || "").join("").toUpperCase();
+  const openPendingOrderDetails = (order) => {
+    setSelectedPendingOrder(order);
+  };
+  const openNavigationForOrder = (order) => {
+    setNavigationOrder(order);
+    setShowNavigationModal(true);
+  };
 
   // Fetch tasks and role
   useEffect(() => {
@@ -493,6 +1031,7 @@ export default function StaffDashboard() {
         { ...order, assignedStaff: user.id, status: 'Assigned' },
         ...prev.filter((item) => item._id !== order._id),
       ]);
+      setSelectedPendingOrder(null);
       setNavigationOrder({ ...order, assignedStaff: user.id, status: 'Assigned' });
       setShowNavigationModal(true);
       showNotification('Pickup confirmed successfully!');
@@ -647,12 +1186,12 @@ export default function StaffDashboard() {
           <p className="text-[9px] font-bold text-[#397239]/40 uppercase tracking-widest flex items-center gap-1.5"><Icons.MapPin /> LOCATION</p>
           {task.location && (
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(task.location)}`}
+              href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(task.location)}`}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 rounded-full border border-[#397239]/15 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-[#397239] transition-all hover:bg-white"
             >
-              Open in Google Maps
+              Open in OpenStreetMap
               <Icons.ExternalLink />
             </a>
           )}
@@ -783,7 +1322,21 @@ export default function StaffDashboard() {
     return `LKR ${value.toLocaleString()}`;
   };
 
+  const formatOrderDate = (value) => {
+    if (!value) return 'N/A';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   const getEstimatedAmount = (order) => order.servicePrice || SERVICE_PRICES[order.service_type] || order.estimated_amt || 0;
+  const renderOrderDetailValue = (value) => value || 'N/A';
+  const pendingOrderPins = getPendingOrderPins(pendingOrders);
+  const unresolvedPendingOrders = pendingOrders.length - pendingOrderPins.length;
 
   const PendingOrdersPanel = () => (
     <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.4fr] gap-4 min-h-[540px]">
@@ -811,7 +1364,19 @@ export default function StaffDashboard() {
               </div>
             ) : (
               pendingOrders.map((order) => (
-                <div key={order._id} className="grid grid-cols-[1.2fr_2fr_1fr_1fr] gap-3 border-b border-[#397234]/10 px-4 py-4 last:border-b-0 items-center">
+                <div
+                  key={order._id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openPendingOrderDetails(order)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      openPendingOrderDetails(order);
+                    }
+                  }}
+                  className="grid w-full cursor-pointer grid-cols-[1.2fr_2fr_1fr_1fr] items-center gap-3 border-b border-[#397234]/10 px-4 py-4 text-left transition hover:bg-[#D6E9CA]/25 focus:bg-[#D6E9CA]/25 focus:outline-none last:border-b-0"
+                >
                   <div>
                     <p className="text-sm font-black text-[#244c21]">{order._id.slice(-8).toUpperCase()}</p>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-[#397239]/40">{order.service_type || 'Order'}</p>
@@ -825,7 +1390,10 @@ export default function StaffDashboard() {
                   <div>
                     <button
                       type="button"
-                      onClick={() => confirmPickup(order)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        confirmPickup(order);
+                      }}
                       disabled={confirmingOrderId === order._id}
                       className="rounded-xl bg-[#397239] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
                     >
@@ -845,7 +1413,7 @@ export default function StaffDashboard() {
             <h3 className="text-lg font-black text-[#244c21]">Pending Orders Map</h3>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Pins for every pending pickup request</p>
           </div>
-          <div className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">Map</div>
+          <div className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">{pendingOrderPins.length} pins</div>
         </div>
 
         {pendingOrders.length === 0 ? (
@@ -855,19 +1423,48 @@ export default function StaffDashboard() {
               <p className="mt-2 text-xs font-medium text-[#397239]/60">Pending pickups will appear here once customers submit requests.</p>
             </div>
           </div>
-        ) : GOOGLE_MAPS_API_KEY ? (
-          <div className="flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner">
-            <img
-              src={buildPendingOrdersMapUrl(pendingOrders)}
-              alt="Map showing pending pickup pins"
-              className="h-full w-full min-h-[480px] object-cover"
-            />
-          </div>
         ) : (
-          <div className="flex-1 grid place-items-center rounded-3xl border border-dashed border-[#397234]/15 bg-white/60 text-center px-6">
-            <div>
-              <p className="text-sm font-black uppercase tracking-widest text-[#397239]/50">Add Google Maps API key</p>
-              <p className="mt-2 text-xs font-medium text-[#397239]/60">Set VITE_GOOGLE_MAPS_API_KEY to render the live pins map.</p>
+          <div className="relative z-0 flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner flex flex-col isolate">
+            <div className="flex flex-wrap items-center gap-2 border-b border-[#397234]/10 bg-[#f7fbf4] px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/60">
+              <span className="rounded-full bg-[#397239]/10 px-3 py-1 text-[#397239]">{pendingOrderPins.length} pinned</span>
+              {unresolvedPendingOrders > 0 && (
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-700">{unresolvedPendingOrders} without coordinates</span>
+              )}
+              <span className="rounded-full bg-white px-3 py-1 text-[#397239]/70">OpenStreetMap live markers</span>
+            </div>
+
+            <PendingOrdersMapCanvas orders={pendingOrders} onOrderSelect={openPendingOrderDetails} />
+
+            <div className="relative -mt-4 mx-4 mb-4 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-xl backdrop-blur">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#397239]/45">Pin directory</p>
+                    <p className="mt-1 text-sm font-black text-[#244c21]">Quick access to each pickup target</p>
+                  </div>
+                  <span className="rounded-full bg-[#D6E9CA]/60 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#397239]">
+                    {pendingOrderPins.length}
+                  </span>
+                </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                  {pendingOrderPins.slice(0, 4).map(({ order, label, target }) => (
+                    <button
+                      key={order._id}
+                      type="button"
+                      onClick={() => openPendingOrderDetails(order)}
+                      className="rounded-xl border border-[#397234]/10 bg-[#f8fbf5] px-3 py-2 text-left transition hover:bg-[#D6E9CA]/35"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#397239]/45">Pin {label}</p>
+                          <p className="truncate text-xs font-bold text-[#244c21]">{order.location || target}</p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-[#397239] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white">
+                          Details
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
             </div>
           </div>
         )}
@@ -1262,17 +1859,11 @@ export default function StaffDashboard() {
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
 
           {/* Header */}
-          <header className="mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
+          <header className="relative z-[1000] mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
             <h2 className="m-0 text-2xl font-black tracking-tight text-[#244c21] truncate">
               {getPageTitle()}
             </h2>
             <div className="flex items-center gap-3">
-              <div className="relative w-[280px]">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#397239]/40">
-                  <Icons.Search />
-                </span>
-                <input type="text" className="w-full rounded-2xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-[8px_12px_8px_38px] text-sm text-[#244c21] outline-none transition-all focus:border-[#397239] focus:bg-white focus:shadow-md placeholder:text-[#397239]/40" placeholder="Search tasks..." />
-              </div>
               <NotificationBell target="staff" />
               <div className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-3 py-1.5 text-xs font-black text-[#397239] backdrop-blur-sm">Staff</div>
               {!roleLoading && role === 'Admin' && (
@@ -1400,13 +1991,127 @@ export default function StaffDashboard() {
         </div>
       )}
 
+      {selectedPendingOrder && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/65 p-4 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/20 bg-[#f4f9f4] shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-start justify-between gap-4 border-b border-[#397234]/10 bg-white/85 px-6 py-5">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#397239]/50">Pending order details</p>
+                <h3 className="mt-1 text-2xl font-black text-[#244c21]">
+                  Order #{selectedPendingOrder._id?.slice(-8)?.toUpperCase() || 'N/A'}
+                </h3>
+                <p className="mt-1 text-sm font-bold text-[#397239]/70">
+                  {renderOrderDetailValue(selectedPendingOrder.location)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedPendingOrder(null)}
+                className="rounded-full border border-[#397234]/10 bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid gap-4 p-5 md:grid-cols-2">
+              <section className="rounded-2xl border border-[#397234]/10 bg-white/85 p-4 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Customer</p>
+                <dl className="mt-4 space-y-3 text-sm">
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Name</dt>
+                    <dd className="mt-1 font-black text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.customer_name)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Email</dt>
+                    <dd className="mt-1 break-words font-bold text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.customer_email)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Phone</dt>
+                    <dd className="mt-1 font-bold text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.customer_phone)}</dd>
+                  </div>
+                </dl>
+              </section>
+
+              <section className="rounded-2xl border border-[#397234]/10 bg-white/85 p-4 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Pickup</p>
+                <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Service</dt>
+                    <dd className="mt-1 font-black text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.service_type)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Waste</dt>
+                    <dd className="mt-1 font-bold text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.waste_category)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Date</dt>
+                    <dd className="mt-1 font-bold text-[#244c21]">{formatOrderDate(selectedPendingOrder.scheduled_date)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">PIN</dt>
+                    <dd className="mt-1 font-black text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.pickupPin)}</dd>
+                  </div>
+                </dl>
+              </section>
+
+              <section className="rounded-2xl border border-[#397234]/10 bg-white/85 p-4 shadow-sm md:col-span-2">
+                <div className="grid gap-4 md:grid-cols-[1fr_0.6fr]">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Address</p>
+                    <p className="mt-2 text-sm font-bold leading-relaxed text-[#244c21]">
+                      {renderOrderDetailValue(selectedPendingOrder.location)}
+                    </p>
+                    {selectedPendingOrder.notes && (
+                      <>
+                        <p className="mt-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Notes</p>
+                        <p className="mt-2 text-sm font-medium leading-relaxed text-[#244c21]">{selectedPendingOrder.notes}</p>
+                      </>
+                    )}
+                  </div>
+                  <div className="rounded-2xl bg-[#D6E9CA]/45 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Estimated amount</p>
+                    <p className="mt-2 text-2xl font-black text-[#244c21]">
+                      {formatCurrency(getEstimatedAmount(selectedPendingOrder))}
+                    </p>
+                    <p className="mt-2 text-xs font-bold text-[#397239]/60">
+                      Status: {selectedPendingOrder.status || 'Pending'}
+                    </p>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div className="flex flex-col gap-3 border-t border-[#397234]/10 bg-white/80 px-5 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPendingOrder(null);
+                  openNavigationForOrder(selectedPendingOrder);
+                }}
+                className="rounded-2xl border border-[#397234]/10 bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+              >
+                View route
+              </button>
+              <button
+                type="button"
+                onClick={() => confirmPickup(selectedPendingOrder)}
+                disabled={confirmingOrderId === selectedPendingOrder._id}
+                className="rounded-2xl bg-[#397239] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {confirmingOrderId === selectedPendingOrder._id ? 'Confirming...' : 'Confirm Pickup'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showNavigationModal && navigationOrder && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/65 p-4 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-4xl overflow-hidden rounded-[2rem] border border-white/20 bg-[#f4f9f4] shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/20 bg-[#f4f9f4] shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex items-start justify-between gap-4 border-b border-[#397234]/10 bg-white/80 px-6 py-5">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#397239]/50">Pickup confirmed</p>
-                <h3 className="mt-1 text-2xl font-black text-[#244c21]">Navigate to pickup location</h3>
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#397239]/50">Pickup route</p>
+                <h3 className="mt-1 text-2xl font-black text-[#244c21]">Leaflet + OSRM navigation</h3>
                 <p className="mt-1 text-sm font-medium text-[#397239]/70">
                   {navigationOrder.location || 'Location not available'}
                 </p>
@@ -1420,21 +2125,9 @@ export default function StaffDashboard() {
               </button>
             </div>
 
-            <div className="grid gap-4 p-4 lg:grid-cols-[1.25fr_0.75fr]">
-              <div className="overflow-hidden rounded-[1.5rem] border border-[#397234]/10 bg-white shadow-inner min-h-[420px]">
-                {buildMapEmbedUrl(navigationOrder) ? (
-                  <iframe
-                    title="Pickup navigation map"
-                    src={buildMapEmbedUrl(navigationOrder)}
-                    className="h-full w-full min-h-[420px]"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
-                ) : (
-                  <div className="grid h-full min-h-[420px] place-items-center px-6 text-center text-[#397239]/60">
-                    No map data available for this pickup.
-                  </div>
-                )}
+            <div className="grid gap-4 p-4 lg:grid-cols-[1.3fr_0.7fr]">
+              <div className="overflow-hidden rounded-[1.5rem] border border-[#397234]/10 bg-white shadow-inner min-h-[520px]">
+                <PickupNavigationMap order={navigationOrder} />
               </div>
 
               <div className="flex flex-col justify-between gap-4 rounded-[1.5rem] border border-[#397234]/10 bg-white/90 p-5 shadow-sm">
@@ -1452,29 +2145,27 @@ export default function StaffDashboard() {
 
                   <div className="rounded-2xl bg-[#D6E9CA]/35 p-4">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/40">Navigation</p>
-                    <p className="mt-1 text-xs font-medium text-[#397239]/60">Open turn-by-turn directions in Google Maps and start the route to the pickup site.</p>
+                    <p className="mt-1 text-xs font-medium text-[#397239]/60">Use your current location inside the map to draw the OSRM route line, then open the same path in OpenStreetMap directions if needed.</p>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      const url = buildNavigationUrl(navigationOrder);
-                      if (url) {
-                        window.open(url, '_blank', 'noopener,noreferrer');
-                      }
-                    }}
+                    onClick={() => setShowNavigationModal(false)}
                     className="rounded-2xl bg-[#397239] px-4 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#244c21]"
                   >
-                    Open navigation
+                    Close route view
                   </button>
                   <button
                     type="button"
-                    onClick={() => setShowNavigationModal(false)}
+                    onClick={() => {
+                      setShowNavigationModal(false);
+                      setNavigationOrder(null);
+                    }}
                     className="rounded-2xl border border-[#397234]/10 bg-white px-4 py-3 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
                   >
-                    Continue to dashboard
+                    Back to dashboard
                   </button>
                 </div>
               </div>

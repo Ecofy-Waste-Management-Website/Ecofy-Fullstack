@@ -758,16 +758,6 @@ export default function AdminDashboard() {
               {getPageTitle()}
             </h2>
             <div className="flex items-center gap-3">
-              <div className="relative w-[280px]">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#397239]/40">
-                  <Icons.Search />
-                </span>
-                <input
-                  type="text"
-                  className="w-full rounded-2xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-[8px_12px_8px_38px] text-sm text-[#244c21] outline-none transition-all focus:border-[#397239] focus:bg-white focus:shadow-md placeholder:text-[#397239]/40"
-                  placeholder="Search..."
-                />
-              </div>
               <NotificationBell target="admin" />
               <div className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-3 py-1.5 text-xs font-black text-[#397239] backdrop-blur-sm">Admin</div>
               {!roleLoading && role === "Admin" && (
