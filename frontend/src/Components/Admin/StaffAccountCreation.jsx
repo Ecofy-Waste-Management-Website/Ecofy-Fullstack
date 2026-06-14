@@ -1,31 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from "@clerk/clerk-react";
+import { UserPlus, Search, Edit2, Trash2 } from 'lucide-react';
+import { Button, Badge } from './UIComponents';
+import { theme } from './theme';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-// ── Icons ──────────────────────────────────────────────────────────────────
-const Icons = {
-  UserPlus: () => (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-    </svg>
-  ),
-  Search: () => (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-  ),
-  Edit: () => (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z" />
-    </svg>
-  ),
-  Delete: () => (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
-  )
-};
 
 const formatDate = (isoDate) => {
   if (!isoDate) return 'N/A';
@@ -38,11 +17,11 @@ const formatDate = (isoDate) => {
 
 const getDisplayStatus = (staff) => staff.displayStatus || (staff.status === 'Activate' ? 'Active' : 'Inactive');
 
-const getStatusTone = (status) => {
-  if (status === 'Active') return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
-  if (status === 'Suspended') return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
-  if (status === 'Banned') return 'bg-rose-500/10 text-rose-600 border-rose-500/20';
-  return 'bg-slate-500/10 text-slate-600 border-slate-500/20';
+const getStatusVariant = (status) => {
+  if (status === 'Active') return 'active';
+  if (status === 'Suspended') return 'pending';
+  if (status === 'Banned') return 'error';
+  return 'inactive';
 };
 
 const emptyEditForm = {
@@ -257,8 +236,8 @@ export default function Staff_creation_test() {
       {/* Creation Card */}
       <div className="w-full rounded-3xl border border-white/20 bg-white/30 backdrop-blur-xl p-8 shadow-sm">
         <div className="mb-8 flex items-center gap-5 border-b border-white/20 pb-6">
-          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-blue-50 to-blue-100/70 text-blue-600 shadow-inner border border-white/30">
-            <Icons.UserPlus />
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-blue-50 to-blue-100/70 shadow-inner border border-white/30" style={{ backgroundColor: theme.colors.primary + '15' }}>
+            <UserPlus size={20} style={{ color: theme.colors.primary }} />
           </div>
           <div>
             <h2 className="m-0 text-2xl font-black text-gray-900 tracking-tight">Create New Staff</h2>
@@ -291,7 +270,7 @@ export default function Staff_creation_test() {
                 placeholder="e.g. Nimal"
                 value={formData.firstName}
                 onChange={handleInputChange}
-                className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
+                className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-[#397239] focus:bg-white placeholder:text-gray-400"
                 required
               />
             </div>
@@ -303,7 +282,7 @@ export default function Staff_creation_test() {
                 placeholder="e.g. Perera"
                 value={formData.lastName}
                 onChange={handleInputChange}
-                className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
+                className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-[#397239] focus:bg-white placeholder:text-gray-400"
                 required
               />
             </div>
@@ -317,7 +296,7 @@ export default function Staff_creation_test() {
               placeholder="e.g. nimal.perera"
               value={formData.username}
               onChange={handleInputChange}
-              className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
+              className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-[#397239] focus:bg-white placeholder:text-gray-400"
               required
             />
             <p className="mt-2 text-[10px] font-medium text-gray-500 italic">Letters, numbers, dots, or hyphens only.</p>
@@ -331,7 +310,7 @@ export default function Staff_creation_test() {
               placeholder="staff@ecofy.lk"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
+              className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-[#397239] focus:bg-white placeholder:text-gray-400"
               required
             />
           </div>
@@ -344,19 +323,21 @@ export default function Staff_creation_test() {
               placeholder="Min. 8 characters"
               value={formData.password}
               onChange={handleInputChange}
-              className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
+              className="w-full rounded-xl border border-gray-200 bg-white/70 p-3.5 text-sm text-gray-900 outline-none transition-all focus:border-[#397239] focus:bg-white placeholder:text-gray-400"
               required
-              minLength="8" 
+              minLength="8"
             />
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="mt-6 w-full rounded-xl bg-blue-600 py-4 font-extrabold text-white shadow-lg shadow-blue-600/10 transition-all hover:bg-blue-700 hover:scale-[1.01] active:scale-95 disabled:opacity-50 uppercase tracking-widest text-xs"
+            variant="primary"
+            fullWidth
+            className="mt-6 uppercase tracking-widest text-xs"
           >
             {isLoading ? "Generating Secure Account..." : "Register New Personnel"}
-          </button>
+          </Button>
         </form>
       </div>
 
@@ -370,14 +351,14 @@ export default function Staff_creation_test() {
 
           <div className="relative w-full sm:max-w-xs">
             <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-400">
-              <Icons.Search />
+              <Search size={16} />
             </span>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by name..."
-              className="w-full rounded-full border border-gray-200 bg-white/70 py-3 pl-11 pr-4 text-sm text-gray-900 shadow-inner outline-none transition focus:border-blue-500 focus:bg-white placeholder:text-gray-400"
+              className="w-full rounded-full border border-gray-200 bg-white/70 py-3 pl-11 pr-4 text-sm text-gray-900 shadow-inner outline-none transition focus:border-[#397239] focus:bg-white placeholder:text-gray-400"
             />
           </div>
         </div>
@@ -402,37 +383,36 @@ export default function Staff_creation_test() {
                     <tr key={staff._id} className="transition-colors hover:bg-white/50">
                       <td className="px-6 py-5 font-black text-gray-900">{`${staff.firstName || ''} ${staff.lastName || ''}`.trim()}</td>
                       <td className="px-6 py-5 text-center">
-                        <span className="rounded-lg bg-blue-50 border border-blue-100 px-2.5 py-1 text-[9px] font-extrabold uppercase text-blue-600 tracking-tighter">
-                          {staff.role}
-                        </span>
+                        <Badge variant="primary">{staff.role}</Badge>
                       </td>
                       <td className="px-6 py-5 font-medium text-gray-700">{staff.email}</td>
                       <td className="px-6 py-5 font-medium text-gray-500">{formatDate(staff.createdAt)}</td>
                       <td className="px-6 py-5">
-                        <span
-                          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[9px] font-extrabold uppercase tracking-widest ${getStatusTone(getDisplayStatus(staff))}`}
-                        >
-                          <span className={`h-1.5 w-1.5 rounded-full ${getDisplayStatus(staff) === 'Active' ? 'bg-emerald-500' : getDisplayStatus(staff) === 'Suspended' ? 'bg-amber-500' : 'bg-rose-500'}`} />
+                        <Badge variant={getStatusVariant(getDisplayStatus(staff))}>
                           {getDisplayStatus(staff)}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex justify-end gap-3">
-                          <button
+                          <Button
                             type="button"
                             onClick={() => handleOpenEditModal(staff)}
-                            className="flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2 text-[10px] font-bold text-blue-600 uppercase tracking-widest transition-all hover:bg-blue-100 border border-blue-100"
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-2"
                           >
-                            <Icons.Edit /> Edit
-                          </button>
-                          <button
+                            <Edit2 size={14} /> Edit
+                          </Button>
+                          <Button
                             type="button"
                             onClick={() => handleDeleteStaff(staff._id, `${staff.firstName || ''} ${staff.lastName || ''}`.trim() || 'this staff member')}
                             disabled={deletingStaffId === staff._id}
-                            className="flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-2 text-[10px] font-bold text-rose-600 uppercase tracking-widest transition-all hover:bg-rose-100 border border-rose-100 disabled:opacity-50"
+                            variant="danger"
+                            size="sm"
+                            className="flex items-center gap-2"
                           >
-                            <Icons.Delete /> {deletingStaffId === staff._id ? '...' : 'Del'}
-                          </button>
+                            <Trash2 size={14} /> {deletingStaffId === staff._id ? '...' : 'Del'}
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -474,7 +454,7 @@ export default function Staff_creation_test() {
                     name="firstName"
                     value={editForm.firstName}
                     onChange={handleEditInputChange}
-                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-blue-500 transition-all"
+                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-[#397239] transition-all"
                     required
                   />
                 </div>
@@ -485,7 +465,7 @@ export default function Staff_creation_test() {
                     name="lastName"
                     value={editForm.lastName}
                     onChange={handleEditInputChange}
-                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-blue-500 transition-all"
+                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-[#397239] transition-all"
                     required
                   />
                 </div>
@@ -509,7 +489,7 @@ export default function Staff_creation_test() {
                     name="role"
                     value={editForm.role}
                     onChange={handleEditInputChange}
-                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-blue-500 transition-all"
+                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-[#397239] transition-all"
                   >
                     <option value="Staff" className="bg-white">Staff</option>
                   </select>
@@ -520,7 +500,7 @@ export default function Staff_creation_test() {
                     name="status"
                     value={editForm.status}
                     onChange={handleEditInputChange}
-                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-blue-500 transition-all"
+                    className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 outline-none focus:border-[#397239] transition-all"
                   >
                     <option value="Activate" className="bg-white">Active</option>
                     <option value="Suspended" className="bg-white">Inactive</option>
@@ -530,20 +510,22 @@ export default function Staff_creation_test() {
               </div>
 
               <div className="flex justify-end gap-4 pt-6">
-                <button
+                <Button
                   type="button"
                   onClick={handleCloseEditModal}
-                  className="flex-1 rounded-xl border border-gray-200 bg-white py-4 text-[10px] font-bold text-gray-600 uppercase tracking-widest transition hover:bg-gray-50"
+                  variant="outline"
+                  fullWidth
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={isUpdatingStaff}
-                  className="flex-1 rounded-xl bg-blue-600 py-4 text-[10px] font-extrabold text-white shadow-lg shadow-blue-600/10 transition-all hover:bg-blue-700 hover:scale-105 active:scale-95 disabled:opacity-50 uppercase tracking-widest"
+                  variant="primary"
+                  fullWidth
                 >
                   {isUpdatingStaff ? 'Updating...' : 'Save Profile'}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

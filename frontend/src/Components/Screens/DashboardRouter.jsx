@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from "@clerk/clerk-react";
 import Dashboard from './Dashboard';
-import Navbar from '../Main/Top-Header-Section/navbar/navbar';
-import Footer from '../Main/Footer/footer';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -44,8 +42,6 @@ export default function DashboardRouter() {
 
   return (
     <div className="min-h-screen bg-green-50">
-      {/* Navbar sits fixed on top — sidebar handles its own top offset */}
-      <Navbar />
       <Dashboard />
     </div>
   );

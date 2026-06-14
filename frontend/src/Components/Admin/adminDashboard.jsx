@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
+import { Menu, X, Search, Plus, Edit2, Trash2, Check, AlertCircle, ChevronDown, ChevronRight, DollarSign, Clock, Users, Zap, ShoppingCart, LogOut } from 'lucide-react';
 import ServiceRequests from "./ServiceRequests";
 import ContentBlogManagement from "./contentBlogManagement";
 import StaffAccountCreation from "./StaffAccountCreation";
@@ -30,15 +31,16 @@ const formatHistoryTime = (value) => {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
+
 const getStatusTone = (status) => {
   const normalized = String(status || "").toLowerCase();
 
   if (["completed", "paid", "active", "activate"].includes(normalized)) {
-    return "bg-green-100 text-green-700";
+    return "active";
   }
 
   if (["pending", "in progress", "processing"].includes(normalized)) {
-    return "bg-amber-100 text-amber-700";
+    return "pending";
   }
 
   if (["cancelled", "failed", "suspended", "banned"].includes(normalized)) {
@@ -146,11 +148,11 @@ const Icons = {
 // ─── DATA & CONFIGURATION ──────────────────────────────────────────────────
 
 const statCards = [
-  { key: "orders", label: "Orders", icon: <Icons.Orders /> },
-  { key: "completedOrders", label: "Completed Orders", icon: <Icons.Completed /> },
-  { key: "cancelledDelayed", label: "Cancelled / Delayed", icon: <Icons.Cancelled /> },
-  { key: "pending", label: "Pending", icon: <Icons.Pending /> },
-  { key: "activeStaff", label: "Active Staff", icon: <Icons.Staff /> },
+  { key: "orders", label: "Orders", icon: <ShoppingCart size={20} /> },
+  { key: "completedOrders", label: "Completed Orders", icon: <Check size={20} /> },
+  { key: "cancelledDelayed", label: "Cancelled / Delayed", icon: <AlertCircle size={20} /> },
+  { key: "pending", label: "Pending", icon: <Clock size={20} /> },
+  { key: "activeStaff", label: "Active Staff", icon: <Users size={20} /> },
 ];
 
 const WASTE_COLORS = ['#ef4444', '#fbbf24', '#9ca3af', '#2563eb'];
@@ -667,7 +669,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="h-screen w-screen font-sans text-[#244c21] bg-[#f4f9f4] p-4 lg:p-3 overflow-hidden">
+    <div className="h-screen w-screen font-sans text-[#244c21] bg-white p-4 lg:p-3 overflow-hidden">
       <div className="flex h-full w-full gap-3">
 
         {/* Sidebar - Desktop Only */}

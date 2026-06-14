@@ -6,6 +6,7 @@ import { useGSAP } from '@gsap/react';
 export default function Navbar() {
   const [isLightBg, setIsLightBg] = useState(false);
   const navRef = useRef(null);
+  const landingPath = '/landing';
 
   useGSAP(() => {
     gsap.from(navRef.current, {
@@ -102,7 +103,7 @@ export default function Navbar() {
           <div className="flex-shrink-0 flex items-center">
             <span 
               className={`text-xl font-bold items-center tracking-tight cursor-pointer transition-colors duration-500 ease-in-out ${textPrimary}`} 
-              onClick={() => window.location.href='/' }
+              onClick={() => window.location.href=landingPath }
             >
               Ecofy
             </span>
@@ -110,7 +111,7 @@ export default function Navbar() {
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center space-x-1">
-            <a href="/" className={`px-4 py-2 text-sm font-medium transition-all duration-500 ease-in-out rounded-full ${linkClass}`}>Home</a>
+            <a href={landingPath} className={`px-4 py-2 text-sm font-medium transition-all duration-500 ease-in-out rounded-full ${linkClass}`}>Home</a>
             <a href="/blogs" className={`px-4 py-2 text-sm font-medium transition-all duration-500 ease-in-out rounded-full ${linkClass}`}>Blogs</a>
             <a href="/services" className={`px-4 py-2 text-sm font-medium transition-all duration-500 ease-in-out rounded-full ${linkClass}`}>Services</a>
             <a href="/about" className={`px-4 py-2 text-sm font-medium transition-all duration-500 ease-in-out rounded-full ${linkClass}`}>About</a>

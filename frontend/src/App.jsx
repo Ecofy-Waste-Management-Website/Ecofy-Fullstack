@@ -45,23 +45,23 @@ export default function App() {
   // Hide chatbot on admin and staff dashboards
   const hideChatbot = pathname.startsWith('/admin') || pathname.startsWith('/admin-dashboard') || pathname.startsWith('/staff-dashboard');
 
+  const publicLandingPage = (
+    <>
+      <Navbar />
+      <Hero />
+      <Footer />
+    </>
+  );
+
   return (
     <>
     <Routes>
 
       {/* Home */}
-      <Route path="/" element={
-        <>
-          <SignedIn>
-            <RoleRedirect />
-          </SignedIn>
+      <Route path="/" element={publicLandingPage} />
 
-          <SignedOut>
-            <Navbar />
-            <Hero />
-          </SignedOut>
-        </>
-      } />
+      {/* Public Landing Page */}
+      <Route path="/landing" element={publicLandingPage} />
 
 
       {/* Redirect after login */}
