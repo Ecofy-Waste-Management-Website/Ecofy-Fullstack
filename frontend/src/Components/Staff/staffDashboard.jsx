@@ -4,6 +4,10 @@ import 'leaflet/dist/leaflet.css';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
+import PendingTasksPanel from './PendingTasksPanel';
+import ActiveTasksPanel from './ActiveTasksPanel';
+import CompleteTodayPanel from './CompleteTodayPanel';
+import SettingsPanel from './SettingsPanel';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -268,8 +272,8 @@ function PendingOrdersMapCanvas({ orders, onOrderSelect }) {
   }, [orders, onOrderSelect, mapReady]);
 
   return (
-    <div className="relative min-h-[320px] flex-1 bg-[#eff5ea]">
-      <div ref={mapContainerRef} className="h-full w-full min-h-[320px]" />
+    <div className="relative z-0 min-h-[320px] flex-1 isolate bg-[#eff5ea]">
+      <div ref={mapContainerRef} className="relative z-0 h-full w-full min-h-[320px]" />
       {mapState.loading && (
         <div className="absolute inset-0 grid place-items-center bg-white/75 text-center">
           <div>
@@ -992,17 +996,6 @@ export default function StaffDashboard() {
 
     setConfirmingOrderId(order._id);
     try {
-      const assignRes = await fetch(`${API_BASE_URL}/service-monitoring/${order._id}/assign`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignedStaff: user.id }),
-      });
-      const assignData = await assignRes.json();
-
-      if (!assignRes.ok) {
-        throw new Error(assignData.message || 'Failed to assign pickup');
-      }
-
       const statusRes = await fetch(`${API_BASE_URL}/staff/tasks/${order._id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -1318,8 +1311,9 @@ export default function StaffDashboard() {
   );
 
   const formatCurrency = (value) => {
-    if (typeof value !== 'number') return 'N/A';
-    return `LKR ${value.toLocaleString()}`;
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) return 'N/A';
+    return `LKR ${numericValue.toLocaleString()}`;
   };
 
   const formatOrderDate = (value) => {
@@ -1333,7 +1327,20 @@ export default function StaffDashboard() {
     });
   };
 
-  const getEstimatedAmount = (order) => order.servicePrice || SERVICE_PRICES[order.service_type] || order.estimated_amt || 0;
+  const normalizeServiceAmount = (value) => {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue) || numericValue <= 0) return null;
+    // Older records may store cents (e.g. 150000 instead of 1500).
+    if (numericValue >= 100000) return numericValue / 100;
+    return numericValue;
+  };
+
+  const getEstimatedAmount = (order) =>
+    normalizeServiceAmount(order?.servicePrice) ||
+    normalizeServiceAmount(order?.estimated_amt) ||
+    normalizeServiceAmount(order?.amount) ||
+    SERVICE_PRICES[order?.service_type] ||
+    0;
   const renderOrderDetailValue = (value) => value || 'N/A';
   const pendingOrderPins = getPendingOrderPins(pendingOrders);
   const unresolvedPendingOrders = pendingOrders.length - pendingOrderPins.length;
@@ -1424,7 +1431,7 @@ export default function StaffDashboard() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner flex flex-col">
+          <div className="relative z-0 flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner flex flex-col isolate">
             <div className="flex flex-wrap items-center gap-2 border-b border-[#397234]/10 bg-[#f7fbf4] px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/60">
               <span className="rounded-full bg-[#397239]/10 px-3 py-1 text-[#397239]">{pendingOrderPins.length} pinned</span>
               {unresolvedPendingOrders > 0 && (
@@ -1473,7 +1480,7 @@ export default function StaffDashboard() {
   );
 
   // ─── Inquiry Panel ────────────────────────────────────────────────────────────
-  const InquiriesPanel = () => (
+  const renderInquiriesPanel = () => (
     <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-5 shadow-sm">
       {/* Header row */}
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -1621,13 +1628,19 @@ export default function StaffDashboard() {
                         )}
 
                         {/* Reply composer — always show so staff can update/add another reply */}
-                        <div className="rounded-2xl bg-white border border-[#397234]/15 p-3">
+                        <div
+                          className="rounded-2xl bg-white border border-[#397234]/15 p-3"
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50 mb-2">
                             {isReplied ? 'Update Reply' : 'Write a Reply'}
                           </p>
                           <textarea
                             rows={3}
                             value={replyTexts[inq._id] || ''}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                             onChange={(e) =>
                               setReplyTexts((prev) => ({ ...prev, [inq._id]: e.target.value }))
                             }
@@ -1637,7 +1650,11 @@ export default function StaffDashboard() {
                           <div className="mt-2 flex justify-end">
                             <button
                               type="button"
-                              onClick={() => handleSendReply(inq._id)}
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSendReply(inq._id);
+                              }}
                               disabled={
                                 !replyTexts[inq._id]?.trim() || sendingReply === inq._id
                               }
@@ -1859,17 +1876,11 @@ export default function StaffDashboard() {
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
 
           {/* Header */}
-          <header className="mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
+          <header className="relative z-[1000] mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
             <h2 className="m-0 text-2xl font-black tracking-tight text-[#244c21] truncate">
               {getPageTitle()}
             </h2>
             <div className="flex items-center gap-3">
-              <div className="relative w-[280px]">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#397239]/40">
-                  <Icons.Search />
-                </span>
-                <input type="text" className="w-full rounded-2xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-[8px_12px_8px_38px] text-sm text-[#244c21] outline-none transition-all focus:border-[#397239] focus:bg-white focus:shadow-md placeholder:text-[#397239]/40" placeholder="Search tasks..." />
-              </div>
               <NotificationBell target="staff" />
               <div className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-3 py-1.5 text-xs font-black text-[#397239] backdrop-blur-sm">Staff</div>
               {!roleLoading && role === 'Admin' && (
@@ -1898,7 +1909,7 @@ export default function StaffDashboard() {
 
                 {activeTab === 'inquiries' && (
                   <div className="col-span-full">
-                    <InquiriesPanel />
+                    {renderInquiriesPanel()}
                   </div>
                 )}
 
@@ -1909,7 +1920,17 @@ export default function StaffDashboard() {
                         Loading settings...
                       </div>
                     ) : (
-                      <SettingsPanel />
+                      <SettingsPanel
+                        staffName={staffName}
+                        staffInitials={staffInitials}
+                        settingsForm={settingsForm}
+                        settingsMessage={settingsMessage}
+                        savingSettings={savingSettings}
+                        handleSettingsChange={handleSettingsChange}
+                        handleBankDetailChange={handleBankDetailChange}
+                        saveSettings={saveSettings}
+                        onClearMessage={() => setSettingsMessage(null)}
+                      />
                     )}
                   </div>
                 )}

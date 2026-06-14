@@ -1,17 +1,13 @@
 // ─── SERVICE MANAGEMENT COMPONENT ─────────────────────────────────────────
 import React, { useState, useEffect, useCallback } from "react";
+import { Plus, Edit, Trash2, X, Search } from 'lucide-react';
+import { Button, Badge } from './UIComponents';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 const CATEGORIES = ["Residential", "Industrial", "Eco", "Commercial"];
 const UNITS      = ["per visit", "per load", "per ton", "per consignment", "per month"];
 const EMPTY_FORM = { name: "", category: "Residential", price: "", unit: "per visit", status: "Active", description: "" };
-
-const PlusIcon   = () => <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>;
-const EditIcon   = () => <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>;
-const TrashIcon  = () => <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
-const CloseIcon  = () => <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
-const SearchIcon = () => <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 
 const categoryColors = {
   Residential: "bg-blue-100 text-blue-700",
@@ -208,7 +204,7 @@ const ServiceManagement = () => {
         <div className="flex items-center gap-3">
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#397239]/40">
-              <SearchIcon />
+              <Search size={16} />
             </span>
             <input
               type="text"
@@ -227,12 +223,13 @@ const ServiceManagement = () => {
             {CATEGORIES.map(c => <option key={c}>{c}</option>)}
           </select>
         </div>
-        <button
+        <Button
           onClick={openAddModal}
-          className="flex items-center gap-2 rounded-2xl bg-[#397239] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#397239]/20 hover:bg-[#244c21] transition-all hover:scale-105 active:scale-95"
+          variant="primary"
+          className="flex items-center gap-2"
         >
-          <PlusIcon /> Add Service
-        </button>
+          <Plus size={16} /> Add Service
+        </Button>
       </div>
 
       {/* ── Summary Cards ── */}
@@ -290,43 +287,43 @@ const ServiceManagement = () => {
                       <p className="text-[0.7rem] text-[#397239]/60 mt-0.5 max-w-[220px] truncate">{service.description}</p>
                     </td>
                     <td className="p-4">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.65rem] font-bold ${categoryColors[service.category] || "bg-gray-100 text-gray-600"}`}>
-                        {service.category}
-                      </span>
+                      <Badge variant="primary">{service.category}</Badge>
                     </td>
                     <td className="p-4 font-black text-[#244c21]">
                       {Number(service.price).toLocaleString()}
                     </td>
                     <td className="p-4 text-[0.75rem] text-[#397239]/70 font-bold">{service.unit}</td>
                     <td className="p-4">
-                      <button
+                      <Button
                         onClick={() => toggleStatus(service.id)}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.65rem] font-bold transition-all hover:scale-105 ${
-                          service.status === "Active"
-                            ? "bg-green-100 text-[#397239] hover:bg-green-200"
-                            : "bg-red-100 text-red-600 hover:bg-red-200"
-                        }`}
+                        variant={service.status === "Active" ? "primary" : "outline"}
+                        size="sm"
+                        className="flex items-center gap-1.5"
                       >
-                        <span className={`h-1.5 w-1.5 rounded-full ${service.status === "Active" ? "bg-[#397239]" : "bg-red-500"}`} />
+                        <span className={`h-1.5 w-1.5 rounded-full ${service.status === "Active" ? "bg-white" : "bg-gray-400"}`} />
                         {service.status}
-                      </button>
+                      </Button>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <button
+                        <Button
                           onClick={() => openEditModal(service)}
-                          className="grid h-8 w-8 place-items-center rounded-xl bg-[#397239]/10 text-[#397239] hover:bg-[#397239] hover:text-white transition-all shadow-sm"
+                          variant="outline"
+                          size="sm"
                           title="Edit"
+                          className="p-2"
                         >
-                          <EditIcon />
-                        </button>
-                        <button
+                          <Edit size={16} />
+                        </Button>
+                        <Button
                           onClick={() => setDeleteConfirm(service.id)}
-                          className="grid h-8 w-8 place-items-center rounded-xl bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                          variant="danger"
+                          size="sm"
                           title="Delete"
+                          className="p-2"
                         >
-                          <TrashIcon />
-                        </button>
+                          <Trash2 size={16} />
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -349,7 +346,7 @@ const ServiceManagement = () => {
                 onClick={() => setShowModal(false)}
                 className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-all"
               >
-                <CloseIcon />
+                <X size={18} />
               </button>
             </div>
             <div className="p-6 flex flex-col gap-4">
@@ -420,20 +417,23 @@ const ServiceManagement = () => {
                 />
               </div>
               <div className="flex gap-3 pt-2">
-                <button
+                <Button
                   onClick={() => setShowModal(false)}
-                  className="flex-1 rounded-2xl border border-[#112A0F]/10 bg-[#f4f9f4] py-3 text-[0.75rem] font-black text-[#397239] uppercase tracking-wider hover:bg-[#D6E9CA] transition-all"
+                  variant="outline"
+                  fullWidth
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleSave}
                   disabled={!form.name.trim() || !form.price || saving}
-                  className="flex-1 rounded-2xl bg-[#397239] py-3 text-[0.75rem] font-black text-white uppercase tracking-wider shadow-lg shadow-[#397239]/20 hover:bg-[#244c21] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  variant="primary"
+                  fullWidth
+                  className="flex items-center justify-center gap-2"
                 >
                   {saving && <span className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />}
                   {editingService ? "Save Changes" : "Add Service"}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -445,25 +445,29 @@ const ServiceManagement = () => {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md p-4">
           <div className="w-full max-w-[340px] rounded-[2rem] border border-white/20 bg-[#397234] p-8 text-center shadow-2xl">
             <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-red-400/10 text-red-400">
-              <TrashIcon />
+              <Trash2 size={24} />
             </div>
             <h3 className="mb-2 text-xl font-black text-white">Remove Service?</h3>
             <p className="mb-6 text-xs font-bold text-white/40 uppercase tracking-widest">This action cannot be undone.</p>
             <div className="flex gap-3">
-              <button
+              <Button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 rounded-2xl border border-white/10 bg-white/5 py-3 text-[0.7rem] font-black text-white uppercase tracking-wider hover:bg-white/10 transition-all"
+                variant="outline"
+                fullWidth
+                className="text-white border-white/10 bg-white/5"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => handleDelete(deleteConfirm)}
                 disabled={deleting}
-                className="flex-1 rounded-2xl bg-red-500 py-3 text-[0.7rem] font-black text-white uppercase tracking-wider shadow-lg shadow-red-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                variant="danger"
+                fullWidth
+                className="flex items-center justify-center gap-2"
               >
                 {deleting && <span className="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />}
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>

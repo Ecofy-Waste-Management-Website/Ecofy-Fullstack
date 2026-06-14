@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
 
 function timeAgo(dateStr) {
   const s = Math.round((Date.now() - new Date(dateStr)) / 1000);
@@ -12,54 +11,98 @@ function timeAgo(dateStr) {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
+function formatDateTime(dateStr) {
+  if (!dateStr) return "Not available";
+  return new Date(dateStr).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 const TYPE_STYLES = {
-  Alert:   "bg-red-100 text-red-800",
-  Warning: "bg-amber-100 text-amber-800",
-  Info:    "bg-blue-100 text-blue-800",
-  Success: "bg-green-100 text-green-800",
+  Alert:   { badge: "bg-red-100 text-red-800",   icon: "bg-red-500",   dot: "bg-red-500"   },
+  Warning: { badge: "bg-amber-100 text-amber-800", icon: "bg-amber-500", dot: "bg-amber-500" },
+  Info:    { badge: "bg-blue-100 text-blue-800",  icon: "bg-blue-500",  dot: "bg-blue-500"  },
+  Success: { badge: "bg-green-100 text-green-800", icon: "bg-green-500", dot: "bg-green-500" },
 };
 
+const TYPE_ICONS = {
+  Alert: (
+    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+    </svg>
+  ),
+  Warning: (
+    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+    </svg>
+  ),
+  Info: (
+    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
+    </svg>
+  ),
+  Success: (
+    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+  ),
+};
+
+// ── Main Bell Component ───────────────────────────────────────────────────────
 export default function NotificationBell({ target = "user" }) {
   const { user } = useUser();
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
   const panelRef = useRef(null);
 
-  // Fetch on mount and every 60 seconds
-  useEffect(() => {
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
-    const fetch = () => fetchNotifications();
-    fetch();
-    const interval = setInterval(fetch, 60_000);
-    return () => clearInterval(interval);
-  }, [user]);
 
-  const fetchNotifications = async () => {
     try {
-      const res = await window.fetch(`${API_BASE_URL}/notifications/${user.id}?target=${target}`);
+      const res = await window.fetch(
+        `${API_BASE_URL}/notifications/${user.id}?target=${target}`
+      );
       if (!res.ok) return;
       const data = await res.json();
       setNotifications(data.notifications);
     } catch (err) {
       console.error("Failed to fetch notifications", err);
     }
-  };
+  }, [target, user]);
 
-  // Close panel on outside click
+  // Fetch on mount and every 60 seconds
+  useEffect(() => {
+    const initialFetch = setTimeout(fetchNotifications, 0);
+    const interval = setInterval(fetchNotifications, 60_000);
+    return () => {
+      clearTimeout(initialFetch);
+      clearInterval(interval);
+    };
+  }, [fetchNotifications]);
+
+  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (panelRef.current && !panelRef.current.contains(e.target)) {
         setOpen(false);
+        setExpandedId(null);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleMarkAsRead = async (id, e) => {
-    e.stopPropagation();
+  // ── Mark single as read ──────────────────────────────────────────────────
+  const markAsRead = async (id) => {
     try {
-      await window.fetch(`${API_BASE_URL}/notifications/${id}/read`, { method: "PATCH" });
+      await window.fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+        method: "PATCH",
+      });
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
       );
@@ -68,21 +111,39 @@ export default function NotificationBell({ target = "user" }) {
     }
   };
 
+  const handleMarkAsRead = async (id, e) => {
+    e.stopPropagation();
+    await markAsRead(id);
+  };
+
+  // ── Mark all read ────────────────────────────────────────────────────────
   const handleMarkAllRead = async () => {
-    // Call individual PATCH for each unread (no bulk endpoint exists yet)
     const unread = notifications.filter((n) => !n.isRead);
     await Promise.all(
       unread.map((n) =>
-        window.fetch(`${API_BASE_URL}/notifications/${n._id}/read`, { method: "PATCH" })
+        window.fetch(`${API_BASE_URL}/notifications/${n._id}/read`, {
+          method: "PATCH",
+        })
       )
     );
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   };
 
+  const toggleNotification = (id) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  const handleNotificationKeyDown = (e, id) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleNotification(id);
+    }
+  };
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
-    <div className="relative" ref={panelRef}>
+    <div className="relative z-[10000]" ref={panelRef}>
       {/* Bell Button */}
       <button
         onClick={() => setOpen((prev) => !prev)}
@@ -101,7 +162,7 @@ export default function NotificationBell({ target = "user" }) {
 
       {/* Dropdown Panel */}
       {open && (
-        <div className="absolute right-0 top-[calc(100%+10px)] z-[100] w-[360px] rounded-2xl border border-green-100 bg-white shadow-xl shadow-green-900/10 overflow-hidden">
+        <div className="absolute right-0 top-[calc(100%+10px)] z-[10000] w-[360px] rounded-2xl border border-green-100 bg-white shadow-xl shadow-green-900/10 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-green-50">
             <p className="text-sm font-bold text-gray-800 m-0">
@@ -127,10 +188,18 @@ export default function NotificationBell({ target = "user" }) {
             {notifications.length === 0 ? (
               <p className="py-10 text-center text-sm text-gray-400">No notifications yet.</p>
             ) : (
-              notifications.map((item) => (
+              notifications.map((item) => {
+                const isExpanded = expandedId === item._id;
+
+                return (
                 <div
                   key={item._id}
-                  className={`flex gap-3 px-4 py-3 border-b border-gray-50 last:border-0 transition-colors ${
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  onClick={() => toggleNotification(item._id)}
+                  onKeyDown={(e) => handleNotificationKeyDown(e, item._id)}
+                  className={`flex gap-3 px-4 py-3 border-b border-gray-50 last:border-0 cursor-pointer transition-colors hover:bg-green-50/70 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-200 ${
                     item.isRead ? "bg-white" : "bg-green-50/50"
                   }`}
                 >
@@ -144,6 +213,11 @@ export default function NotificationBell({ target = "user" }) {
                   </div>
 
                   <div className="flex-1 min-w-0">
+                    {item.title && (
+                      <p className={`text-[0.72rem] leading-snug m-0 mb-0.5 ${item.isRead ? "text-gray-500" : "text-gray-700 font-bold"}`}>
+                        {item.title}
+                      </p>
+                    )}
                     <p className={`text-[0.8rem] leading-snug m-0 mb-1 ${item.isRead ? "text-gray-500" : "text-gray-800 font-semibold"}`}>
                       {item.message}
                     </p>
@@ -152,18 +226,53 @@ export default function NotificationBell({ target = "user" }) {
                         {item.type}
                       </span>
                       <span className="text-[0.65rem] text-gray-400">{timeAgo(item.createdAt)}</span>
+                      <span className="ml-auto text-[0.65rem] font-semibold text-green-600">
+                        {isExpanded ? "hide details" : "view details"}
+                      </span>
                       {!item.isRead && (
                         <button
                           onClick={(e) => handleMarkAsRead(item._id, e)}
-                          className="ml-auto text-[0.65rem] text-gray-400 hover:text-green-600 hover:underline bg-transparent border-none cursor-pointer p-0"
+                          className="text-[0.65rem] text-gray-400 hover:text-green-600 hover:underline bg-transparent border-none cursor-pointer p-0"
                         >
                           mark read
                         </button>
                       )}
                     </div>
+
+                    {isExpanded && (
+                      <div className="mt-3 rounded-xl border border-green-100 bg-white px-3 py-3 shadow-sm">
+                        <p className="m-0 text-[0.72rem] font-bold uppercase tracking-wide text-green-700">
+                          Notification details
+                        </p>
+                        <p className="mt-2 mb-0 text-[0.78rem] leading-relaxed text-gray-700">
+                          {item.message}
+                        </p>
+                        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-[0.68rem]">
+                          <div>
+                            <dt className="font-bold text-gray-400">Type</dt>
+                            <dd className="m-0 text-gray-700">{item.type || "Info"}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-bold text-gray-400">Status</dt>
+                            <dd className="m-0 text-gray-700">{item.isRead ? "Read" : "Unread"}</dd>
+                          </div>
+                          <div className="col-span-2">
+                            <dt className="font-bold text-gray-400">Received</dt>
+                            <dd className="m-0 text-gray-700">{formatDateTime(item.createdAt)}</dd>
+                          </div>
+                          {item.updatedAt && item.updatedAt !== item.createdAt && (
+                            <div className="col-span-2">
+                              <dt className="font-bold text-gray-400">Last updated</dt>
+                              <dd className="m-0 text-gray-700">{formatDateTime(item.updatedAt)}</dd>
+                            </div>
+                          )}
+                        </dl>
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

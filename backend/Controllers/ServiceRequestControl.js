@@ -3,11 +3,11 @@ const Notification = require("../Model/NotificationModel");
 const { randomInt } = require("crypto");
 
 const SERVICE_PRICES = {
-  Household: 150000,
-  Commercial: 350000,
-  Bulk: 250000,
-  Garden: 120000,
-  "Drain Cleaning": 200000,
+  Household: 1500,
+  Commercial: 3500,
+  Bulk: 2500,
+  Garden: 1200,
+  "Drain Cleaning": 2000,
 };
 
 const generatePickupPin = () => String(randomInt(100000, 1000000));
