@@ -325,12 +325,10 @@ export default function Dashboard() {
         <p className="mt-2 text-sm text-white/75 max-w-sm">Manage your waste pickups, track orders, and get instant support.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
         {[
           { icon: "truck",      label: "Active Pickups", value: loadingBookings ? "—" : activeBookings.length,    border: "border-amber-200",  bg: "bg-amber-50",  color: "text-amber-600" },
           { icon: "mapPin",     label: "Completed",      value: loadingBookings ? "—" : completedBookings.length, border: "border-green-200",  bg: "bg-green-50",  color: "text-green-600" },
-          { icon: "creditCard", label: "Total Paid",     value: `LKR ${totalPaid.toLocaleString()}`,              border: "border-blue-200",   bg: "bg-blue-50",   color: "text-blue-600" },
-          { icon: "clock",      label: "All Bookings",   value: loadingBookings ? "—" : bookings.length,          border: "border-purple-200", bg: "bg-purple-50", color: "text-purple-600" },
         ].map(({ icon, label, value, border, bg, color }) => (
           <div key={label} className={`rounded-3xl border bg-white p-5 shadow-sm ${border}`}>
             <div className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl ${bg}`}>
@@ -341,6 +339,15 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      <button
+        type="button"
+        onClick={() => setShowPickupModal(true)}
+        className="flex w-full sm:w-1/2 items-center justify-center gap-2 rounded-3xl border border-[#06a63e] bg-[#06a63e] px-6 py-4 text-base font-bold text-white shadow-sm transition-colors hover:bg-[#058b33]"
+      >
+        <Icon name="truck" className="h-5 w-5" />
+        Request a Pickup
+      </button>
 
       <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-5">
@@ -364,10 +371,6 @@ export default function Dashboard() {
               <Icon name="leaf" className="h-7 w-7 text-[#06a63e]" />
             </div>
             <p className="text-sm font-medium text-gray-500">No active pickups right now.</p>
-            <button type="button" onClick={() => setShowPickupModal(true)}
-              className="rounded-xl bg-[#06a63e] px-4 py-2 text-xs font-bold text-white hover:bg-[#058b33] transition">
-              Schedule your first pickup
-            </button>
           </div>
         ) : (
           <div className="space-y-2">
