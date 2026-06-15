@@ -353,14 +353,14 @@ export default function ServiceRequests() {
             <table className="w-full text-left text-sm text-[#244c21]">
               <thead className="bg-[#397234]/10 border-b border-[#397234]/10 text-[#397239] uppercase tracking-widest text-[10px] font-bold">
                 <tr>
-                  <th className="px-8 py-4">Request ID</th>
-                  <th className="px-8 py-4">Customer</th>
-                  <th className="px-8 py-4">Location</th>
-                  <th className="px-8 py-4">Type</th>
-                  <th className="px-8 py-4">Status</th>
-                  <th className="px-8 py-4">Staff</th>
-                  <th className="px-8 py-4">Submitted</th>
-                  <th className="px-8 py-4 text-right">Action</th>
+                  <th className="px-4 py-4">Request ID</th>
+                  <th className="px-4 py-4">Customer</th>
+                  <th className="px-4 py-4">Location</th>
+                  <th className="px-4 py-4">Type</th>
+                  <th className="px-4 py-4 pl-10">Status</th>
+                  <th className="px-4 py-4 pl-10">Staff</th>
+                  <th className="px-4 py-4">Submitted</th>
+                  <th className="px-4 py-4 pl-10">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -371,10 +371,10 @@ export default function ServiceRequests() {
                 )}
                 {requests.map(r => (
                   <tr key={r.id} className="transition-colors hover:bg-[#112A0F]/5">
-                    <td className="px-8 py-5 font-black text-[#244c21]">{r.requestId}</td>
-                    <td className="px-8 py-5 font-bold text-[#244c21]">{r.customer}</td>
-                    <td className="px-8 py-5 text-[#397239]/80 font-medium">{r.location}</td>
-                    <td className="px-8 py-5">
+                    <td className="px-4 py-5 font-black text-[#244c21]">{r.requestId}</td>
+                    <td className="px-4 py-5 font-bold text-[#244c21]">{r.customer}</td>
+                    <td className="px-4 py-5 text-[#397239]/80 font-medium">{r.location}</td>
+                    <td className="px-4 py-5">
                       <span className="rounded-md px-2 py-1 text-[10px] font-extrabold uppercase tracking-widest" style={{ background: typeColor(r.type) + "20", color: typeColor(r.type), border: `1px solid ${typeColor(r.type)}40` }}>
                         {r.type}
                       </span>
