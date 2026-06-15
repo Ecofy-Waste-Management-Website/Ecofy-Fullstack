@@ -4,6 +4,10 @@ import 'leaflet/dist/leaflet.css';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
+import PendingTasksPanel from './PendingTasksPanel';
+import ActiveTasksPanel from './ActiveTasksPanel';
+import CompleteTodayPanel from './CompleteTodayPanel';
+import SettingsPanel from './SettingsPanel';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -992,17 +996,6 @@ export default function StaffDashboard() {
 
     setConfirmingOrderId(order._id);
     try {
-      const assignRes = await fetch(`${API_BASE_URL}/service-monitoring/${order._id}/assign`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignedStaff: user.id }),
-      });
-      const assignData = await assignRes.json();
-
-      if (!assignRes.ok) {
-        throw new Error(assignData.message || 'Failed to assign pickup');
-      }
-
       const statusRes = await fetch(`${API_BASE_URL}/staff/tasks/${order._id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -1318,8 +1311,9 @@ export default function StaffDashboard() {
   );
 
   const formatCurrency = (value) => {
-    if (typeof value !== 'number') return 'N/A';
-    return `LKR ${value.toLocaleString()}`;
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) return 'N/A';
+    return `LKR ${numericValue.toLocaleString()}`;
   };
 
   const formatOrderDate = (value) => {
@@ -1333,7 +1327,20 @@ export default function StaffDashboard() {
     });
   };
 
-  const getEstimatedAmount = (order) => order.servicePrice || SERVICE_PRICES[order.service_type] || order.estimated_amt || 0;
+  const normalizeServiceAmount = (value) => {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue) || numericValue <= 0) return null;
+    // Older records may store cents (e.g. 150000 instead of 1500).
+    if (numericValue >= 100000) return numericValue / 100;
+    return numericValue;
+  };
+
+  const getEstimatedAmount = (order) =>
+    normalizeServiceAmount(order?.servicePrice) ||
+    normalizeServiceAmount(order?.estimated_amt) ||
+    normalizeServiceAmount(order?.amount) ||
+    SERVICE_PRICES[order?.service_type] ||
+    0;
   const renderOrderDetailValue = (value) => value || 'N/A';
   const pendingOrderPins = getPendingOrderPins(pendingOrders);
   const unresolvedPendingOrders = pendingOrders.length - pendingOrderPins.length;
@@ -1473,7 +1480,7 @@ export default function StaffDashboard() {
   );
 
   // ─── Inquiry Panel ────────────────────────────────────────────────────────────
-  const InquiriesPanel = () => (
+  const renderInquiriesPanel = () => (
     <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-5 shadow-sm">
       {/* Header row */}
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -1621,13 +1628,19 @@ export default function StaffDashboard() {
                         )}
 
                         {/* Reply composer — always show so staff can update/add another reply */}
-                        <div className="rounded-2xl bg-white border border-[#397234]/15 p-3">
+                        <div
+                          className="rounded-2xl bg-white border border-[#397234]/15 p-3"
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50 mb-2">
                             {isReplied ? 'Update Reply' : 'Write a Reply'}
                           </p>
                           <textarea
                             rows={3}
                             value={replyTexts[inq._id] || ''}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                             onChange={(e) =>
                               setReplyTexts((prev) => ({ ...prev, [inq._id]: e.target.value }))
                             }
@@ -1637,7 +1650,11 @@ export default function StaffDashboard() {
                           <div className="mt-2 flex justify-end">
                             <button
                               type="button"
-                              onClick={() => handleSendReply(inq._id)}
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSendReply(inq._id);
+                              }}
                               disabled={
                                 !replyTexts[inq._id]?.trim() || sendingReply === inq._id
                               }
@@ -1892,7 +1909,7 @@ export default function StaffDashboard() {
 
                 {activeTab === 'inquiries' && (
                   <div className="col-span-full">
-                    <InquiriesPanel />
+                    {renderInquiriesPanel()}
                   </div>
                 )}
 
@@ -1903,7 +1920,17 @@ export default function StaffDashboard() {
                         Loading settings...
                       </div>
                     ) : (
-                      <SettingsPanel />
+                      <SettingsPanel
+                        staffName={staffName}
+                        staffInitials={staffInitials}
+                        settingsForm={settingsForm}
+                        settingsMessage={settingsMessage}
+                        savingSettings={savingSettings}
+                        handleSettingsChange={handleSettingsChange}
+                        handleBankDetailChange={handleBankDetailChange}
+                        saveSettings={saveSettings}
+                        onClearMessage={() => setSettingsMessage(null)}
+                      />
                     )}
                   </div>
                 )}

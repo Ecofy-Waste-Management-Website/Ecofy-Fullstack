@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { RefreshCw, AlertCircle } from 'lucide-react';
+import { Button, Badge } from './UIComponents';
 import { getInquiries, replyToInquiry } from "../../services/api/adminService";
 
 function formatDate(value) {
@@ -101,19 +103,21 @@ export default function InquiryManagement() {
             <option value="Pending" className="bg-white">Pending</option>
             <option value="Replied" className="bg-white">Replied</option>
           </select>
-          <button
-            className="rounded-xl bg-[#397239] px-6 py-3 text-xs font-black text-white transition-all hover:scale-105 active:scale-95 shadow-md uppercase tracking-widest"
+          <Button
+            variant="primary"
             onClick={loadInquiries}
+            className="flex items-center gap-2"
           >
+            <RefreshCw size={14} />
             Refresh
-          </button>
+          </Button>
         </div>
       </div>
 
       {error && (
         <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-5 py-4 text-xs font-bold text-red-400 shadow-xl animate-in fade-in slide-in-from-top-2">
           <span className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
+            <AlertCircle className="h-1.5 w-1.5 rounded-full flex-shrink-0 inline-block" style={{ width: '6px', height: '6px' }} />
             {error}
           </span>
         </div>
@@ -137,15 +141,9 @@ export default function InquiryManagement() {
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-3">
                       <h4 className="m-0 text-lg font-black text-[#244c21] group-hover:text-[#397239] transition-colors">{item.subject || "General Inquiry"}</h4>
-                      <span
-                        className={`rounded-full px-3 py-1 text-[9px] font-extrabold uppercase tracking-widest ${
-                          item.status === "Replied"
-                            ? "bg-green-100 text-[#397239]"
-                            : "bg-[#112A0F]/10 text-[#397239]"
-                        }`}
-                      >
+                      <Badge variant={item.status === "Replied" ? "active" : "pending"}>
                         {item.status}
-                      </span>
+                      </Badge>
                     </div>
                     <div className="flex items-center gap-2 text-[10px] font-bold text-[#397239]/80 uppercase tracking-widest">
                       <span className="text-[#244c21]">{item.userName}</span>
@@ -187,13 +185,13 @@ export default function InquiryManagement() {
                       }))
                     }
                   />
-                  <button
-                    className="h-fit rounded-2xl bg-[#397239] px-6 py-4 text-xs font-black text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:grayscale uppercase tracking-widest shadow-md"
+                  <Button
+                    variant="primary"
                     onClick={() => handleReply(item._id)}
                     disabled={savingId === item._id || !(replyText[item._id] || "").trim()}
                   >
                     {savingId === item._id ? "Sending..." : item.status === "Replied" ? "Update Reply" : "Send Response"}
-                  </button>
+                  </Button>
                 </div>
               </article>
             ))}
