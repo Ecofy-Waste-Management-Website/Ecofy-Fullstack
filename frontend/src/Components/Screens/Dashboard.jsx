@@ -390,7 +390,7 @@ export default function Dashboard() {
     </div>
   );
 
-  const SchedulePanel = () => (
+  const renderSchedulePanel = () => (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-black text-gray-900">Schedule a Pickup</h2>
@@ -640,7 +640,7 @@ export default function Dashboard() {
   const renderPanel = () => {
     switch (activeTab) {
       case "home":             return <HomePanel />;
-      case "schedule":         return <SchedulePanel />;
+      case "schedule":         return renderSchedulePanel();
       case "track-status":     return <TrackStatusPanel />;
       case "history":          return <HistoryPanel />;
       case "payments":         return <PaymentsPanel />;
