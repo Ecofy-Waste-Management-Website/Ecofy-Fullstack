@@ -8,6 +8,261 @@ import PaymentModal from "./PaymentModal";
 import ProfileSettings from "./ProfileSettings";
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
 
+// ===== LEAFLET IMPORTS =====
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for default Leaflet markers
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const BALANGODA_MAP_CENTER = [6.6617, 80.6937];
+const BALANGODA_MAP_BOUNDS = L.latLngBounds(
+  [6.54, 80.56],
+  [6.79, 80.84]
+);
+
+// ===== LeafletMapPicker Component =====
+function LeafletMapPicker({ value, onSelect }) {
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapMessage, setMapMessage] = useState("");
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = L.map(mapContainerRef.current, {
+      zoomControl: true,
+      scrollWheelZoom: true,
+    }).setView(BALANGODA_MAP_CENTER, 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+      minZoom: 12,
+    }).addTo(map);
+
+    // Custom green marker icon
+    const greenIcon = L.divIcon({
+      className: '',
+      html: `
+        <div style="
+          width: 36px;
+          height: 36px;
+          border-radius: 50% 50% 50% 0;
+          background: #06a63e;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 900;
+          font-size: 16px;
+          box-shadow: 0 8px 16px rgba(6, 166, 62, 0.4), 0 0 0 4px rgba(255, 255, 255, 0.8);
+          transform: rotate(-45deg);
+          border: 2px solid #ffffff;
+        ">
+          <span style="transform: rotate(45deg);">📍</span>
+        </div>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+      popupAnchor: [0, -32],
+    });
+
+    const marker = L.marker(BALANGODA_MAP_CENTER, {
+      icon: greenIcon,
+      draggable: true,
+    }).addTo(map);
+
+    // Click on map to place marker
+    map.on('click', (e) => {
+      const { lat, lng } = e.latlng;
+      marker.setLatLng([lat, lng]);
+      reverseGeocode(lat, lng);
+    });
+
+    // Drag end handler
+    marker.on('dragend', (e) => {
+      const { lat, lng } = e.target.getLatLng();
+      reverseGeocode(lat, lng);
+    });
+
+    mapRef.current = map;
+    markerRef.current = marker;
+    setMapLoaded(true);
+
+    // If there's an initial value, geocode it
+    if (value) {
+      geocodeAddress(value);
+    }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  // Reverse geocode using Nominatim
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const url = new URL('https://nominatim.openstreetmap.org/reverse');
+      url.searchParams.set('format', 'jsonv2');
+      url.searchParams.set('lat', lat);
+      url.searchParams.set('lon', lng);
+      url.searchParams.set('zoom', '18');
+      url.searchParams.set('addressdetails', '1');
+
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!response.ok) throw new Error('Geocoding failed');
+
+      const data = await response.json();
+      const address = data?.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      
+      setMapMessage(`📍 ${address}`);
+      
+      onSelect({
+        address: address,
+        coordinates: { latitude: lat, longitude: lng },
+      });
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+      const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      setMapMessage(`📍 ${fallback}`);
+      onSelect({
+        address: fallback,
+        coordinates: { latitude: lat, longitude: lng },
+      });
+    }
+  };
+
+  // Geocode address using Nominatim
+  const geocodeAddress = async (address) => {
+    if (!address || !mapRef.current) return;
+
+    try {
+      const url = new URL('https://nominatim.openstreetmap.org/search');
+      url.searchParams.set('format', 'jsonv2');
+      url.searchParams.set('limit', '1');
+      url.searchParams.set('q', `${address}, Balangoda, Ratnapura, Sri Lanka`);
+      url.searchParams.set('viewbox', '80.56,6.79,80.84,6.54');
+      url.searchParams.set('bounded', '1');
+
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!response.ok) throw new Error('Geocoding failed');
+
+      const data = await response.json();
+      if (data && data[0]) {
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        
+        if (!isNaN(lat) && !isNaN(lng)) {
+          mapRef.current.setView([lat, lng], 16);
+          markerRef.current?.setLatLng([lat, lng]);
+          
+          const fullAddress = data[0].display_name || address;
+          setMapMessage(`📍 ${fullAddress}`);
+          
+          onSelect({
+            address: fullAddress,
+            coordinates: { latitude: lat, longitude: lng },
+          });
+        }
+      } else {
+        setMapMessage('⚠️ Location not found. Try clicking on the map.');
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      setMapMessage('⚠️ Error finding location. Please click on the map.');
+    }
+  };
+
+  // Use current location
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      setMapMessage('Geolocation is not supported in this browser.');
+      return;
+    }
+
+    setMapMessage('📍 Getting your location...');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        mapRef.current?.setView([latitude, longitude], 16);
+        markerRef.current?.setLatLng([latitude, longitude]);
+        reverseGeocode(latitude, longitude);
+      },
+      () => {
+        setMapMessage('⚠️ Location access denied. Please click on the map instead.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  return (
+    <div className="flex h-full flex-col gap-3">
+      {/* Map container */}
+      <div 
+        ref={mapContainerRef} 
+        className="w-full rounded-2xl border border-gray-200 bg-gray-50 min-h-[280px] h-[280px] relative"
+      >
+        {!mapLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50/80 rounded-2xl">
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#06a63e] border-t-transparent" />
+              <p className="text-sm text-gray-500">Loading map...</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Controls and status */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleUseMyLocation}
+            className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-50 transition flex items-center gap-1.5"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Use My Location
+          </button>
+          <span className="text-xs text-gray-400">|</span>
+          <p className="text-xs text-gray-500 flex items-center gap-1.5">
+            <span className="inline-block h-2 w-2 rounded-full bg-[#06a63e]" />
+            Click map or drag pin
+          </p>
+        </div>
+        {mapMessage && (
+          <p className="text-xs font-medium text-[#06a63e] truncate max-w-[50%]">{mapMessage}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ===== CONSTANTS =====
 const STATUS_STYLES = {
   Pending: "bg-amber-100 text-amber-700",
   Assigned: "bg-blue-100 text-blue-700",
@@ -17,9 +272,6 @@ const STATUS_STYLES = {
   Delayed: "bg-red-100 text-red-700",
   Cancelled: "bg-gray-100 text-gray-600",
 };
-
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
-const DEFAULT_MAP_CENTER = { lat: 6.6617, lng: 80.6937 };
 
 const Icon = ({ name, className = "h-5 w-5" }) => {
   const icons = {
@@ -53,77 +305,9 @@ const NAV_ITEMS = [
   { id: "payments",         icon: "creditCard", label: "Payments" },
   { id: "inquiry",          icon: "chat",       label: "Inquiry" },
   { id: "profile",          icon: "user",       label: "Profile" },
-  //{ id: "special-services", icon: "sparkles",   label: "Services" },
 ];
 
-function GoogleMapPicker({ value, onSelect }) {
-  const mapContainerRef = useRef(null);
-  const mapRef = useRef(null);
-  const markerRef = useRef(null);
-  const geocoderRef = useRef(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapMessage, setMapMessage] = useState("");
-
-  useEffect(() => {
-    if (!GOOGLE_MAPS_API_KEY) { setMapMessage("Add VITE_GOOGLE_MAPS_API_KEY to enable map selection."); return; }
-    if (window.google?.maps) { setMapLoaded(true); return; }
-    const existingScript = document.getElementById("google-maps-js");
-    if (existingScript) { existingScript.addEventListener("load", () => setMapLoaded(true)); return; }
-    const script = document.createElement("script");
-    script.id = "google-maps-js";
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
-    script.async = true; script.defer = true;
-    script.onload = () => setMapLoaded(true);
-    script.onerror = () => setMapMessage("Google Maps failed to load.");
-    document.head.appendChild(script);
-  }, []);
-
-  useEffect(() => {
-    if (!mapLoaded || !mapContainerRef.current || mapRef.current || !window.google?.maps) return;
-    const map = new window.google.maps.Map(mapContainerRef.current, {
-      center: DEFAULT_MAP_CENTER, zoom: 12, gestureHandling: "greedy",
-      streetViewControl: false, mapTypeControl: false, fullscreenControl: false,
-    });
-    const marker = new window.google.maps.Marker({ position: DEFAULT_MAP_CENTER, map, draggable: true });
-    const geocoder = new window.google.maps.Geocoder();
-    const resolveAddress = (latLng) => {
-      const coordinates = { latitude: latLng.lat(), longitude: latLng.lng() };
-      geocoder.geocode({ location: latLng }, (results, status) => {
-        if (status === "OK" && results?.[0]) { const address = results[0].formatted_address; setMapMessage(address); onSelect({ address, coordinates }); }
-        else { const fallback = `${latLng.lat().toFixed(5)}, ${latLng.lng().toFixed(5)}`; setMapMessage(fallback); onSelect({ address: fallback, coordinates }); }
-      });
-    };
-    map.addListener("click", (e) => { if (!e.latLng) return; marker.setPosition(e.latLng); resolveAddress(e.latLng); });
-    marker.addListener("dragend", (e) => { if (!e.latLng) return; resolveAddress(e.latLng); });
-    mapRef.current = map; markerRef.current = marker; geocoderRef.current = geocoder;
-  }, [mapLoaded, onSelect]);
-
-  useEffect(() => {
-    if (!mapRef.current || !geocoderRef.current || !value || !window.google?.maps) return;
-    geocoderRef.current.geocode({ address: value }, (results, status) => {
-      if (status === "OK" && results?.[0]) {
-        const loc = results[0].geometry?.location;
-        if (loc) { mapRef.current.panTo(loc); mapRef.current.setZoom(14); markerRef.current?.setPosition(loc); onSelect({ address: value, coordinates: { latitude: loc.lat(), longitude: loc.lng() } }); }
-      }
-    });
-  }, [value]);
-
-  if (!GOOGLE_MAPS_API_KEY) {
-    return (
-      <div className="flex h-full min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-400">
-        Add VITE_GOOGLE_MAPS_API_KEY to enable map selection.
-      </div>
-    );
-  }
-  return (
-    <div className="flex h-full flex-col gap-2">
-      <div ref={mapContainerRef} className="flex-1 w-full rounded-2xl border border-gray-200 min-h-[200px]" />
-      <p className="text-xs text-gray-400">Click the map or drag the pin to select a location.</p>
-      {mapMessage && <p className="text-xs font-medium text-[#06a63e]">{mapMessage}</p>}
-    </div>
-  );
-}
-
+// ===== Dashboard Component =====
 export default function Dashboard() {
   const { user } = useUser();
   const { signOut } = useClerk();
@@ -402,20 +586,38 @@ export default function Dashboard() {
           <p className="mt-1 text-sm text-white/75">Enter your address or street name.</p>
           <div className="mt-5 rounded-2xl bg-white/15 p-5 border border-white/10 flex-1">
             <label className="block text-xs font-bold uppercase tracking-widest text-white/80 mb-3">Search pickup location</label>
-            <input type="text" value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)}
+            <input 
+              type="text" 
+              value={locationQuery} 
+              onChange={(e) => setLocationQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleLocationSearch()}
               placeholder="Enter a location, street, or area"
-              className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-white/40 mb-3" />
-            <button type="button" onClick={handleLocationSearch}
-              className="w-full rounded-xl bg-gray-900 px-6 py-3 text-sm font-bold text-white hover:bg-black active:scale-95 transition">
+              className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-white/40 mb-3" 
+            />
+            <button 
+              type="button" 
+              onClick={handleLocationSearch}
+              className="w-full rounded-xl bg-gray-900 px-6 py-3 text-sm font-bold text-white hover:bg-black active:scale-95 transition"
+            >
               Search Location
             </button>
             {searchStatus.text && (
-              <p className={`mt-3 text-sm ${searchStatus.type === "success" ? "text-green-200" : "text-red-200"}`}>{searchStatus.text}</p>
+              <p className={`mt-3 text-sm ${searchStatus.type === "success" ? "text-green-200" : "text-red-200"}`}>
+                {searchStatus.text}
+              </p>
             )}
           </div>
-          <button type="button" onClick={() => setShowPickupModal(true)}
-            className="mt-4 w-full rounded-2xl border border-white/25 bg-white/10 py-3 text-sm font-bold text-white hover:bg-white/20 transition active:scale-95">
+          <button 
+            type="button" 
+            onClick={() => {
+              if (pickupLocation) {
+                setShowPickupModal(true);
+              } else {
+                setSearchStatus({ type: "error", text: "Please select a location on the map first." });
+              }
+            }}
+            className="mt-4 w-full rounded-2xl border border-white/25 bg-white/10 py-3 text-sm font-bold text-white hover:bg-white/20 transition active:scale-95"
+          >
             Open Full Booking Form →
           </button>
         </div>
@@ -425,20 +627,34 @@ export default function Dashboard() {
               <h3 className="text-base font-black text-gray-800">Map Location Picker</h3>
               <p className="text-xs text-gray-400 mt-0.5">Click to pin your exact pickup spot.</p>
             </div>
-            {pickupLocation && <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-[10px] font-bold text-[#06a63e] uppercase tracking-wider">Pinned</span>}
+            {pickupLocation && (
+              <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-[10px] font-bold text-[#06a63e] uppercase tracking-wider flex items-center gap-1">
+                <span className="inline-block h-2 w-2 rounded-full bg-[#06a63e]" />
+                Pinned
+              </span>
+            )}
           </div>
-          <div className="flex-1 min-h-[220px]">
-            <GoogleMapPicker value={selectedMapLocation}
+          <div className="flex-1 min-h-[320px]">
+            <LeafletMapPicker 
+              value={selectedMapLocation}
               onSelect={({ address, coordinates }) => {
-                setLocationQuery(address); setPickupLocation(address);
-                setSelectedMapLocation(address); setPickupCoordinates(coordinates);
-                setSearchStatus({ type: "success", text: "Location selected from map." });
-              }} />
+                setLocationQuery(address);
+                setPickupLocation(address);
+                setSelectedMapLocation(address);
+                setPickupCoordinates(coordinates);
+                setSearchStatus({ type: "success", text: "📍 Location selected from map." });
+              }} 
+            />
           </div>
           {pickupLocation && (
             <div className="mt-4 p-3 rounded-xl bg-[#06a63e]/5 border border-[#06a63e]/15">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Selected Address</p>
               <p className="text-xs text-gray-700 truncate font-medium">{pickupLocation}</p>
+              {pickupCoordinates && (
+                <p className="text-[10px] text-gray-400 mt-1">
+                  {pickupCoordinates.latitude.toFixed(5)}, {pickupCoordinates.longitude.toFixed(5)}
+                </p>
+              )}
             </div>
           )}
         </div>
