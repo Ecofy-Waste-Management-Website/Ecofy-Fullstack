@@ -33,8 +33,124 @@ function LeafletMapPicker({ value, onSelect }) {
   const markerRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapMessage, setMapMessage] = useState("");
+  const prevValueRef = useRef(value);
 
-  // Initialize map
+  // Reverse geocode using Nominatim
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const url = new URL('https://nominatim.openstreetmap.org/reverse');
+      url.searchParams.set('format', 'jsonv2');
+      url.searchParams.set('lat', lat);
+      url.searchParams.set('lon', lng);
+      url.searchParams.set('zoom', '18');
+      url.searchParams.set('addressdetails', '1');
+
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!response.ok) throw new Error('Geocoding failed');
+
+      const data = await response.json();
+      const address = data?.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      
+      setMapMessage(`📍 ${address}`);
+      
+      onSelect({
+        address: address,
+        coordinates: { latitude: lat, longitude: lng },
+      });
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+      const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      setMapMessage(`📍 ${fallback}`);
+      onSelect({
+        address: fallback,
+        coordinates: { latitude: lat, longitude: lng },
+      });
+    }
+  };
+
+  // Geocode address using Nominatim with multiple strategies
+  const geocodeAddress = async (address) => {
+    if (!address || !mapRef.current) return;
+
+    try {
+      let data = null;
+      
+      // Strategy 1: Search with the exact address in Balangoda area
+      let url = new URL('https://nominatim.openstreetmap.org/search');
+      url.searchParams.set('format', 'jsonv2');
+      url.searchParams.set('limit', '1');
+      url.searchParams.set('q', `${address}, Balangoda, Ratnapura, Sri Lanka`);
+      url.searchParams.set('viewbox', '80.56,6.79,80.84,6.54');
+      url.searchParams.set('bounded', '1');
+
+      let response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!response.ok) throw new Error('Geocoding failed');
+      data = await response.json();
+      
+      // Strategy 2: If no results, try with just Balangoda
+      if (!data || data.length === 0) {
+        url = new URL('https://nominatim.openstreetmap.org/search');
+        url.searchParams.set('format', 'jsonv2');
+        url.searchParams.set('limit', '1');
+        url.searchParams.set('q', `${address}, Balangoda, Sri Lanka`);
+        
+        response = await fetch(url.toString(), {
+          headers: { Accept: 'application/json' },
+        });
+        
+        if (!response.ok) throw new Error('Geocoding failed');
+        data = await response.json();
+      }
+      
+      // Strategy 3: If still no results, try without any context
+      if (!data || data.length === 0) {
+        url = new URL('https://nominatim.openstreetmap.org/search');
+        url.searchParams.set('format', 'jsonv2');
+        url.searchParams.set('limit', '1');
+        url.searchParams.set('q', address);
+        
+        response = await fetch(url.toString(), {
+          headers: { Accept: 'application/json' },
+        });
+        
+        if (!response.ok) throw new Error('Geocoding failed');
+        data = await response.json();
+      }
+      
+      if (data && data[0]) {
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        
+        if (!isNaN(lat) && !isNaN(lng)) {
+          mapRef.current.setView([lat, lng], 16);
+          markerRef.current?.setLatLng([lat, lng]);
+          
+          const fullAddress = data[0].display_name || address;
+          setMapMessage(`📍 ${fullAddress}`);
+          
+          onSelect({
+            address: fullAddress,
+            coordinates: { latitude: lat, longitude: lng },
+          });
+          return;
+        }
+      }
+      
+      // If we get here, no results found
+      setMapMessage('⚠️ Location not found. Try a more specific address or click on the map.');
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      setMapMessage('⚠️ Error finding location. Please click on the map.');
+    }
+  };
+
+  // Initialize map (runs once)
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
@@ -100,7 +216,7 @@ function LeafletMapPicker({ value, onSelect }) {
 
     // If there's an initial value, geocode it
     if (value) {
-      geocodeAddress(value);
+      setTimeout(() => geocodeAddress(value), 300);
     }
 
     return () => {
@@ -111,85 +227,14 @@ function LeafletMapPicker({ value, onSelect }) {
     };
   }, []);
 
-  // Reverse geocode using Nominatim
-  const reverseGeocode = async (lat, lng) => {
-    try {
-      const url = new URL('https://nominatim.openstreetmap.org/reverse');
-      url.searchParams.set('format', 'jsonv2');
-      url.searchParams.set('lat', lat);
-      url.searchParams.set('lon', lng);
-      url.searchParams.set('zoom', '18');
-      url.searchParams.set('addressdetails', '1');
-
-      const response = await fetch(url.toString(), {
-        headers: { Accept: 'application/json' },
-      });
-
-      if (!response.ok) throw new Error('Geocoding failed');
-
-      const data = await response.json();
-      const address = data?.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-      
-      setMapMessage(`📍 ${address}`);
-      
-      onSelect({
-        address: address,
-        coordinates: { latitude: lat, longitude: lng },
-      });
-    } catch (error) {
-      console.error('Reverse geocoding error:', error);
-      const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-      setMapMessage(`📍 ${fallback}`);
-      onSelect({
-        address: fallback,
-        coordinates: { latitude: lat, longitude: lng },
-      });
-    }
-  };
-
-  // Geocode address using Nominatim
-  const geocodeAddress = async (address) => {
-    if (!address || !mapRef.current) return;
-
-    try {
-      const url = new URL('https://nominatim.openstreetmap.org/search');
-      url.searchParams.set('format', 'jsonv2');
-      url.searchParams.set('limit', '1');
-      url.searchParams.set('q', `${address}, Balangoda, Ratnapura, Sri Lanka`);
-      url.searchParams.set('viewbox', '80.56,6.79,80.84,6.54');
-      url.searchParams.set('bounded', '1');
-
-      const response = await fetch(url.toString(), {
-        headers: { Accept: 'application/json' },
-      });
-
-      if (!response.ok) throw new Error('Geocoding failed');
-
-      const data = await response.json();
-      if (data && data[0]) {
-        const lat = parseFloat(data[0].lat);
-        const lng = parseFloat(data[0].lon);
-        
-        if (!isNaN(lat) && !isNaN(lng)) {
-          mapRef.current.setView([lat, lng], 16);
-          markerRef.current?.setLatLng([lat, lng]);
-          
-          const fullAddress = data[0].display_name || address;
-          setMapMessage(`📍 ${fullAddress}`);
-          
-          onSelect({
-            address: fullAddress,
-            coordinates: { latitude: lat, longitude: lng },
-          });
-        }
-      } else {
-        setMapMessage('⚠️ Location not found. Try clicking on the map.');
-      }
-    } catch (error) {
-      console.error('Geocoding error:', error);
-      setMapMessage('⚠️ Error finding location. Please click on the map.');
-    }
-  };
+  // Handle value changes from parent (when search is performed)
+  useEffect(() => {
+    if (!mapRef.current || !value) return;
+    if (prevValueRef.current === value) return;
+    
+    prevValueRef.current = value;
+    setTimeout(() => geocodeAddress(value), 300);
+  }, [value]);
 
   // Use current location
   const handleUseMyLocation = () => {
@@ -389,7 +434,9 @@ export default function Dashboard() {
   const handleLocationSearch = () => {
     const v = locationQuery.trim();
     if (!v) { setSearchStatus({ type: "error", text: "Please enter a location." }); return; }
-    setPickupLocation(v); setSelectedMapLocation(v); setPickupCoordinates(null);
+    setPickupLocation(v);
+    setSelectedMapLocation(v);
+    setPickupCoordinates(null);
     setSearchStatus({ type: "success", text: `Showing "${v}" on the map.` });
   };
 
