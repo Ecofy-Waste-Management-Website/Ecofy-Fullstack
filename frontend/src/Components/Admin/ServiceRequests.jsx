@@ -133,7 +133,7 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-4xl overflow-hidden rounded-3xl bg-white border border-[#112A0F]/20 shadow-2xl" onClick={e => e.stopPropagation()}>
-        
+
         <div className="flex items-center justify-between border-b border-[#397234]/10 bg-[#D6E9CA]/50 px-6 py-4">
           <div className="flex items-center gap-3">
             <span className="text-lg font-black text-[#244c21] tracking-tight">{req.requestId}</span>
@@ -417,7 +417,7 @@ export default function ServiceRequests() {
                     </td>
                   <td className="px-8 py-5">
   <div className="flex flex-col">
-    
+
     <span className="text-xs font-bold text-[#244c21]">
       {new Date(r.submittedAt).toLocaleDateString("en-GB", {
         day: "2-digit",
@@ -436,8 +436,8 @@ export default function ServiceRequests() {
   </div>
 </td>
                     <td className="px-8 py-5 text-right">
-                      <button 
-                        className="rounded-xl border border-[#112A0F]/20 bg-[#397239] px-4 py-2 text-[10px] font-bold text-white uppercase tracking-widest transition hover:bg-[#244c21] shadow-md active:scale-95" 
+                      <button
+                        className="rounded-xl border border-[#112A0F]/20 bg-[#397239] px-4 py-2 text-[10px] font-bold text-white uppercase tracking-widest transition hover:bg-[#244c21] shadow-md active:scale-95"
                         onClick={() => setSelected(r.id)}
                       >
                         Details
