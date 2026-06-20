@@ -26,11 +26,11 @@ const AdminDashboard = () => {
       // In a real application, obtain the actual JWT from your Auth Context / Storage
       // Example: const token = await getToken() OR localStorage.getItem('token');
       const token = localStorage.getItem('token') || 'your-admin-jwt-token';
-      
+
       const response = await createStaffAccount(formData, token);
-      
+
       setStatus({ type: 'success', message: response.message || 'Staff created securely.' });
-      
+
       // Clear form on success
       setFormData({
         firstName: '',
@@ -47,7 +47,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center pt-12 px-6">
-      
+
       {/* Dashboard Header */}
       <div className="max-w-lg w-full mb-8">
         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Admin Dashboard</h1>
@@ -57,7 +57,7 @@ const AdminDashboard = () => {
       {/* Staff Creation Form */}
       <div className="max-w-lg w-full bg-white p-8 rounded-xl shadow-lg border border-gray-100">
         <h2 className="text-xl font-bold text-gray-800 mb-6">Create New Staff Account</h2>
-        
+
         {status.message && (
           <div className={`p-4 mb-6 rounded-md text-sm font-medium ${
             status.type === 'success' ? 'bg-green-50 text-[#397239]' : 'bg-red-50 text-red-700'
