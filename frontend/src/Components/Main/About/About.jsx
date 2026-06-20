@@ -78,11 +78,11 @@ function MilestoneCard({ item, index }) {
 
   useEffect(() => {
     const el = ref.current;
-    
+
     // Animate the container
-    gsap.fromTo(el, 
+    gsap.fromTo(el,
       { opacity: 0, y: 30, scale: 0.95 },
-      { 
+      {
         opacity: 1, y: 0, scale: 1,
         duration: 0.8,
         ease: "power2.out",
@@ -98,7 +98,7 @@ function MilestoneCard({ item, index }) {
   return (
     <div
       ref={ref}
-      className={`flex items-start gap-4 
+      className={`flex items-start gap-4
         ${isRight ? 'flex-row' : 'flex-row-reverse text-right'}`}
     >
       <div className="flex-shrink-0 w-12 h-12 rounded-full border-2 border-[#397234]
@@ -137,13 +137,13 @@ export default function About() {
   useEffect(() => {
     const cards = journeyContainerRef.current.querySelectorAll('.desktop-journey-card');
     cards.forEach((card, i) => {
-      gsap.fromTo(card, 
-        { 
-          opacity: 0, 
+      gsap.fromTo(card,
+        {
+          opacity: 0,
           x: card.classList.contains('left-side') ? 50 : -50,
-          scale: 0.8 
+          scale: 0.8
         },
-        { 
+        {
           opacity: 1, x: 0, scale: 1,
           duration: 1,
           ease: "back.out(1.2)",

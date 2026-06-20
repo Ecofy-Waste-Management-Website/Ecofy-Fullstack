@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export const fetchBlogPosts = async (filters = {}) => {
   try {
     const queryParams = new URLSearchParams();
-    
+
     if (filters.search) queryParams.append('search', filters.search);
     if (filters.category) queryParams.append('category', filters.category);
     if (filters.status) queryParams.append('status', filters.status);
@@ -119,23 +119,23 @@ export const deleteBlogPost = async (id) => {
 // HELPER: Create FormData from blog object
 export const createBlogFormData = (blog, imageFile = null) => {
   const formData = new FormData();
-  
+
   formData.append('title', blog.title || '');
   formData.append('category', blog.category || 'Recycling Tips');
   formData.append('author', blog.author || 'Admin');
   formData.append('excerpt', blog.excerpt || '');
   formData.append('content', blog.content || '');
   formData.append('status', blog.status || 'Draft');
-  
+
   if (blog.tags) {
     const tagsArray = Array.isArray(blog.tags) ? blog.tags : [];
     formData.append('tags', JSON.stringify(tagsArray));
   }
-  
+
   // Add image file if provided
   if (imageFile) {
     formData.append('featuredImage', imageFile);
   }
-  
+
   return formData;
 };

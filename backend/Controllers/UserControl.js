@@ -13,12 +13,12 @@ const createUser = async (req, res) => {
   try {
     const { clerkId , role, firstName, lastName, email } = req.body;
 
-    //check if required fields are updated ! 
+    //check if required fields are updated
     if (!firstName || !email) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    //check if the user already exits 
+    //check if the user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });

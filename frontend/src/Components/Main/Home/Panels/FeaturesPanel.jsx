@@ -23,59 +23,104 @@ const FeaturesPanel = () => {
     const cards = cardsRef.current;
     
     const ctx = gsap.context(() => {
-      // Cinematic entrance reveal for the entire section content
+      // Cinematic entrance reveal for the entire section content (improved to scrub: 1 for buttery smoothness)
       gsap.fromTo(contentRef.current, 
-        { y: 150, opacity: 0 }, 
+        { y: 100, opacity: 0 }, 
         { 
           y: 0, 
           opacity: 1, 
           ease: "power2.out",
           scrollTrigger: {
             trigger: containerRef.current,
-            start: "top 85%", // Start animating when the top of the section hits 85% of viewport
-            end: "top 30%",   // Finish animating when it reaches 30%
-            scrub: 2,         // Cinematic smooth scrubbing
+            start: "top 90%", // Start animating when the top of the section hits 90% of viewport
+            end: "top 20%",   // Finish animating when it reaches 20%
+            scrub: 1,         // Buttery smooth scrubbing
           }
         }
       );
 
+      // Initialize the cards using GSAP to prevent React inline-style conflicts
+      cards.forEach((card, index) => {
+        if (!card) return;
+        if (index === 0) {
+          gsap.set(card, {
+            y: 0,
+            yPercent: 0,
+            scale: 1,
+            opacity: 1,
+            filter: "blur(0px)",
+          });
+        } else {
+          gsap.set(card, {
+            y: 0,
+            yPercent: 120, // Start off-screen
+            scale: 0.9,
+            opacity: 0,
+            filter: "blur(6px)",
+          });
+        }
+      });
+
       // Pin the outer container while cards stack
-      // anticipatePin: 1 eliminates any pinning layout shift or initial jumpiness
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
           pin: true,
           pinSpacing: true,
           start: "top top",
-          end: () => `+=${window.innerHeight * 2}`, // Perfectly proportioned scroll distance
-          scrub: 2, // Smooth, cinematic momentum damping
+          end: () => `+=${window.innerHeight * 1.8}`, // Perfectly proportioned scroll distance
+          scrub: 1, // Smooth, cinematic momentum damping (changed from 2 to 1 for high responsiveness)
           anticipatePin: 1, 
           invalidateOnRefresh: true,
         }
       });
 
-      // Cinematic stacking animation: subtle translate, scale, and progressive blur transition
+      // Cinematic stacking animation: progressive scale down and fade out of previous cards as new cards arrive
       cards.forEach((card, index) => {
-        if (index === 0) return; // First card is already positioned in center
+        if (index === 0) return; // First card is already positioned
 
+        const label = `step_${index}`;
+        // Add a slight scroll pause between stacks for organic feel
+        tl.add(label, index > 1 ? `+=0.25` : `+=0.1`);
+
+        // 1. Animate incoming card into view
         tl.fromTo(card, 
           { 
-            yPercent: 120, // Start slightly below off-screen
-            scale: 0.9,
+            yPercent: 120,
+            scale: 0.92,
             opacity: 0,
-            filter: "blur(10px)", // Cinematic blur entry
+            filter: "blur(6px)",
           }, 
           { 
             yPercent: 0,
-            y: index * 24, // Subtle 24px vertical stack spacing
-            scale: 1 - (cards.length - 1 - index) * 0.015,
+            y: index * 20, // Subtle vertical stack spacing
+            scale: 1,
             opacity: 1,
-            filter: "blur(0px)", // Clears up beautifully as it docks
+            filter: "blur(0px)",
             duration: 1,
             ease: "power2.out"
           },
-          index === 1 ? 0.1 : `+=${index * 0.15}`
+          label
         );
+
+        // 2. Concurrently animate previous cards to scale down, shift up, and dim for cinematic perspective depth
+        for (let prevIndex = 0; prevIndex < index; prevIndex++) {
+          const prevCard = cards[prevIndex];
+          if (!prevCard) continue;
+
+          const depth = index - prevIndex;
+          tl.to(prevCard,
+            {
+              scale: 1 - depth * 0.03, // Progressive shrink
+              y: prevIndex * 20 - depth * 10, // Dynamic vertical stack shift
+              opacity: 1 - depth * 0.15, // Progressive dimming for ambient contrast
+              filter: `blur(${depth * 0.5}px)`, // Super lightweight progressive blur for premium depth of field
+              duration: 1,
+              ease: "power2.out"
+            },
+            label
+          );
+        }
       });
     }, containerRef);
 
@@ -86,11 +131,6 @@ const FeaturesPanel = () => {
     <div 
       ref={containerRef} 
       className="w-full h-screen flex flex-col items-center justify-center px-6 lg:px-16 bg-[#D6E9CA] relative overflow-hidden select-none"
-      style={{
-        willChange: 'transform',
-        transform: 'translateZ(0)',
-        backfaceVisibility: 'hidden'
-      }}
     >
       <div ref={contentRef} className="w-full flex flex-col items-center">
         <div className="max-w-4xl w-full text-center mb-8 z-10">
@@ -100,14 +140,8 @@ const FeaturesPanel = () => {
           </h2>
         </div>
 
-        {/* The Stacked Cards Frame Area - Using hardware acceleration */}
-        <div 
-          className="relative w-full max-w-3xl h-[400px] md:h-[260px] mx-auto z-10"
-          style={{
-            willChange: 'transform',
-            transform: 'translateZ(0)'
-          }}
-        >
+        {/* The Stacked Cards Frame Area */}
+        <div className="relative w-full max-w-3xl h-[400px] md:h-[260px] mx-auto z-10">
           {features.map((feature, i) => (
             <div 
               key={i} 
@@ -115,8 +149,6 @@ const FeaturesPanel = () => {
               className={`absolute inset-x-0 mx-auto w-full rounded-[2.5rem] p-8 md:p-10 border border-[#244c21]/10 shadow-[0_20px_50px_rgba(36,76,33,0.1)] flex flex-col md:flex-row items-center text-left ${feature.color}`}
               style={{ 
                 zIndex: 10 + i,
-                // Card 0 starts perfectly centered with correct default scale, others start hidden below
-                transform: i === 0 ? `translateY(0px) scale(${1 - (features.length - 1) * 0.015})` : 'translateY(100vh)',
                 willChange: 'transform, opacity, filter',
                 backfaceVisibility: 'hidden'
               }}

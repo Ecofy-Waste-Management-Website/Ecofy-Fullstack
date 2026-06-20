@@ -83,7 +83,6 @@ function PaymentHistory() {
 >
   ← Back
 </button>
-        
         {/* Header Section */}
         <div style={{
           marginBottom: '40px',
@@ -285,7 +284,7 @@ function PaymentHistory() {
             {payments.map((item, idx) => {
               const statusStyle = STATUS_STYLES[item.status] || STATUS_STYLES.Pending;
               const isHovered = hoveredId === item._id;
-              
+
               return (
                 <div
                   key={item._id}
@@ -297,8 +296,8 @@ function PaymentHistory() {
                     padding: '20px 24px',
                     transition: 'all 0.25s ease',
                     transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-                    boxShadow: isHovered 
-                      ? '0 12px 30px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.02)' 
+                    boxShadow: isHovered
+                      ? '0 12px 30px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.02)'
                       : '0 2px 8px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.04)',
                     border: '1px solid rgba(0,0,0,0.05)',
                     cursor: 'pointer'
@@ -349,7 +348,7 @@ function PaymentHistory() {
                           {statusStyle.label}
                         </span>
                       </div>
-                      
+
                       <div style={{
                         display: 'flex',
                         flexWrap: 'wrap',
