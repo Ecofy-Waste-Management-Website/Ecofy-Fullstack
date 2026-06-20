@@ -21,7 +21,7 @@ export default function Navbar() {
       // Bypassing navbar container, check the background of the element directly behind it.
       // Top-6 translates to 24px, so center of navbar is around 56px to 64px from the top.
       const checkY = 60;
-      
+
       // Select all potential background section/container elements
       const elements = document.querySelectorAll('section, main > div, header + main > div, #root > div');
       let currentBgIsLight = false;
@@ -31,11 +31,11 @@ export default function Navbar() {
         // If this element covers the vertical position of the navbar
         if (rect.top <= checkY && rect.bottom >= checkY) {
           const classes = el.className || '';
-          
+
           // Fast check for known explicit tailwind/css background classes
           if (
-            classes.includes('bg-[#D6E9CA]') || 
-            classes.includes('bg-white') || 
+            classes.includes('bg-[#D6E9CA]') ||
+            classes.includes('bg-white') ||
             classes.includes('bg-gray-') ||
             classes.includes('bg-slate-100')
           ) {
@@ -70,7 +70,7 @@ export default function Navbar() {
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll);
-    
+
     // Also re-run after a small delay in case fonts or dynamic layouts finish rendering
     const timer = setTimeout(handleScroll, 100);
 
@@ -82,8 +82,8 @@ export default function Navbar() {
   }, []);
 
   // Theme styles based on dynamic background detection - with transition support
-  const textPrimary = isLightBg 
-    ? 'text-[#244c21] hover:text-[#397234]' 
+  const textPrimary = isLightBg
+    ? 'text-[#244c21] hover:text-[#397234]'
     : 'text-white hover:text-[#66c45e]';
 
   const linkClass = isLightBg
@@ -97,11 +97,11 @@ export default function Navbar() {
   return (
     <header ref={navRef} className="fixed top-6 left-0 right-0 z-50 w-full px-4 sm:px-6 lg:px-8">
       <nav className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6 rounded-full border border-white/20 bg-white/10 backdrop-blur-[50px] shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-          
+
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <span 
-              className={`text-xl font-bold items-center tracking-tight cursor-pointer transition-colors duration-500 ease-in-out ${textPrimary}`} 
+            <span
+              className={`text-xl font-bold items-center tracking-tight cursor-pointer transition-colors duration-500 ease-in-out ${textPrimary}`}
               onClick={() => window.location.href='/' }
             >
               Ecofy
