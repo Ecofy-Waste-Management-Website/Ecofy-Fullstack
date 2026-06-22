@@ -118,7 +118,7 @@ export default function RequestPickupModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl overflow-hidden rounded-4xl border border-gray-200 bg-[#f4f9f4] shadow-2xl"
+        className="relative flex w-full max-w-2xl flex-col max-h-[90vh] overflow-hidden rounded-4xl border border-gray-200 bg-[#f4f9f4] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-linear-to-r from-[#06a63e] to-[#047a2e] px-7 py-5 text-white">
@@ -138,7 +138,7 @@ export default function RequestPickupModal({
           </div>
         </div>
 
-        <div className="p-7">
+        <div className="p-7 overflow-y-auto no-scrollbar">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between gap-3">

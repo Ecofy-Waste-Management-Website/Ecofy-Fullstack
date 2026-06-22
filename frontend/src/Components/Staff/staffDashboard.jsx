@@ -2084,10 +2084,15 @@ export default function StaffDashboard() {
                 <div className="flex flex-col gap-3">
                   <button
                     type="button"
-                    onClick={() => setShowNavigationModal(false)}
+                    onClick={() => {
+                      if (navigationOrder?.location) {
+                        const query = encodeURIComponent(navigationOrder.location);
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                      }
+                    }}
                     className="rounded-2xl bg-[#397239] px-4 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#244c21]"
                   >
-                    Close route view
+                    Open On Map
                   </button>
                   <button
                     type="button"
