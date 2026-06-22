@@ -19,6 +19,7 @@ export default function RequestPickupModal({
     waste_category: "",
     location,
     scheduled_date: "",
+    customer_phone: user?.phoneNumbers?.[0]?.phoneNumber || "",
     notes: "",
   });
 
@@ -27,6 +28,7 @@ export default function RequestPickupModal({
     waste_category: "",
     location: "",
     scheduled_date: "",
+    customer_phone: "",
     notes: "",
   });
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +39,7 @@ export default function RequestPickupModal({
       setForm(createEmptyForm(initialLocation));
       setStatus({ type: "", text: "" });
     }
-  }, [isOpen, initialLocation]);
+  }, [isOpen, initialLocation, user]);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -52,7 +54,7 @@ export default function RequestPickupModal({
     e.preventDefault();
 
     // Basic validation
-    if (!form.service_type || !form.waste_category || !form.location || !form.scheduled_date) {
+    if (!form.service_type || !form.waste_category || !form.location || !form.scheduled_date || !form.customer_phone) {
       setStatus({ type: "error", text: "Please fill in all required fields." });
       return;
     }
@@ -75,7 +77,6 @@ export default function RequestPickupModal({
           user?.username ||
           "Ecofy Customer",
         customer_email: user?.primaryEmailAddress?.emailAddress || "",
-        customer_phone: user?.phoneNumbers?.[0]?.phoneNumber || "",
         clerkId: user?.id,
         pickupCoordinates: initialCoordinates,
         ...form,
@@ -196,18 +197,33 @@ export default function RequestPickupModal({
                 />
               </div>
 
-              <div className="mt-4">
-                <label className="mb-1 block text-sm font-bold text-gray-700">
-                  Preferred Date <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  name="scheduled_date"
-                  value={form.scheduled_date}
-                  onChange={handleChange}
-                  min={minDate}
-                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
-                />
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-gray-700">
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="customer_phone"
+                    value={form.customer_phone}
+                    onChange={handleChange}
+                    placeholder="e.g. 077 123 4567"
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-gray-700">
+                    Preferred Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="scheduled_date"
+                    value={form.scheduled_date}
+                    onChange={handleChange}
+                    min={minDate}
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
+                  />
+                </div>
               </div>
             </div>
 
