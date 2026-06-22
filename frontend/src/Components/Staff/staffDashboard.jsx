@@ -1983,10 +1983,6 @@ export default function StaffDashboard() {
                     <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Date</dt>
                     <dd className="mt-1 font-bold text-[#244c21]">{formatOrderDate(selectedPendingOrder.scheduled_date)}</dd>
                   </div>
-                  <div>
-                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">PIN</dt>
-                    <dd className="mt-1 font-black text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.pickupPin)}</dd>
-                  </div>
                 </dl>
               </section>
 
