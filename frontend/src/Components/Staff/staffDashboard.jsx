@@ -740,6 +740,9 @@ export default function StaffDashboard() {
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsMessage, setSettingsMessage] = useState(null);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ password: '', confirmPassword: '' });
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const staffName = displayName;
   const staffInitials = staffName.split(" ").map(n => n[0] || "").join("").toUpperCase();
@@ -762,6 +765,11 @@ export default function StaffDashboard() {
           const data = await response.json();
           setRole(data.user.role);
           const profile = data.user;
+          const mustChange = profile.mustChangePassword === true;
+          setMustChangePassword(mustChange);
+          if (mustChange) {
+            setActiveTab('settings');
+          }
           const nextFirstName = profile.firstName || user.firstName || '';
           const nextLastName = profile.lastName || user.lastName || '';
           setDisplayName(`${nextFirstName} ${nextLastName}`.trim() || 'Staff Member');
@@ -933,6 +941,44 @@ export default function StaffDashboard() {
       setSettingsMessage({ type: 'error', text: error.message });
     } finally {
       setSavingSettings(false);
+    }
+  };
+
+  const changePassword = async () => {
+    if (!user?.id || changingPassword) return;
+    if (passwordForm.password !== passwordForm.confirmPassword) {
+      setSettingsMessage({ type: 'error', text: 'Passwords do not match.' });
+      return;
+    }
+    if (passwordForm.password.length < 8) {
+      setSettingsMessage({ type: 'error', text: 'Password must be at least 8 characters long.' });
+      return;
+    }
+
+    setChangingPassword(true);
+    setSettingsMessage(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${user.id}/password`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(passwordForm),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update password');
+      }
+
+      setMustChangePassword(false);
+      setSettingsMessage({ type: 'success', text: 'Password updated successfully!' });
+      showNotification('Password updated successfully!');
+      setPasswordForm({ password: '', confirmPassword: '' });
+    } catch (error) {
+      setSettingsMessage({ type: 'error', text: error.message });
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -1677,152 +1723,6 @@ export default function StaffDashboard() {
     </div>
   );
 
-  const SettingsPanel = () => (
-    <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
-      <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-5 shadow-sm">
-        <div className="mb-5">
-          <h3 className="text-xl font-black text-[#244c21]">Settings</h3>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Update your name, availability, and bank details</p>
-        </div>
-
-        {settingsMessage && (
-          <div className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-bold ${settingsMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
-            {settingsMessage.text}
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <label className="flex flex-col gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">First Name</span>
-            <input
-              value={settingsForm.firstName}
-              onChange={(e) => handleSettingsChange('firstName', e.target.value)}
-              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
-              placeholder="First name"
-            />
-          </label>
-          <label className="flex flex-col gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Last Name</span>
-            <input
-              value={settingsForm.lastName}
-              onChange={(e) => handleSettingsChange('lastName', e.target.value)}
-              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
-              placeholder="Last name"
-            />
-          </label>
-        </div>
-
-        <div className="mt-4">
-          <label className="flex flex-col gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Availability Status</span>
-            <select
-              value={settingsForm.availabilityStatus}
-              onChange={(e) => handleSettingsChange('availabilityStatus', e.target.value)}
-              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
-            >
-              <option value="Available">Available</option>
-              <option value="Busy">Busy</option>
-              <option value="Off Duty">Off Duty</option>
-            </select>
-          </label>
-        </div>
-
-        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <label className="flex flex-col gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Bank Name</span>
-            <input
-              value={settingsForm.bankDetails.bankName}
-              onChange={(e) => handleBankDetailChange('bankName', e.target.value)}
-              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
-              placeholder="Bank name"
-            />
-          </label>
-          <label className="flex flex-col gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Account Name</span>
-            <input
-              value={settingsForm.bankDetails.accountName}
-              onChange={(e) => handleBankDetailChange('accountName', e.target.value)}
-              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
-              placeholder="Account name"
-            />
-          </label>
-          <label className="flex flex-col gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Account Number</span>
-            <input
-              value={settingsForm.bankDetails.accountNumber}
-              onChange={(e) => handleBankDetailChange('accountNumber', e.target.value)}
-              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
-              placeholder="Account number"
-            />
-          </label>
-          <label className="flex flex-col gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Branch</span>
-            <input
-              value={settingsForm.bankDetails.branch}
-              onChange={(e) => handleBankDetailChange('branch', e.target.value)}
-              className="rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
-              placeholder="Branch"
-            />
-          </label>
-        </div>
-
-        <div className="mt-5 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setSettingsForm((prev) => ({ ...prev }));
-              setSettingsMessage(null);
-            }}
-            className="rounded-2xl border border-[#397234]/20 bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-[#244c21] transition-all hover:bg-[#112A0F]/5"
-          >
-            Clear Message
-          </button>
-          <button
-            type="button"
-            onClick={saveSettings}
-            disabled={savingSettings}
-            className="rounded-2xl bg-[#397239] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {savingSettings ? 'Saving...' : 'Update Settings'}
-          </button>
-        </div>
-      </div>
-
-      <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/20 p-5 shadow-sm">
-        <h3 className="text-xl font-black text-[#244c21]">Preview</h3>
-        <p className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">How your profile will appear to the team</p>
-
-        <div className="mt-5 rounded-3xl border border-[#397234]/10 bg-white/70 p-5 shadow-inner">
-          <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-full bg-[#397239] text-sm font-black text-white shadow-inner">
-              {staffInitials}
-            </div>
-            <div>
-              <p className="text-sm font-black text-[#244c21]">{staffName}</p>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#397239]/40">{settingsForm.availabilityStatus}</p>
-            </div>
-          </div>
-
-          <div className="mt-5 space-y-3 text-sm text-[#244c21]">
-            <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#397239]/50">Bank</p>
-              <p className="mt-1 font-bold">{settingsForm.bankDetails.bankName || 'No bank added'}</p>
-            </div>
-            <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#397239]/50">Account</p>
-              <p className="mt-1 font-bold">{settingsForm.bankDetails.accountName || 'No account name added'}</p>
-              <p className="text-xs text-[#397239]/70">{settingsForm.bankDetails.accountNumber || 'No account number added'}</p>
-            </div>
-            <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#397239]/50">Branch</p>
-              <p className="mt-1 font-bold">{settingsForm.bankDetails.branch || 'No branch added'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="h-screen w-screen font-sans text-[#244c21] bg-[#f4f9f4] p-4 lg:p-3 overflow-hidden">
       <div className="flex h-full w-full gap-3">
@@ -1838,12 +1738,16 @@ export default function StaffDashboard() {
             {menuItems.map((item) => (
               <button
                 key={item.key}
-                onClick={() => setActiveTab(item.key)}
+                disabled={mustChangePassword && item.key !== 'settings'}
+                onClick={() => {
+                  if (mustChangePassword && item.key !== 'settings') return;
+                  setActiveTab(item.key);
+                }}
                 className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${
                   activeTab === item.key
                     ? "bg-[#397239] text-white shadow-lg shadow-black/20"
                     : "text-white/60 hover:bg-white/5 hover:text-white"
-                }`}
+                } ${mustChangePassword && item.key !== 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center gap-3">
                   {item.icon}
@@ -1926,8 +1830,13 @@ export default function StaffDashboard() {
                         settingsForm={settingsForm}
                         settingsMessage={settingsMessage}
                         savingSettings={savingSettings}
+                        mustChangePassword={mustChangePassword}
+                        passwordForm={passwordForm}
+                        changingPassword={changingPassword}
                         handleSettingsChange={handleSettingsChange}
                         handleBankDetailChange={handleBankDetailChange}
+                        handlePasswordFormChange={(field, value) => setPasswordForm(prev => ({...prev, [field]: value}))}
+                        changePassword={changePassword}
                         saveSettings={saveSettings}
                         onClearMessage={() => setSettingsMessage(null)}
                       />
@@ -1989,7 +1898,7 @@ export default function StaffDashboard() {
             </div>
             <nav className="flex flex-col gap-1">
               {menuItems.map((item) => (
-                <button key={item.key} onClick={() => { setActiveTab(item.key); setIsMobileMenuOpen(false); }} className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${activeTab === item.key ? "bg-[#397239] text-white shadow-lg" : "hover:bg-white/10"}`}>
+                <button key={item.key} disabled={mustChangePassword && item.key !== 'settings'} onClick={() => { if (mustChangePassword && item.key !== 'settings') return; setActiveTab(item.key); setIsMobileMenuOpen(false); }} className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${activeTab === item.key ? "bg-[#397239] text-white shadow-lg" : "hover:bg-white/10"} ${mustChangePassword && item.key !== 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   <div className="flex items-center gap-3">{item.icon} {item.label}</div>
                   {item.count > 0 && <span className="text-[10px] opacity-60">{item.count}</span>}
                 </button>
