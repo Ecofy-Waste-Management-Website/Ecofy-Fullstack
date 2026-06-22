@@ -408,7 +408,6 @@ export default function ServiceRequests() {
   </div>
 </td>
                     <td className="px-8 py-5 text-right">
-<<<<<<< HEAD
                       <Button
                         variant="primary"
                         size="sm"
