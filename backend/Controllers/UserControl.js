@@ -235,6 +235,58 @@ const updateUserSettings = async (req, res) => {
   }
 };
 
+const changeStaffPassword = async (req, res) => {
+  try {
+    const { clerkId } = req.params;
+    const { password, confirmPassword } = req.body;
+
+    if (!password || !confirmPassword) {
+      return res.status(400).json({ message: "Password and confirmation are required" });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters long" });
+    }
+
+    const user =
+      (await User.findOne({ clerkId })) ||
+      (await LegacyUser.findOne({ clerkId }));
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role !== "Staff") {
+      return res.status(403).json({ message: "Only staff members can use this password update endpoint" });
+    }
+
+    await clerkClient.users.updateUser(clerkId, {
+      password,
+      publicMetadata: {
+        role: "Staff",
+        mustChangePassword: false,
+      },
+    });
+
+    user.mustChangePassword = false;
+    user.passwordChangedAt = new Date();
+    await user.save();
+
+    return res.status(200).json({
+      message: "Password changed successfully",
+      mustChangePassword: false,
+      passwordChangedAt: user.passwordChangedAt,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: err?.message || "Internal server Error" });
+  }
+};
+
 // // Update profile (name, email, preferences) 
 // const updateUser = async (req, res) => {
 //   try {
@@ -298,4 +350,4 @@ const updateUserSettings = async (req, res) => {
 //     res.status(500).json({ message: "Internal server Error" });
 //   }
 // };
-module.exports = { createUser, getAllUsers, getUserByClerkId, getUserOrderHistory, updateUserSettings };
+module.exports = { createUser, getAllUsers, getUserByClerkId, getUserOrderHistory, updateUserSettings, changeStaffPassword };

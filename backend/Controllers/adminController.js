@@ -27,6 +27,8 @@ const mapStaffForResponse = (staffUser) => ({
   role: staffUser.role,
   status: staffUser.status,
   displayStatus: toDisplayStatus(staffUser.status),
+  mustChangePassword: Boolean(staffUser.mustChangePassword),
+  passwordChangedAt: staffUser.passwordChangedAt,
   createdAt: staffUser.createdAt,
   updatedAt: staffUser.updatedAt,
 });
@@ -77,7 +79,7 @@ const createStaffAccount = async (req, res) => {
       password,
       firstName,
       lastName: lastName || undefined,
-      publicMetadata: { role: 'Staff' },
+      publicMetadata: { role: 'Staff', mustChangePassword: true },
     });
 
     createdClerkUserId = clerkUser.id;
@@ -90,7 +92,8 @@ const createStaffAccount = async (req, res) => {
       lastName: lastName || '',
       email: normalizedEmail,
       role: 'Staff',
-      status: 'Activate'
+      status: 'Activate',
+      mustChangePassword: true,
     });
 
     console.log('Staff account created successfully', {
@@ -111,6 +114,7 @@ const createStaffAccount = async (req, res) => {
         email: staffUser.email,
         role: staffUser.role,
         status: staffUser.status,
+        mustChangePassword: staffUser.mustChangePassword,
       }
     });
   } catch (error) {
@@ -144,7 +148,7 @@ const getAllStaffAccounts = async (_req, res) => {
   try {
     const staffUsers = await User.find({ role: 'Staff' })
       .sort({ createdAt: -1 })
-      .select('clerkId firstName username lastName email role status createdAt updatedAt');
+      .select('clerkId firstName username lastName email role status mustChangePassword passwordChangedAt createdAt updatedAt');
 
     console.log('Staff accounts fetched successfully', { count: staffUsers.length });
 

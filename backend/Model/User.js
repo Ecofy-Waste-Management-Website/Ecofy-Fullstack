@@ -38,6 +38,13 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
     },
+    mustChangePassword: {
+      type: Boolean,
+      default: false,
+    },
+    passwordChangedAt: {
+      type: Date,
+    },
     preferences: {
       emailNotification: { type: Boolean, default: true },
       theme: { type: String, enum: ['light', 'dark'], default: 'light' },
