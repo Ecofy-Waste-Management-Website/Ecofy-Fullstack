@@ -18,7 +18,7 @@ const SettingsPanel = ({
     <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-5 shadow-sm">
       <div className="mb-5">
         <h3 className="text-xl font-black text-[#244c21]">Settings</h3>
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Update your name, availability, and bank details</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Update details</p>
       </div>
 
       {mustChangePassword && (
@@ -172,7 +172,7 @@ const SettingsPanel = ({
 
     <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/20 p-5 shadow-sm">
       <h3 className="text-xl font-black text-[#244c21]">Preview</h3>
-      <p className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">How your profile will appear to the team</p>
+      <p className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50"> </p>
 
       <div className="mt-5 rounded-3xl border border-[#397234]/10 bg-white/70 p-5 shadow-inner">
         <div className="flex items-center gap-3">

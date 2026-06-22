@@ -1983,10 +1983,6 @@ export default function StaffDashboard() {
                     <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Date</dt>
                     <dd className="mt-1 font-bold text-[#244c21]">{formatOrderDate(selectedPendingOrder.scheduled_date)}</dd>
                   </div>
-                  <div>
-                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">PIN</dt>
-                    <dd className="mt-1 font-black text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.pickupPin)}</dd>
-                  </div>
                 </dl>
               </section>
 
@@ -2088,10 +2084,15 @@ export default function StaffDashboard() {
                 <div className="flex flex-col gap-3">
                   <button
                     type="button"
-                    onClick={() => setShowNavigationModal(false)}
+                    onClick={() => {
+                      if (navigationOrder?.location) {
+                        const query = encodeURIComponent(navigationOrder.location);
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                      }
+                    }}
                     className="rounded-2xl bg-[#397239] px-4 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#244c21]"
                   >
-                    Close route view
+                    Open On Map
                   </button>
                   <button
                     type="button"
