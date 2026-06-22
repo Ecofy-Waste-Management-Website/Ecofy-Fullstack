@@ -4,9 +4,14 @@ const SettingsPanel = ({
   settingsForm,
   settingsMessage,
   savingSettings,
+  mustChangePassword,
+  passwordForm,
+  changingPassword,
   handleSettingsChange,
   handleBankDetailChange,
+  handlePasswordFormChange,
   saveSettings,
+  changePassword,
   onClearMessage,
 }) => (
   <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
@@ -16,11 +21,60 @@ const SettingsPanel = ({
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Update your name, availability, and bank details</p>
       </div>
 
+      {mustChangePassword && (
+        <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+          Your administrator created this account with a temporary password. Change it before using the staff dashboard.
+        </div>
+      )}
+
       {settingsMessage && (
         <div className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-bold ${settingsMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
           {settingsMessage.text}
         </div>
       )}
+
+      <div className="mb-6 rounded-3xl border border-[#397234]/15 bg-white/70 p-4">
+        <div className="mb-4">
+          <h4 className="text-sm font-black uppercase tracking-widest text-[#244c21]">Password</h4>
+          <p className="mt-1 text-xs font-semibold text-[#397239]/55">Set a private password for this staff account</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">New Password</span>
+            <input
+              type="password"
+              value={passwordForm.password}
+              onChange={(e) => handlePasswordFormChange('password', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/90 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Minimum 8 characters"
+              autoComplete="new-password"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#397239]/60">Confirm Password</span>
+            <input
+              type="password"
+              value={passwordForm.confirmPassword}
+              onChange={(e) => handlePasswordFormChange('confirmPassword', e.target.value)}
+              className="rounded-2xl border border-[#397234]/15 bg-white/90 px-4 py-3 text-sm font-medium text-[#244c21] outline-none focus:border-[#397239]"
+              placeholder="Repeat new password"
+              autoComplete="new-password"
+            />
+          </label>
+        </div>
+
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            onClick={changePassword}
+            disabled={changingPassword}
+            className="rounded-2xl bg-[#397239] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {changingPassword ? 'Updating...' : 'Change Password'}
+          </button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <label className="flex flex-col gap-2">

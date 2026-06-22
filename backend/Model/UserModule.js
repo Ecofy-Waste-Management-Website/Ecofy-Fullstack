@@ -33,6 +33,13 @@ const userSchema = new Schema(
             unique:true,
             index: true, 
         },
+        mustChangePassword: {
+            type: Boolean,
+            default: false,
+        },
+        passwordChangedAt: {
+            type: Date,
+        },
 
         preferences:{
             emailNotification: { type: Boolean, default: true },
