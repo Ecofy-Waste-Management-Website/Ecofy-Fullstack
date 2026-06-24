@@ -53,10 +53,15 @@ const TYPE_ICONS = {
 };
 
 const TOAST_DURATION_MS = 5000;
+const MAX_VISIBLE_TOASTS = 3;
 
 // ── Toast Stack ────────────────────────────────────────────────────────────
 function ToastStack({ toasts, onDismiss, onOpen }) {
   if (toasts.length === 0) return null;
+
+  // Only show the 3 most recent toasts
+  const visibleToasts = toasts.slice(-MAX_VISIBLE_TOASTS);
+  const hiddenCount = toasts.length - visibleToasts.length;
 
   return (
     <>
@@ -70,7 +75,14 @@ function ToastStack({ toasts, onDismiss, onOpen }) {
         }
       `}</style>
       <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[10001] flex w-full max-w-sm flex-col gap-2 px-4 pointer-events-none">
-        {toasts.map((toast) => (
+        {hiddenCount > 0 && (
+          <div className="pointer-events-auto flex items-center justify-center rounded-2xl border border-green-100 bg-white/80 shadow-md px-4 py-2">
+            <p className="m-0 text-xs text-gray-500 font-medium">
+              +{hiddenCount} more notification{hiddenCount > 1 ? "s" : ""} — open bell to see all
+            </p>
+          </div>
+        )}
+        {visibleToasts.map((toast) => (
           <div
             key={toast.toastId}
             className="notif-toast pointer-events-auto flex items-start gap-3 rounded-2xl border border-green-100 bg-white shadow-xl shadow-green-900/10 px-4 py-3 cursor-pointer"
@@ -120,8 +132,6 @@ export default function NotificationBell({ target = "user" }) {
   const [toasts, setToasts] = useState([]);
   const panelRef = useRef(null);
 
-  // Tracks which notification IDs we've already seen, so we only toast for
-  // notifications we haven't shown a toast for before.
   const knownIdsRef = useRef(new Set());
   const hasLoadedOnceRef = useRef(false);
   const toastTimersRef = useRef(new Map());
@@ -148,7 +158,6 @@ export default function NotificationBell({ target = "user" }) {
     removeToast(toastId);
   }, [removeToast]);
 
-  // Clear all toast timers on unmount
   useEffect(() => {
     return () => {
       toastTimersRef.current.forEach((timer) => clearTimeout(timer));
@@ -167,15 +176,9 @@ export default function NotificationBell({ target = "user" }) {
       const data = await res.json();
       const incoming = data.notifications || [];
 
-      // Detect notifications we haven't seen yet
       const newOnes = incoming.filter((n) => !knownIdsRef.current.has(n._id));
-
-      // Record all current IDs as known
       incoming.forEach((n) => knownIdsRef.current.add(n._id));
 
-      // Fire toasts for unread items — this includes pre-existing unread
-      // notifications on the very first load, as well as any that arrive
-      // in later polls.
       newOnes
         .filter((n) => !n.isRead)
         .forEach((n) => addToast(n));
@@ -187,7 +190,6 @@ export default function NotificationBell({ target = "user" }) {
     }
   }, [target, user, addToast]);
 
-  // Fetch on mount and every 60 seconds
   useEffect(() => {
     const initialFetch = setTimeout(fetchNotifications, 0);
     const interval = setInterval(fetchNotifications, 60_000);
@@ -197,7 +199,6 @@ export default function NotificationBell({ target = "user" }) {
     };
   }, [fetchNotifications]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (panelRef.current && !panelRef.current.contains(e.target)) {
@@ -209,7 +210,6 @@ export default function NotificationBell({ target = "user" }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // ── Mark single as read ──────────────────────────────────────────────────
   const markAsRead = async (id) => {
     try {
       await window.fetch(`${API_BASE_URL}/notifications/${id}/read`, {
@@ -228,7 +228,6 @@ export default function NotificationBell({ target = "user" }) {
     await markAsRead(id);
   };
 
-  // ── Mark all read ────────────────────────────────────────────────────────
   const handleMarkAllRead = async () => {
     const unread = notifications.filter((n) => !n.isRead);
     await Promise.all(
