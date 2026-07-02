@@ -176,28 +176,28 @@ export default function ContentBlogManagement() {
   };
 
   return (
-    <section className="space-y-6 text-[#244c21]">
+    <section className="space-y-6 text-[#03652a]">
 
       {/* ── HEADER ── */}
-      <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-2xl p-6 shadow-sm">
+      <div className="rounded-2xl border border-[#06a63e]/15 bg-[#eaf9ee]/70 backdrop-blur-2xl p-6 shadow-sm">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h3 className="m-0 text-2xl font-black tracking-tight text-[#244c21]">Blog Management</h3>
-            <p className="m-0 mt-1 text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Create, edit, and publish blog posts</p>
+            <h3 className="m-0 text-2xl font-black tracking-tight text-[#03652a]">Blog Management</h3>
+            <p className="m-0 mt-1 text-[10px] font-bold text-[#06a63e]/70 uppercase tracking-widest">Create, edit, and publish blog posts</p>
           </div>
 
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 p-4 shadow-sm">
-              <p className="m-0 text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest mb-1">Total</p>
-              <p className="m-0 text-xl font-black text-[#244c21]">{posts.length}</p>
+            <div className="rounded-2xl border border-[#06a63e]/15 bg-white/75 p-4 shadow-sm">
+              <p className="m-0 text-[10px] font-bold text-[#06a63e]/60 uppercase tracking-widest mb-1">Total</p>
+              <p className="m-0 text-xl font-black text-[#03652a]">{posts.length}</p>
             </div>
-            <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 p-4 shadow-sm">
-              <p className="m-0 text-[10px] font-bold text-[#397239]/80 uppercase tracking-widest mb-1">Published</p>
-              <p className="m-0 text-xl font-black text-[#397239]">{posts.filter((p) => p.status === "Published").length}</p>
+            <div className="rounded-2xl border border-[#06a63e]/15 bg-white/75 p-4 shadow-sm">
+              <p className="m-0 text-[10px] font-bold text-[#06a63e]/80 uppercase tracking-widest mb-1">Published</p>
+              <p className="m-0 text-xl font-black text-[#06a63e]">{posts.filter((p) => p.status === "Published").length}</p>
             </div>
-            <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 p-4 shadow-sm">
-              <p className="m-0 text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest mb-1">Drafts</p>
-              <p className="m-0 text-xl font-black text-[#244c21]">{posts.filter((p) => p.status === "Draft").length}</p>
+            <div className="rounded-2xl border border-[#06a63e]/15 bg-white/75 p-4 shadow-sm">
+              <p className="m-0 text-[10px] font-bold text-[#06a63e]/60 uppercase tracking-widest mb-1">Drafts</p>
+              <p className="m-0 text-xl font-black text-[#03652a]">{posts.filter((p) => p.status === "Draft").length}</p>
             </div>
           </div>
         </div>
@@ -205,7 +205,7 @@ export default function ContentBlogManagement() {
         {/* Search + New Post */}
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center">
           <div className="relative flex-1">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#397239]/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#06a63e]/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -213,13 +213,13 @@ export default function ContentBlogManagement() {
               placeholder="Filter by title or author..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 text-sm text-[#244c21] outline-none focus:border-[#397239] focus:bg-white transition-all placeholder:text-[#397239]/40"
+              className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#06a63e]/10 bg-white/75 text-sm text-[#03652a] outline-none focus:border-[#06a63e] focus:bg-white transition-all placeholder:text-[#06a63e]/40"
             />
           </div>
           <button
             type="button"
             onClick={handleNewPost}
-            className="rounded-xl bg-[#397239] px-6 py-3 text-xs font-black text-white transition-all hover:scale-105 active:scale-95 shadow-md uppercase tracking-widest flex items-center gap-2 whitespace-nowrap"
+            className="rounded-xl bg-[#06a63e] px-6 py-3 text-xs font-black text-white transition-all hover:scale-105 active:scale-95 shadow-md uppercase tracking-widest flex items-center gap-2 whitespace-nowrap"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -237,8 +237,8 @@ export default function ContentBlogManagement() {
         </div>
       )}
       {message && (
-        <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/80 px-5 py-4 text-xs font-bold text-[#397239] shadow-sm flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#397239] shrink-0" />
+        <div className="rounded-2xl border border-[#06a63e]/15 bg-[#eaf9ee]/80 px-5 py-4 text-xs font-bold text-[#06a63e] shadow-sm flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#06a63e] shrink-0" />
           {message}
         </div>
       )}
@@ -248,20 +248,20 @@ export default function ContentBlogManagement() {
 
         {/* ── POSTS LIST ── */}
         <div className="lg:col-span-1">
-          <div className="sticky top-6 rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-2xl shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#397234]/10 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#397239]" />
-              <p className="m-0 text-[10px] font-black uppercase tracking-widest text-[#244c21]">
+          <div className="sticky top-6 rounded-3xl border border-[#06a63e]/15 bg-[#eaf9ee]/70 backdrop-blur-2xl shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-[#06a63e]/10 flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-[#06a63e]" />
+              <p className="m-0 text-[10px] font-black uppercase tracking-widest text-[#03652a]">
                 Posts ({filteredPosts.length})
               </p>
             </div>
 
-            <div className="divide-y divide-[#397239]/10 max-h-[calc(100vh-260px)] overflow-y-auto">
+            <div className="divide-y divide-[#06a63e]/10 max-h-[calc(100vh-260px)] overflow-y-auto">
               {/* New post indicator */}
               {editingPostId === NEW_POST_ID && (
-                <div className="px-5 py-4 bg-[#397239]/10">
-                  <p className="m-0 text-[10px] font-black text-[#397239] uppercase tracking-widest flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#397239] animate-pulse" />
+                <div className="px-5 py-4 bg-[#06a63e]/10">
+                  <p className="m-0 text-[10px] font-black text-[#06a63e] uppercase tracking-widest flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#06a63e] animate-pulse" />
                     New Post — unsaved
                   </p>
                 </div>
@@ -269,15 +269,15 @@ export default function ContentBlogManagement() {
 
               {loading ? (
                 <div className="flex flex-col items-center justify-center p-12 gap-3">
-                  <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#397239] border-t-transparent" />
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#397239]/40">Loading posts...</p>
+                  <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#06a63e] border-t-transparent" />
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/40">Loading posts...</p>
                 </div>
               ) : filteredPosts.length === 0 ? (
                 <div className="p-12 text-center">
-                  <svg className="h-10 w-10 mx-auto text-[#397239]/20 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-10 w-10 mx-auto text-[#06a63e]/20 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#397239]/30">No posts found</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/30">No posts found</p>
                 </div>
               ) : filteredPosts.map((post) => (
                 <div
@@ -285,38 +285,38 @@ export default function ContentBlogManagement() {
                   onClick={() => selectPost(post)}
                   className={`px-5 py-4 cursor-pointer transition-all group ${
                     editingPostId === post._id
-                      ? "bg-[#397239]/10"
-                      : "hover:bg-[#397239]/5"
+                      ? "bg-[#06a63e]/10"
+                      : "hover:bg-[#06a63e]/5"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <h4 className="m-0 text-sm font-black text-[#244c21] truncate group-hover:text-[#397239] transition-colors">
+                      <h4 className="m-0 text-sm font-black text-[#03652a] truncate group-hover:text-[#06a63e] transition-colors">
                         {post.title || "Untitled"}
                       </h4>
-                      <p className="m-0 mt-0.5 text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest">{post.author || "No author"}</p>
+                      <p className="m-0 mt-0.5 text-[10px] font-bold text-[#06a63e]/60 uppercase tracking-widest">{post.author || "No author"}</p>
                     </div>
                     <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest ${
                       post.status === "Published"
-                        ? "bg-[#397239]/15 text-[#397239]"
-                        : "bg-[#112A0F]/8 text-[#244c21]/60"
+                        ? "bg-[#06a63e]/15 text-[#06a63e]"
+                        : "bg-[#06a63e]/8 text-[#03652a]/60"
                     }`}>
                       {post.status}
                     </span>
                   </div>
 
-                  <div className="mt-3 flex items-center gap-3 pt-2 border-t border-[#397239]/10">
+                  <div className="mt-3 flex items-center gap-3 pt-2 border-t border-[#06a63e]/10">
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); selectPost(post); }}
-                      className="text-[10px] font-extrabold text-[#397239] hover:text-[#244c21] uppercase tracking-widest transition-colors flex items-center gap-1"
+                      className="text-[10px] font-extrabold text-[#06a63e] hover:text-[#03652a] uppercase tracking-widest transition-colors flex items-center gap-1"
                     >
                       <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
                       </svg>
                       Edit
                     </button>
-                    <span className="text-[#397239]/20 text-xs">|</span>
+                    <span className="text-[#06a63e]/20 text-xs">|</span>
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleDeletePost(post._id); }}
@@ -337,20 +337,20 @@ export default function ContentBlogManagement() {
         {/* ── EDITOR ── */}
         <div className="lg:col-span-2">
           {editorForm ? (
-            <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-2xl shadow-sm overflow-hidden">
+            <div className="rounded-3xl border border-[#06a63e]/15 bg-[#eaf9ee]/70 backdrop-blur-2xl shadow-sm overflow-hidden">
 
               {/* Editor header */}
-              <div className="px-6 py-5 border-b border-[#397234]/10 flex items-center gap-4">
-                <div className="h-10 w-10 shrink-0 rounded-2xl bg-[#397239]/15 flex items-center justify-center text-[#397239]">
+              <div className="px-6 py-5 border-b border-[#06a63e]/10 flex items-center gap-4">
+                <div className="h-10 w-10 shrink-0 rounded-2xl bg-[#06a63e]/15 flex items-center justify-center text-[#06a63e]">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
                 <div>
-                  <h4 className="m-0 text-lg font-black text-[#244c21]">
+                  <h4 className="m-0 text-lg font-black text-[#03652a]">
                     {editingPostId === NEW_POST_ID ? "Create New Post" : "Edit Post"}
                   </h4>
-                  <p className="m-0 text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest mt-0.5">
+                  <p className="m-0 text-[10px] font-bold text-[#06a63e]/60 uppercase tracking-widest mt-0.5">
                     {editingPostId === NEW_POST_ID ? "Fill in the fields below to create a new post" : "Editing existing post"}
                   </p>
                 </div>
@@ -365,7 +365,7 @@ export default function ContentBlogManagement() {
                     type="text"
                     value={editorForm.title}
                     onChange={(e) => updateField("title", e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 text-sm text-[#244c21] font-medium outline-none focus:border-[#397239] focus:bg-white transition-all placeholder:text-[#397239]/40"
+                    className="w-full px-4 py-3 rounded-xl border border-[#06a63e]/10 bg-white/75 text-sm text-[#03652a] font-medium outline-none focus:border-[#06a63e] focus:bg-white transition-all placeholder:text-[#06a63e]/40"
                     placeholder="Enter an engaging title..."
                   />
                 </div>
@@ -376,7 +376,7 @@ export default function ContentBlogManagement() {
                     <select
                       value={editorForm.category}
                       onChange={(e) => updateField("category", e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 text-sm text-[#244c21] font-medium outline-none focus:border-[#397239] transition-all cursor-pointer"
+                      className="w-full px-4 py-3 rounded-xl border border-[#06a63e]/10 bg-white/75 text-sm text-[#03652a] font-medium outline-none focus:border-[#06a63e] transition-all cursor-pointer"
                     >
                       {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                     </select>
@@ -386,7 +386,7 @@ export default function ContentBlogManagement() {
                     <select
                       value={editorForm.status}
                       onChange={(e) => updateField("status", e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 text-sm text-[#244c21] font-medium outline-none focus:border-[#397239] transition-all cursor-pointer"
+                      className="w-full px-4 py-3 rounded-xl border border-[#06a63e]/10 bg-white/75 text-sm text-[#03652a] font-medium outline-none focus:border-[#06a63e] transition-all cursor-pointer"
                     >
                       <option value="Draft">Draft</option>
                       <option value="Published">Published</option>
@@ -400,7 +400,7 @@ export default function ContentBlogManagement() {
                     type="text"
                     value={editorForm.author}
                     onChange={(e) => updateField("author", e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 text-sm text-[#244c21] font-medium outline-none focus:border-[#397239] focus:bg-white transition-all placeholder:text-[#397239]/40"
+                    className="w-full px-4 py-3 rounded-xl border border-[#06a63e]/10 bg-white/75 text-sm text-[#03652a] font-medium outline-none focus:border-[#06a63e] focus:bg-white transition-all placeholder:text-[#06a63e]/40"
                     placeholder="Author name"
                   />
                 </div>
@@ -411,7 +411,7 @@ export default function ContentBlogManagement() {
                     value={editorForm.excerpt}
                     onChange={(e) => updateField("excerpt", e.target.value)}
                     rows={2}
-                    className="w-full px-4 py-3 rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 text-sm text-[#244c21] font-medium outline-none focus:border-[#397239] focus:bg-white transition-all resize-none placeholder:text-[#397239]/40 leading-relaxed"
+                    className="w-full px-4 py-3 rounded-xl border border-[#06a63e]/10 bg-white/75 text-sm text-[#03652a] font-medium outline-none focus:border-[#06a63e] focus:bg-white transition-all resize-none placeholder:text-[#06a63e]/40 leading-relaxed"
                     placeholder="Brief summary shown in post listings..."
                   />
                 </div>
@@ -450,7 +450,7 @@ export default function ContentBlogManagement() {
                     value={editorForm.content}
                     onChange={(e) => updateField("content", e.target.value)}
                     rows={14}
-                    className="w-full px-4 py-3 rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 text-sm text-[#244c21] font-medium outline-none focus:border-[#397239] focus:bg-white transition-all font-mono leading-7 placeholder:text-[#397239]/40"
+                    className="w-full px-4 py-3 rounded-xl border border-[#06a63e]/10 bg-white/75 text-sm text-[#03652a] font-medium outline-none focus:border-[#06a63e] focus:bg-white transition-all font-mono leading-7 placeholder:text-[#06a63e]/40"
                     placeholder="Write your blog content here..."
                   />
                 </div>
@@ -461,19 +461,19 @@ export default function ContentBlogManagement() {
                     type="text"
                     value={editorForm.tags.join(", ")}
                     onChange={(e) => handleTagsChange(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 text-sm text-[#244c21] font-medium outline-none focus:border-[#397239] focus:bg-white transition-all placeholder:text-[#397239]/40"
+                    className="w-full px-4 py-3 rounded-xl border border-[#06a63e]/10 bg-white/75 text-sm text-[#03652a] font-medium outline-none focus:border-[#06a63e] focus:bg-white transition-all placeholder:text-[#06a63e]/40"
                     placeholder="recycling, tips, sustainability (comma-separated)"
                   />
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-end gap-3 border-t border-[#397234]/10 p-5 bg-[#D6E9CA]/30">
+              <div className="flex items-center justify-end gap-3 border-t border-[#06a63e]/10 p-5 bg-[#eaf9ee]/60">
                 <button
                   type="button"
                   disabled={loading}
                   onClick={() => commitPost("Draft")}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#397234]/20 bg-white text-xs font-black text-[#244c21] hover:bg-[#D6E9CA]/60 transition-all disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-widest"
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#06a63e]/15 bg-white text-xs font-black text-[#03652a] hover:bg-[#eaf9ee] transition-all disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-widest"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -484,7 +484,7 @@ export default function ContentBlogManagement() {
                   type="button"
                   disabled={loading}
                   onClick={() => commitPost("Published")}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#397239] text-xs font-black text-white hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md uppercase tracking-widest"
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#06a63e] text-xs font-black text-white hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md uppercase tracking-widest"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -494,11 +494,11 @@ export default function ContentBlogManagement() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-96 rounded-3xl border border-dashed border-[#397234]/30 bg-[#D6E9CA]/30">
-              <svg className="h-14 w-14 text-[#397239]/20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex flex-col items-center justify-center h-96 rounded-3xl border border-dashed border-[#06a63e]/25 bg-[#eaf9ee]/50">
+              <svg className="h-14 w-14 text-[#06a63e]/20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#397239]/40">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/40">
                 {loading ? "Loading your posts..." : "Create a new post to get started"}
               </p>
             </div>
@@ -509,7 +509,7 @@ export default function ContentBlogManagement() {
       {/* ── DELETE MODAL ── */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 overflow-hidden border border-[#397234]/10">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 overflow-hidden border border-[#06a63e]/15">
             <div className="px-6 py-6 border-b border-red-100 bg-red-50/50">
               <div className="flex items-start gap-4">
                 <div className="h-10 w-10 shrink-0 rounded-2xl bg-red-100 flex items-center justify-center">
@@ -518,19 +518,19 @@ export default function ContentBlogManagement() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="m-0 text-sm font-black text-[#244c21] uppercase tracking-widest">Delete Post?</h3>
+                  <h3 className="m-0 text-sm font-black text-[#03652a] uppercase tracking-widest">Delete Post?</h3>
                   <p className="m-0 mt-1 text-[10px] font-bold text-red-400 uppercase tracking-widest">This action cannot be undone</p>
                 </div>
               </div>
             </div>
             <div className="px-6 py-5">
-              <p className="text-sm text-[#244c21] font-medium leading-relaxed">Are you sure you want to permanently delete this blog post?</p>
+              <p className="text-sm text-[#03652a] font-medium leading-relaxed">Are you sure you want to permanently delete this blog post?</p>
             </div>
-            <div className="flex items-center gap-3 px-6 py-4 bg-[#D6E9CA]/30 border-t border-[#397234]/10">
+            <div className="flex items-center gap-3 px-6 py-4 bg-[#eaf9ee]/60 border-t border-[#06a63e]/10">
               <button
                 type="button"
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 px-4 py-3 rounded-xl border border-[#397234]/20 text-xs font-black text-[#244c21] hover:bg-[#D6E9CA]/60 transition-all uppercase tracking-widest"
+                className="flex-1 px-4 py-3 rounded-xl border border-[#06a63e]/15 text-xs font-black text-[#03652a] hover:bg-[#eaf9ee] transition-all uppercase tracking-widest"
               >
                 Cancel
               </button>
