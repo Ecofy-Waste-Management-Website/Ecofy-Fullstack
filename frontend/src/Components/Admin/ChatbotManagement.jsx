@@ -59,19 +59,19 @@ export default function ChatbotManagement() {
       <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-2xl p-6 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h3 className="m-0 text-2xl font-black tracking-tight text-[#244c21]">Chatbot Management</h3>
+            <h3 className="m-0 text-2xl font-black tracking-tight text-[#03652a]">Chatbot Management</h3>
             <p className="m-0 mt-1 text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">
               View recent user chatbot sessions and read full conversations
             </p>
           </div>
           <div className="flex gap-4">
             <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 px-5 py-3 text-center shadow-sm">
-              <p className="m-0 text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest mb-1">Sessions</p>
-              <p className="m-0 text-xl font-black text-[#244c21]">{sessions.length}</p>
+              <p className="m-0 text-[10px] font-bold text-[#06a63e]/60 uppercase tracking-widest mb-1">Sessions</p>
+              <p className="m-0 text-xl font-black text-[#03652a]">{sessions.length}</p>
             </div>
             <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 px-5 py-3 text-center shadow-sm">
-              <p className="m-0 text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest mb-1">Messages</p>
-              <p className="m-0 text-xl font-black text-[#397239]">
+              <p className="m-0 text-[10px] font-bold text-[#06a63e]/60 uppercase tracking-widest mb-1">Messages</p>
+              <p className="m-0 text-xl font-black text-[#06a63e]">
                 {sessions.reduce((sum, s) => sum + (Array.isArray(s.messages) ? s.messages.length : 0), 0)}
               </p>
             </div>
@@ -106,7 +106,7 @@ export default function ChatbotManagement() {
             <svg className="h-10 w-10 text-[#397239]/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
             </svg>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#397239]/30">No sessions available</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/30">No sessions available</p>
           </div>
         ) : (
           <div className="overflow-auto">
@@ -114,7 +114,7 @@ export default function ChatbotManagement() {
               <thead className="border-b border-[#397234]/10 bg-[#D6E9CA]/30">
                 <tr>
                   {["User", "Email", "Messages", "Last Activity", ""].map((h) => (
-                    <th key={h} className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-widest text-[#244c21]/60">
+                    <th key={h} className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-widest text-[#03652a]/60">
                       {h}
                     </th>
                   ))}

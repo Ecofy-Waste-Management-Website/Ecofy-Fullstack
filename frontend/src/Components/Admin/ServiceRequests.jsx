@@ -32,7 +32,7 @@ function statusTailwind(s) {
     Pending:      "bg-yellow-100 text-yellow-800",
     Assigned:     "bg-blue-100 text-blue-800",
     "In Progress":"bg-purple-100 text-purple-800",
-    Completed:    "bg-green-100 text-[#397239]",
+    Completed:    "bg-green-100 text-[#06a63e]",
     Delayed:      "bg-red-100 text-red-800",
   }[s] || "bg-gray-100 text-gray-800";
 }
@@ -67,11 +67,11 @@ function KPIGrid({ stats }) {
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 mb-6">
       {cards.map(c => (
-        <article key={c.label} className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-5 rounded-2xl shadow-sm border border-[#397234]/20">
-          <div className={`mb-3 w-max rounded-lg bg-[#397234]/10 p-2 ${c.colorText.replace('text-blue-400', 'text-blue-600').replace('text-amber-400', 'text-amber-600').replace('text-[#66c45e]', 'text-[#397239]').replace('text-red-400', 'text-red-600')}`}>{c.icon}</div>
-          <p className="text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest">{c.label}</p>
-          <p className={`text-3xl font-extrabold mt-1 ${c.colorText.replace('text-blue-400', 'text-blue-600').replace('text-amber-400', 'text-amber-600').replace('text-[#66c45e]', 'text-[#397239]').replace('text-red-400', 'text-red-600')}`}>{c.value ?? "—"}</p>
-          <p className="text-[9px] text-[#397239]/40 uppercase font-bold mt-1">{c.sub}</p>
+        <article key={c.label} className="bg-[#eaf9ee]/80 backdrop-blur-[40px] p-5 rounded-2xl shadow-sm border border-[#06a63e]/15">
+          <div className={`mb-3 w-max rounded-lg bg-[#06a63e]/10 p-2 ${c.colorText.replace('text-blue-400', 'text-blue-600').replace('text-amber-400', 'text-amber-600').replace('text-[#66c45e]', 'text-[#06a63e]').replace('text-red-400', 'text-red-600')}`}>{c.icon}</div>
+          <p className="text-[10px] font-bold text-[#03652a]/60 uppercase tracking-widest">{c.label}</p>
+          <p className={`text-3xl font-extrabold mt-1 ${c.colorText.replace('text-blue-400', 'text-blue-600').replace('text-amber-400', 'text-amber-600').replace('text-[#66c45e]', 'text-[#06a63e]').replace('text-red-400', 'text-red-600')}`}>{c.value ?? "—"}</p>
+          <p className="text-[9px] text-[#03652a]/40 uppercase font-bold mt-1">{c.sub}</p>
         </article>
       ))}
     </section>
@@ -103,58 +103,58 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-4xl overflow-hidden rounded-3xl bg-white border border-[#112A0F]/20 shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-4xl overflow-hidden rounded-3xl bg-white border border-[#06a63e]/20 shadow-2xl" onClick={e => e.stopPropagation()}>
 
-        <div className="flex items-center justify-between border-b border-[#397234]/10 bg-[#D6E9CA]/50 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-[#06a63e]/10 bg-[#eaf9ee]/70 px-6 py-4">
           <div className="flex items-center gap-3">
-            <span className="text-lg font-black text-[#244c21] tracking-tight">{req.requestId}</span>
+            <span className="text-lg font-black text-[#03652a] tracking-tight">{req.requestId}</span>
             <Badge variant="primary">{req.status}</Badge>
           </div>
-          <button className="text-[#397239]/40 hover:text-[#397239]" onClick={onClose}><X size={18} /></button>
+          <button className="text-[#06a63e]/40 hover:text-[#06a63e]" onClick={onClose}><X size={18} /></button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
           {/* Left column */}
           <div className="flex flex-col gap-6">
-            <div className="bg-[#D6E9CA]/50 p-5 rounded-2xl border border-[#397234]/5">
-              <h4 className="mb-4 font-bold text-[#397239]/60 text-xs uppercase tracking-widest border-b border-[#397234]/10 pb-2">Customer Details</h4>
-              <div className="space-y-2 text-sm text-[#244c21]">
-                <p><strong className="text-[#397239] font-bold">Name:</strong> {req.customer}</p>
-                <p><strong className="text-[#397239] font-bold">Email:</strong> {req.email}</p>
-                <p><strong className="text-[#397239] font-bold">Location:</strong> {req.location}</p>
+            <div className="bg-[#eaf9ee]/70 p-5 rounded-2xl border border-[#06a63e]/10">
+              <h4 className="mb-4 font-bold text-[#06a63e]/65 text-xs uppercase tracking-widest border-b border-[#06a63e]/10 pb-2">Customer Details</h4>
+              <div className="space-y-2 text-sm text-[#03652a]">
+                <p><strong className="text-[#06a63e] font-bold">Name:</strong> {req.customer}</p>
+                <p><strong className="text-[#06a63e] font-bold">Email:</strong> {req.email}</p>
+                <p><strong className="text-[#06a63e] font-bold">Location:</strong> {req.location}</p>
               </div>
             </div>
 
-            <div className="bg-[#112A0F]/5 p-5 rounded-2xl border border-[#397239]/5">
-              <h4 className="mb-4 font-bold text-[#397239]/60 text-xs uppercase tracking-widest border-b border-[#112A0F]/10 pb-2">Request Info</h4>
-              <div className="space-y-3 text-sm text-[#244c21]">
+            <div className="bg-[#eaf9ee]/60 p-5 rounded-2xl border border-[#06a63e]/10">
+              <h4 className="mb-4 font-bold text-[#06a63e]/65 text-xs uppercase tracking-widest border-b border-[#06a63e]/10 pb-2">Request Info</h4>
+              <div className="space-y-3 text-sm text-[#03652a]">
                 <p className="flex items-center">
-                  <strong className="text-[#397239] font-bold mr-2">Service Type:</strong>
+                  <strong className="text-[#06a63e] font-bold mr-2">Service Type:</strong>
                   <span className="rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest" style={{ background: typeColor(req.type) + "20", color: typeColor(req.type), border: `1px solid ${typeColor(req.type)}30` }}>
                     {req.type}
                   </span>
                 </p>
-                <p><strong className="text-[#397239] font-bold">Waste Category:</strong> {req.wasteCategory}</p>
-                <p><strong className="text-[#397239] font-bold">Scheduled:</strong> {new Date(req.scheduledDate).toLocaleDateString()}</p>
-                <p><strong className="text-[#397239] font-bold">Submitted:</strong> {new Date(req.submittedAt).toLocaleString()}</p>
-                {req.notes && <p><strong className="text-[#397239] font-bold">Notes:</strong> {req.notes}</p>}
+                <p><strong className="text-[#06a63e] font-bold">Waste Category:</strong> {req.wasteCategory}</p>
+                <p><strong className="text-[#06a63e] font-bold">Scheduled:</strong> {new Date(req.scheduledDate).toLocaleDateString()}</p>
+                <p><strong className="text-[#06a63e] font-bold">Submitted:</strong> {new Date(req.submittedAt).toLocaleString()}</p>
+                {req.notes && <p><strong className="text-[#06a63e] font-bold">Notes:</strong> {req.notes}</p>}
               </div>
             </div>
 
-            <div className="rounded-2xl bg-[#D6E9CA]/50 p-6 border border-[#397234]/10 shadow-inner">
-              <h4 className="mb-4 font-black text-[#244c21] text-sm uppercase tracking-widest">Update Management</h4>
+            <div className="rounded-2xl bg-[#eaf9ee]/70 p-6 border border-[#06a63e]/10 shadow-inner">
+              <h4 className="mb-4 font-black text-[#03652a] text-sm uppercase tracking-widest">Update Management</h4>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Assign Staff</label>
-                  <select className="w-full rounded-xl bg-white border border-[#112A0F]/10 px-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all" value={selStaff} onChange={e => setSelStaff(e.target.value)}>
+                  <label className="mb-1.5 block text-[10px] font-bold text-[#06a63e]/70 uppercase tracking-widest">Assign Staff</label>
+                  <select className="w-full rounded-xl bg-white border border-[#06a63e]/10 px-4 py-2.5 text-sm text-[#03652a] outline-none focus:border-[#06a63e] transition-all" value={selStaff} onChange={e => setSelStaff(e.target.value)}>
                     <option value="" className="bg-white">— Unassigned —</option>
                     {STAFF_LIST.map(s => <option key={s} value={s} className="bg-white">{s}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Status</label>
-                  <select className="w-full rounded-xl bg-white border border-[#112A0F]/10 px-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all" value={selStatus} onChange={e => setSelStatus(e.target.value)}>
+                  <label className="mb-1.5 block text-[10px] font-bold text-[#06a63e]/70 uppercase tracking-widest">Status</label>
+                  <select className="w-full rounded-xl bg-white border border-[#06a63e]/10 px-4 py-2.5 text-sm text-[#03652a] outline-none focus:border-[#06a63e] transition-all" value={selStatus} onChange={e => setSelStatus(e.target.value)}>
                     {STATUS_OPTIONS.slice(1).map(s => <option key={s} value={s} className="bg-white">{s}</option>)}
                   </select>
                 </div>
@@ -172,19 +172,19 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
           </div>
 
           {/* Right column: Timeline */}
-          <div className="bg-[#D6E9CA]/50 p-6 rounded-2xl border border-[#397234]/5 flex flex-col">
-            <h4 className="mb-6 font-bold text-[#397239]/60 text-xs uppercase tracking-widest border-b border-[#397234]/10 pb-2">Status Timeline</h4>
-            <div className="relative pl-6 border-l border-[#112A0F]/10 ml-2 flex-1">
+          <div className="bg-[#eaf9ee]/70 p-6 rounded-2xl border border-[#06a63e]/10 flex flex-col">
+            <h4 className="mb-6 font-bold text-[#06a63e]/60 text-xs uppercase tracking-widest border-b border-[#06a63e]/10 pb-2">Status Timeline</h4>
+            <div className="relative pl-6 border-l border-[#06a63e]/10 ml-2 flex-1">
               {(req.timeline || []).length === 0 && (
-                <p className="text-sm text-[#397239]/30 italic">No timeline events yet.</p>
+                <p className="text-sm text-[#06a63e]/30 italic">No timeline events yet.</p>
               )}
               {(req.timeline || []).map((ev, i) => {
                 const isLast = i === req.timeline.length - 1;
                 return (
                   <div key={i} className="mb-8 relative">
-                    <div className={`absolute -left-[30px] top-1.5 h-4 w-4 rounded-full border-2 border-white ${isLast ? "bg-[#397239] shadow-[0_0_12px_rgba(57,114,57,0.4)]" : "bg-[#397239]/20"}`} />
-                    <p className="text-sm font-black text-[#244c21]">{ev.event}</p>
-                    <p className="text-[10px] font-bold text-[#397239]/60 mt-1 uppercase tracking-tighter">
+                    <div className={`absolute -left-[30px] top-1.5 h-4 w-4 rounded-full border-2 border-white ${isLast ? "bg-[#06a63e] shadow-[0_0_12px_rgba(6,166,62,0.4)]" : "bg-[#06a63e]/20"}`} />
+                    <p className="text-sm font-black text-[#03652a]">{ev.event}</p>
+                    <p className="text-[10px] font-bold text-[#06a63e]/60 mt-1 uppercase tracking-tighter">
                       {timeAgo(ev.time)} · {new Date(ev.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>

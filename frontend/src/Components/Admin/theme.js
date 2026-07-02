@@ -4,12 +4,12 @@
 export const theme = {
   colors: {
     // Primary Eco-Green
-    primary: '#397239',
-    primaryLight: '#6B9F7E',
-    primaryDark: '#244c21',
+    primary: '#06a63e',
+    primaryLight: '#35c95f',
+    primaryDark: '#03652a',
 
     // Semantic Colors
-    success: '#34C759',
+    success: '#06a63e',
     warning: '#FF9500',
     error: '#FF3B30',
     info: '#0A84FF',

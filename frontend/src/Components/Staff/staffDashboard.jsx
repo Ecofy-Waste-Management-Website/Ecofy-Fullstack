@@ -115,13 +115,13 @@ const createPinIcon = (label) => L.divIcon({
       width: 42px;
       height: 42px;
       border-radius: 9999px 9999px 9999px 4px;
-      background: #1f6f36;
+      background: #06a63e;
       color: white;
       display: grid;
       place-items: center;
       font-weight: 900;
       font-size: 14px;
-      box-shadow: 0 14px 24px rgba(17, 42, 15, 0.36), 0 0 0 8px rgba(255, 255, 255, 0.55);
+      box-shadow: 0 14px 24px rgba(3, 101, 42, 0.36), 0 0 0 8px rgba(255, 255, 255, 0.55);
       transform: rotate(-45deg);
       border: 3px solid #ffffff;
     ">
@@ -220,11 +220,11 @@ function PendingOrdersMapCanvas({ orders, onOrderSelect }) {
 
         marker.bindPopup(`
           <div style="min-width: 180px; font-family: system-ui, sans-serif;">
-            <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #397239; margin-bottom: 4px;">Pin ${label}</div>
-            <div style="font-size: 14px; font-weight: 800; color: #244c21; margin-bottom: 4px;">${order.location || 'Pickup location'}</div>
-            <div style="font-size: 12px; color: #397239; margin-bottom: 4px;">${order.customer_name || 'Customer'} • ${order.service_type || 'Pending order'}</div>
-            <div style="font-size: 12px; color: #397239; margin-bottom: 8px;">Order ${order._id?.slice(-8)?.toUpperCase() || 'N/A'}</div>
-            <button type="button" data-order-button="true" style="border: none; border-radius: 9999px; background: #397239; color: white; font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 12px; cursor: pointer;">View details</button>
+            <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #06a63e; margin-bottom: 4px;">Pin ${label}</div>
+            <div style="font-size: 14px; font-weight: 800; color: #03652a; margin-bottom: 4px;">${order.location || 'Pickup location'}</div>
+            <div style="font-size: 12px; color: #06a63e; margin-bottom: 4px;">${order.customer_name || 'Customer'} • ${order.service_type || 'Pending order'}</div>
+            <div style="font-size: 12px; color: #06a63e; margin-bottom: 8px;">Order ${order._id?.slice(-8)?.toUpperCase() || 'N/A'}</div>
+            <button type="button" data-order-button="true" style="border: none; border-radius: 9999px; background: #06a63e; color: white; font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 12px; cursor: pointer;">View details</button>
           </div>
         `);
 
@@ -277,8 +277,8 @@ function PendingOrdersMapCanvas({ orders, onOrderSelect }) {
       {mapState.loading && (
         <div className="absolute inset-0 grid place-items-center bg-white/75 text-center">
           <div>
-            <p className="text-sm font-black uppercase tracking-widest text-[#397239]/55">Loading map</p>
-            <p className="mt-2 text-xs font-medium text-[#397239]/60">Rendering pickup pins...</p>
+            <p className="text-sm font-black uppercase tracking-widest text-[#06a63e]/55">Loading map</p>
+            <p className="mt-2 text-xs font-medium text-[#06a63e]/60">Rendering pickup pins...</p>
           </div>
         </div>
       )}
@@ -315,7 +315,7 @@ const buildOpenStreetMapDirectionsUrl = (origin, destination) => {
   return url.toString();
 };
 
-const createLabeledMarkerIcon = (label, backgroundColor = "#397239") => L.divIcon({
+const createLabeledMarkerIcon = (label, backgroundColor = "#06a63e") => L.divIcon({
   className: "",
   html: `
     <div style="
@@ -328,7 +328,7 @@ const createLabeledMarkerIcon = (label, backgroundColor = "#397239") => L.divIco
       place-items: center;
       font-weight: 900;
       font-size: 11px;
-      box-shadow: 0 10px 18px rgba(57, 114, 57, 0.35);
+      box-shadow: 0 10px 18px rgba(6, 166, 62, 0.35);
       border: 2px solid rgba(255,255,255,0.9);
     ">
       <span>${label}</span>
@@ -384,13 +384,13 @@ function PickupNavigationMap({ order }) {
 
       if (destination) {
         destinationMarkerRef.current = L.marker([destination.lat, destination.lng], {
-          icon: createLabeledMarkerIcon("D", "#397239"),
+          icon: createLabeledMarkerIcon("D", "#06a63e"),
         }).addTo(map);
         destinationMarkerRef.current.bindPopup(`
           <div style="min-width: 180px; font-family: system-ui, sans-serif;">
-            <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #397239; margin-bottom: 4px;">Destination</div>
-            <div style="font-size: 14px; font-weight: 800; color: #244c21; margin-bottom: 4px;">${order?.location || "Pickup location"}</div>
-            <div style="font-size: 12px; color: #397239;">${order?._id?.slice(-8)?.toUpperCase() || "N/A"}</div>
+            <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #06a63e; margin-bottom: 4px;">Destination</div>
+            <div style="font-size: 14px; font-weight: 800; color: #03652a; margin-bottom: 4px;">${order?.location || "Pickup location"}</div>
+            <div style="font-size: 12px; color: #06a63e;">${order?._id?.slice(-8)?.toUpperCase() || "N/A"}</div>
           </div>
         `);
 
@@ -458,19 +458,19 @@ function PickupNavigationMap({ order }) {
 
       routeLayerRef.current = L.geoJSON(route.geometry, {
         style: {
-          color: "#397239",
+          color: "#06a63e",
           weight: 5,
           opacity: 0.9,
         },
       }).addTo(mapRef.current);
 
       originMarkerRef.current = L.marker([originPoint.lat, originPoint.lng], {
-        icon: createLabeledMarkerIcon("S", "#244c21"),
+        icon: createLabeledMarkerIcon("S", "#03652a"),
       }).addTo(mapRef.current);
       originMarkerRef.current.bindPopup(`
         <div style="min-width: 160px; font-family: system-ui, sans-serif;">
-          <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #244c21; margin-bottom: 4px;">Start</div>
-          <div style="font-size: 12px; font-weight: 700; color: #244c21;">Your current location</div>
+          <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #03652a; margin-bottom: 4px;">Start</div>
+          <div style="font-size: 12px; font-weight: 700; color: #03652a;">Your current location</div>
         </div>
       `);
 
@@ -558,21 +558,21 @@ function PickupNavigationMap({ order }) {
       {mapState.loading && (
         <div className="absolute inset-0 grid place-items-center bg-white/75 text-center">
           <div>
-            <p className="text-sm font-black uppercase tracking-widest text-[#397239]/55">Loading route</p>
-            <p className="mt-2 text-xs font-medium text-[#397239]/60">Resolving the pickup route...</p>
+            <p className="text-sm font-black uppercase tracking-widest text-[#06a63e]/55">Loading route</p>
+            <p className="mt-2 text-xs font-medium text-[#06a63e]/60">Resolving the pickup route...</p>
           </div>
         </div>
       )}
       {!mapState.loading && mapState.message && (
         <div className="absolute left-4 right-4 top-4 rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-lg backdrop-blur">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#397239]/45">Route status</p>
-          <p className="mt-1 text-sm font-bold text-[#244c21]">{mapState.message}</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#06a63e]/45">Route status</p>
+          <p className="mt-1 text-sm font-bold text-[#03652a]">{mapState.message}</p>
         </div>
       )}
       <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-3 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-xl backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#397239]/45">Route controls</p>
-          <p className="text-sm font-bold text-[#244c21]">
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#06a63e]/45">Route controls</p>
+          <p className="text-sm font-bold text-[#03652a]">
             {routeSummary
               ? `${formatRouteDistance(routeSummary.distance)} • ${formatRouteDuration(routeSummary.duration)}`
               : "Draw a live OSRM route from your current location."}
@@ -582,14 +582,14 @@ function PickupNavigationMap({ order }) {
           <button
             type="button"
             onClick={handleUseMyLocation}
-            className="rounded-full bg-[#397239] px-4 py-2 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#244c21]"
+            className="rounded-full bg-[#06a63e] px-4 py-2 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#03652a]"
           >
             Use my location
           </button>
           <button
             type="button"
             onClick={handleClearRoute}
-            className="rounded-full border border-[#397234]/10 bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+            className="rounded-full border border-[#06a63e]/10 bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#06a63e] transition hover:bg-[#eaf9ee]/40"
           >
             Clear route
           </button>
@@ -597,7 +597,7 @@ function PickupNavigationMap({ order }) {
             type="button"
             onClick={handleOpenDirections}
             disabled={!originPoint || !destinationPoint}
-            className="rounded-full border border-[#397234]/10 bg-[#D6E9CA]/40 px-4 py-2 text-xs font-black uppercase tracking-widest text-[#244c21] transition hover:bg-[#D6E9CA]/70 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full border border-[#06a63e]/10 bg-[#eaf9ee]/40 px-4 py-2 text-xs font-black uppercase tracking-widest text-[#03652a] transition hover:bg-[#eaf9ee]/70 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Open directions
           </button>
@@ -1187,8 +1187,8 @@ export default function StaffDashboard() {
     return (
       <div className="flex items-center justify-center h-screen bg-[#f4f9f4]">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#397239] border-t-transparent" />
-          <p className="text-[#397239] font-bold animate-pulse uppercase tracking-widest text-xs">Syncing Schedule...</p>
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#06a63e] border-t-transparent" />
+          <p className="text-[#06a63e] font-bold animate-pulse uppercase tracking-widest text-xs">Syncing Schedule...</p>
         </div>
       </div>
     );
@@ -1209,62 +1209,62 @@ export default function StaffDashboard() {
   const getPageTitle = () => menuItems.find(m => m.key === activeTab)?.label || "Staff Dashboard";
 
   const renderTaskCard = (task, isCompleted = false) => (
-    <div key={task._id} className={`bg-[#D6E9CA]/50 backdrop-blur-[40px] rounded-3xl p-6 border border-[#397234]/20 shadow-sm transition-all hover:shadow-md hover:border-[#397239]/30 ${isCompleted ? 'opacity-80' : ''}`}>
+    <div key={task._id} className={`bg-[#eaf9ee]/50 backdrop-blur-[40px] rounded-3xl p-6 border border-[#06a63e]/20 shadow-sm transition-all hover:shadow-md hover:border-[#06a63e]/30 ${isCompleted ? 'opacity-80' : ''}`}>
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-lg font-black text-[#244c21] leading-tight">{task.customer_name || 'Customer'}</h3>
-          <p className="text-[10px] font-bold text-[#397239]/50 uppercase tracking-[0.2em] mt-1">{task.service_type || 'General Service'}</p>
+          <h3 className="text-lg font-black text-[#03652a] leading-tight">{task.customer_name || 'Customer'}</h3>
+          <p className="text-[10px] font-bold text-[#06a63e]/50 uppercase tracking-[0.2em] mt-1">{task.service_type || 'General Service'}</p>
         </div>
-        <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest ${isCompleted ? 'bg-green-100 text-[#397239]' : getStatusColor(task.status)}`}>
+        <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest ${isCompleted ? 'bg-green-100 text-[#06a63e]' : getStatusColor(task.status)}`}>
           {isCompleted ? 'Completed' : task.status}
         </span>
       </div>
 
-      <div className="bg-[#D6E9CA]/50 rounded-2xl p-4 mb-4 border border-[#397234]/10 shadow-inner">
+      <div className="bg-[#eaf9ee]/50 rounded-2xl p-4 mb-4 border border-[#06a63e]/10 shadow-inner">
         <div className="mb-2 flex items-center justify-between gap-3">
-          <p className="text-[9px] font-bold text-[#397239]/40 uppercase tracking-widest flex items-center gap-1.5"><Icons.MapPin /> LOCATION</p>
+          <p className="text-[9px] font-bold text-[#06a63e]/40 uppercase tracking-widest flex items-center gap-1.5"><Icons.MapPin /> LOCATION</p>
           {task.location && (
             <a
               href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(task.location)}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#397239]/15 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-[#397239] transition-all hover:bg-white"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#06a63e]/15 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-[#06a63e] transition-all hover:bg-white"
             >
               Open in OpenStreetMap
               <Icons.ExternalLink />
             </a>
           )}
         </div>
-        <p className="text-sm text-[#244c21] font-bold leading-relaxed truncate">{task.location || 'Location missing'}</p>
+        <p className="text-sm text-[#03652a] font-bold leading-relaxed truncate">{task.location || 'Location missing'}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-[#D6E9CA]/50 rounded-2xl p-3 border border-[#397234]/10">
-          <p className="text-[9px] text-[#397239]/40 font-bold uppercase tracking-widest flex items-center gap-1.5"><Icons.Calendar /> DATE</p>
-          <p className="text-xs font-black text-[#244c21] mt-1">{formatDate(task.scheduled_date)}</p>
+        <div className="bg-[#eaf9ee]/50 rounded-2xl p-3 border border-[#06a63e]/10">
+          <p className="text-[9px] text-[#06a63e]/40 font-bold uppercase tracking-widest flex items-center gap-1.5"><Icons.Calendar /> DATE</p>
+          <p className="text-xs font-black text-[#03652a] mt-1">{formatDate(task.scheduled_date)}</p>
         </div>
-        <div className="bg-[#D6E9CA]/50 rounded-2xl p-3 border border-[#397234]/10">
-          <p className="text-[9px] text-[#397239]/40 font-bold uppercase tracking-widest flex items-center gap-1.5">
+        <div className="bg-[#eaf9ee]/50 rounded-2xl p-3 border border-[#06a63e]/10">
+          <p className="text-[9px] text-[#06a63e]/40 font-bold uppercase tracking-widest flex items-center gap-1.5">
             <Icons.Clock /> {isCompleted ? 'DONE' : 'TIME'}
           </p>
-          <p className="text-xs font-black text-[#244c21] mt-1">{isCompleted ? formatTime(task.completedAt) : formatTime(task.scheduled_date)}</p>
+          <p className="text-xs font-black text-[#03652a] mt-1">{isCompleted ? formatTime(task.completedAt) : formatTime(task.scheduled_date)}</p>
         </div>
       </div>
 
       {!isCompleted && (
       <div className="grid grid-cols-1 gap-3 mb-6 md:grid-cols-3">
-        <div className="rounded-2xl border border-[#397234]/10 bg-white/60 p-3">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-[#397239]/40">Order Price</p>
-          <p className="mt-1 text-sm font-black text-[#244c21]">{formatCurrency(getEstimatedAmount(task))}</p>
+        <div className="rounded-2xl border border-[#06a63e]/10 bg-white/60 p-3">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-[#06a63e]/40">Order Price</p>
+          <p className="mt-1 text-sm font-black text-[#03652a]">{formatCurrency(getEstimatedAmount(task))}</p>
         </div>
 
-        <div className="rounded-2xl border border-[#397234]/10 bg-white/60 p-3">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-[#397239]/40">Customer Phone</p>
-          <p className="mt-1 text-sm font-black text-[#244c21] truncate">{task.customer_phone || 'Phone unavailable'}</p>
+        <div className="rounded-2xl border border-[#06a63e]/10 bg-white/60 p-3">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-[#06a63e]/40">Customer Phone</p>
+          <p className="mt-1 text-sm font-black text-[#03652a] truncate">{task.customer_phone || 'Phone unavailable'}</p>
           {task.customer_phone ? (
             <a
               href={`tel:${task.customer_phone}`}
-              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#397239] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-[#244c21]"
+              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#06a63e] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-[#03652a]"
             >
               Call User
             </a>
@@ -1272,15 +1272,15 @@ export default function StaffDashboard() {
             <button
               type="button"
               disabled
-              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#397239]/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-[#397239]/40"
+              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#06a63e]/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-[#06a63e]/40"
             >
               Call User
             </button>
           )}
         </div>
 
-        <div className="rounded-2xl border border-[#397234]/10 bg-white/60 p-3">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-[#397239]/40">Pickup PIN</p>
+        <div className="rounded-2xl border border-[#06a63e]/10 bg-white/60 p-3">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-[#06a63e]/40">Pickup PIN</p>
           <div className="mt-2 flex gap-2">
             <input
               type="text"
@@ -1288,22 +1288,22 @@ export default function StaffDashboard() {
               value={pickupPinValues[task._id] || ''}
               onChange={(event) => handlePickupPinChange(task._id, event.target.value)}
               placeholder={task.pickupPin ? 'Enter generated PIN' : 'No PIN available'}
-              className={`min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm font-bold text-[#244c21] outline-none transition-all ${
+              className={`min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm font-bold text-[#03652a] outline-none transition-all ${
                 verifiedPickupPins[task._id]
                   ? 'border-green-400 bg-green-50'
-                  : 'border-[#397234]/15 bg-white/80 focus:border-[#397239]'
+                  : 'border-[#06a63e]/15 bg-white/80 focus:border-[#06a63e]'
               }`}
             />
             <button
               type="button"
               onClick={() => verifyPickupPin(task)}
-              className="rounded-xl bg-[#244c21] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-[#397239]"
+              className="rounded-xl bg-[#03652a] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-[#06a63e]"
             >
               Verify
             </button>
           </div>
           {task.pickupPin && (
-            <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-[#397239]/45">
+            <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/45">
               {verifiedPickupPins[task._id] ? 'PIN verified' : 'Enter the order PIN before completing'}
             </p>
           )}
@@ -1325,8 +1325,8 @@ export default function StaffDashboard() {
             disabled={updatingTask === task._id || task.status === 'En Route'}
             className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
               task.status === 'En Route'
-                ? 'bg-[#397239]/10 text-[#397239]/40 cursor-not-allowed'
-                : 'bg-[#397239] text-white hover:bg-[#244c21] shadow-md'
+                ? 'bg-[#06a63e]/10 text-[#06a63e]/40 cursor-not-allowed'
+                : 'bg-[#06a63e] text-white hover:bg-[#03652a] shadow-md'
             }`}
           >
             {updatingTask === task._id && task.status !== 'En Route' ? '...' : <><Icons.ActiveTasks /> En Route</>}
@@ -1334,7 +1334,7 @@ export default function StaffDashboard() {
           <button
             onClick={() => updateTaskStatus(task._id, 'Completed')}
             disabled={updatingTask === task._id}
-            className="flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white border border-[#397239]/20 text-[#397239] transition-all hover:bg-[#112A0F]/5"
+            className="flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white border border-[#06a63e]/20 text-[#06a63e] transition-all hover:bg-[#03652a]/5"
           >
             {updatingTask === task._id ? '...' : <><Icons.CompletedTasks /> Complete</>}
           </button>
@@ -1393,17 +1393,17 @@ export default function StaffDashboard() {
 
   const PendingOrdersPanel = () => (
     <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.4fr] gap-4 min-h-[540px]">
-      <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-4 shadow-sm flex flex-col">
+      <div className="rounded-3xl border border-[#06a63e]/20 bg-[#eaf9ee]/35 p-4 shadow-sm flex flex-col">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-black text-[#244c21]">Pending Orders</h3>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Orders waiting for pickup confirmation</p>
+            <h3 className="text-lg font-black text-[#03652a]">Pending Orders</h3>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#06a63e]/50">Orders waiting for pickup confirmation</p>
           </div>
-          <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">{pendingOrders.length} orders</span>
+          <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#06a63e]">{pendingOrders.length} orders</span>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-[#397234]/10 bg-white/70 shadow-inner flex-1">
-          <div className="grid grid-cols-[1.2fr_2fr_1fr_1fr] gap-3 border-b border-[#397234]/10 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/50">
+        <div className="overflow-hidden rounded-2xl border border-[#06a63e]/10 bg-white/70 shadow-inner flex-1">
+          <div className="grid grid-cols-[1.2fr_2fr_1fr_1fr] gap-3 border-b border-[#06a63e]/10 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#06a63e]/50">
             <span>Order ID</span>
             <span>Pickup Address</span>
             <span>Estimated Amt</span>
@@ -1413,7 +1413,7 @@ export default function StaffDashboard() {
           <div className="max-h-[420px] overflow-y-auto">
             {pendingOrders.length === 0 ? (
               <div className="flex h-[360px] items-center justify-center px-6 text-center">
-                <p className="text-sm font-black uppercase tracking-widest text-[#397239]/50">No pending orders available</p>
+                <p className="text-sm font-black uppercase tracking-widest text-[#06a63e]/50">No pending orders available</p>
               </div>
             ) : (
               pendingOrders.map((order) => (
@@ -1428,17 +1428,17 @@ export default function StaffDashboard() {
                       openPendingOrderDetails(order);
                     }
                   }}
-                  className="grid w-full cursor-pointer grid-cols-[1.2fr_2fr_1fr_1fr] items-center gap-3 border-b border-[#397234]/10 px-4 py-4 text-left transition hover:bg-[#D6E9CA]/25 focus:bg-[#D6E9CA]/25 focus:outline-none last:border-b-0"
+                  className="grid w-full cursor-pointer grid-cols-[1.2fr_2fr_1fr_1fr] items-center gap-3 border-b border-[#06a63e]/10 px-4 py-4 text-left transition hover:bg-[#eaf9ee]/25 focus:bg-[#eaf9ee]/25 focus:outline-none last:border-b-0"
                 >
                   <div>
-                    <p className="text-sm font-black text-[#244c21]">{order._id.slice(-8).toUpperCase()}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#397239]/40">{order.service_type || 'Order'}</p>
+                    <p className="text-sm font-black text-[#03652a]">{order._id.slice(-8).toUpperCase()}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/40">{order.service_type || 'Order'}</p>
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-[#244c21]">{order.location || 'Location missing'}</p>
+                    <p className="truncate text-sm font-bold text-[#03652a]">{order.location || 'Location missing'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-black text-[#397239]">{formatCurrency(getEstimatedAmount(order))}</p>
+                    <p className="text-sm font-black text-[#06a63e]">{formatCurrency(getEstimatedAmount(order))}</p>
                   </div>
                   <div>
                     <button
@@ -1448,7 +1448,7 @@ export default function StaffDashboard() {
                         confirmPickup(order);
                       }}
                       disabled={confirmingOrderId === order._id}
-                      className="rounded-xl bg-[#397239] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-xl bg-[#06a63e] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-[#03652a] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {confirmingOrderId === order._id ? 'Confirming...' : 'Confirm Pickup'}
                     </button>
@@ -1460,30 +1460,30 @@ export default function StaffDashboard() {
         </div>
       </div>
 
-      <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/20 p-4 shadow-sm flex flex-col min-h-[540px] overflow-hidden">
+      <div className="rounded-3xl border border-[#06a63e]/20 bg-[#eaf9ee]/20 p-4 shadow-sm flex flex-col min-h-[540px] overflow-hidden">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-black text-[#244c21]">Pending Orders Map</h3>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Pins for every pending pickup request</p>
+            <h3 className="text-lg font-black text-[#03652a]">Pending Orders Map</h3>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#06a63e]/50">Pins for every pending pickup request</p>
           </div>
-          <div className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">{pendingOrderPins.length} pins</div>
+          <div className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#06a63e]">{pendingOrderPins.length} pins</div>
         </div>
 
         {pendingOrders.length === 0 ? (
-          <div className="flex-1 grid place-items-center rounded-3xl border border-dashed border-[#397234]/15 bg-white/60 text-center px-6">
+          <div className="flex-1 grid place-items-center rounded-3xl border border-dashed border-[#06a63e]/15 bg-white/60 text-center px-6">
             <div>
-              <p className="text-sm font-black uppercase tracking-widest text-[#397239]/50">No map pins yet</p>
-              <p className="mt-2 text-xs font-medium text-[#397239]/60">Pending pickups will appear here once customers submit requests.</p>
+              <p className="text-sm font-black uppercase tracking-widest text-[#06a63e]/50">No map pins yet</p>
+              <p className="mt-2 text-xs font-medium text-[#06a63e]/60">Pending pickups will appear here once customers submit requests.</p>
             </div>
           </div>
         ) : (
-          <div className="relative z-0 flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white shadow-inner flex flex-col isolate">
-            <div className="flex flex-wrap items-center gap-2 border-b border-[#397234]/10 bg-[#f7fbf4] px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/60">
-              <span className="rounded-full bg-[#397239]/10 px-3 py-1 text-[#397239]">{pendingOrderPins.length} pinned</span>
+          <div className="relative z-0 flex-1 overflow-hidden rounded-3xl border border-[#06a63e]/10 bg-white shadow-inner flex flex-col isolate">
+            <div className="flex flex-wrap items-center gap-2 border-b border-[#06a63e]/10 bg-[#f7fbf4] px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#06a63e]/60">
+              <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-[#06a63e]">{pendingOrderPins.length} pinned</span>
               {unresolvedPendingOrders > 0 && (
                 <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-700">{unresolvedPendingOrders} without coordinates</span>
               )}
-              <span className="rounded-full bg-white px-3 py-1 text-[#397239]/70">OpenStreetMap live markers</span>
+              <span className="rounded-full bg-white px-3 py-1 text-[#06a63e]/70">OpenStreetMap live markers</span>
             </div>
 
             <PendingOrdersMapCanvas orders={pendingOrders} onOrderSelect={openPendingOrderDetails} />
@@ -1491,10 +1491,10 @@ export default function StaffDashboard() {
             <div className="relative -mt-4 mx-4 mb-4 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-xl backdrop-blur">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#397239]/45">Pin directory</p>
-                    <p className="mt-1 text-sm font-black text-[#244c21]">Quick access to each pickup target</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#06a63e]/45">Pin directory</p>
+                    <p className="mt-1 text-sm font-black text-[#03652a]">Quick access to each pickup target</p>
                   </div>
-                  <span className="rounded-full bg-[#D6E9CA]/60 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#397239]">
+                  <span className="rounded-full bg-[#eaf9ee]/60 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#06a63e]">
                     {pendingOrderPins.length}
                   </span>
                 </div>
@@ -1504,14 +1504,14 @@ export default function StaffDashboard() {
                       key={order._id}
                       type="button"
                       onClick={() => openPendingOrderDetails(order)}
-                      className="rounded-xl border border-[#397234]/10 bg-[#f8fbf5] px-3 py-2 text-left transition hover:bg-[#D6E9CA]/35"
+                      className="rounded-xl border border-[#06a63e]/10 bg-[#f8fbf5] px-3 py-2 text-left transition hover:bg-[#eaf9ee]/35"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#397239]/45">Pin {label}</p>
-                          <p className="truncate text-xs font-bold text-[#244c21]">{order.location || target}</p>
+                          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#06a63e]/45">Pin {label}</p>
+                          <p className="truncate text-xs font-bold text-[#03652a]">{order.location || target}</p>
                         </div>
-                        <span className="shrink-0 rounded-full bg-[#397239] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white">
+                        <span className="shrink-0 rounded-full bg-[#06a63e] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white">
                           Details
                         </span>
                       </div>
@@ -1527,17 +1527,17 @@ export default function StaffDashboard() {
 
   // ─── Inquiry Panel ────────────────────────────────────────────────────────────
   const renderInquiriesPanel = () => (
-    <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-5 shadow-sm">
+    <div className="rounded-3xl border border-[#06a63e]/20 bg-[#eaf9ee]/35 p-5 shadow-sm">
       {/* Header row */}
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-xl font-black text-[#244c21]">My Inquiries</h3>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">
+          <h3 className="text-xl font-black text-[#03652a]">My Inquiries</h3>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#06a63e]/50">
             Inquiries submitted under your account
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">
+          <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#06a63e]">
             {inquiries.length} total
           </span>
           {pendingInquiriesCount > 0 && (
@@ -1548,7 +1548,7 @@ export default function StaffDashboard() {
           <button
             onClick={fetchInquiries}
             disabled={inquiriesLoading}
-            className="rounded-xl border border-[#397234]/20 bg-white/70 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-[#397239] transition-all hover:bg-white disabled:opacity-50"
+            className="rounded-xl border border-[#06a63e]/20 bg-white/70 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-[#06a63e] transition-all hover:bg-white disabled:opacity-50"
           >
             {inquiriesLoading ? 'Loading...' : 'Refresh'}
           </button>
@@ -1564,13 +1564,13 @@ export default function StaffDashboard() {
         </div>
       ) : inquiries.length === 0 ? (
         /* Empty state */
-        <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-[#397239]/20 bg-[#D6E9CA]/20 py-16 text-center">
-          <div className="grid h-14 w-14 place-items-center rounded-full border border-[#397234]/10 bg-[#397234]/5 text-[#397239]">
+        <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-[#06a63e]/20 bg-[#eaf9ee]/20 py-16 text-center">
+          <div className="grid h-14 w-14 place-items-center rounded-full border border-[#06a63e]/10 bg-[#06a63e]/5 text-[#06a63e]">
             <Icons.Inquiry />
           </div>
           <div>
-            <p className="text-sm font-black uppercase tracking-widest text-[#397239]/60">No inquiries found</p>
-            <p className="mt-1 text-[10px] font-bold text-[#397239]/30 uppercase tracking-widest">
+            <p className="text-sm font-black uppercase tracking-widest text-[#06a63e]/60">No inquiries found</p>
+            <p className="mt-1 text-[10px] font-bold text-[#06a63e]/30 uppercase tracking-widest">
               Inquiries linked to your account will appear here
             </p>
           </div>
@@ -1587,8 +1587,8 @@ export default function StaffDashboard() {
                 key={inq._id}
                 className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
                   isExpanded
-                    ? 'border-[#397239]/30 bg-white shadow-md'
-                    : 'border-[#397234]/15 bg-white/60 hover:bg-white/80 hover:border-[#397234]/25'
+                    ? 'border-[#06a63e]/30 bg-white shadow-md'
+                    : 'border-[#06a63e]/15 bg-white/60 hover:bg-white/80 hover:border-[#06a63e]/25'
                 }`}
               >
                 {/* Collapsed header — always visible */}
@@ -1601,14 +1601,14 @@ export default function StaffDashboard() {
                     {/* Status dot */}
                     <span
                       className={`shrink-0 h-2.5 w-2.5 rounded-full ${
-                        isReplied ? 'bg-[#397239]' : 'bg-amber-400'
+                        isReplied ? 'bg-[#06a63e]' : 'bg-amber-400'
                       }`}
                     />
                     <div className="min-w-0">
-                      <p className="text-sm font-black text-[#244c21] truncate">
+                      <p className="text-sm font-black text-[#03652a] truncate">
                         {inq.subject || 'General Inquiry'}
                       </p>
-                      <p className="text-[10px] font-bold text-[#397239]/40 uppercase tracking-widest mt-0.5">
+                      <p className="text-[10px] font-bold text-[#06a63e]/40 uppercase tracking-widest mt-0.5">
                         {formatDateTime(inq.createdAt)}
                       </p>
                     </div>
@@ -1618,13 +1618,13 @@ export default function StaffDashboard() {
                     <span
                       className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest ${
                         isReplied
-                          ? 'bg-green-100 text-[#397239]'
+                          ? 'bg-green-100 text-[#06a63e]'
                           : 'bg-amber-100 text-amber-700'
                       }`}
                     >
                       {inq.status}
                     </span>
-                    <span className="text-[#397239]/40">
+                    <span className="text-[#06a63e]/40">
                       {isExpanded ? <Icons.ChevronUp /> : <Icons.ChevronDown />}
                     </span>
                   </div>
@@ -1632,25 +1632,25 @@ export default function StaffDashboard() {
 
                 {/* Expanded body */}
                 {isExpanded && (
-                  <div className="px-5 pb-5 border-t border-[#397234]/10">
+                  <div className="px-5 pb-5 border-t border-[#06a63e]/10">
                     {/* User info + message */}
                     <div className="mt-4 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-4">
                       {/* Left: meta */}
                       <div className="space-y-3">
-                        <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50">From</p>
-                          <p className="mt-1 text-sm font-bold text-[#244c21]">{inq.userName}</p>
-                          <p className="text-xs text-[#397239]/50 font-medium">{inq.userEmail}</p>
+                        <div className="rounded-2xl bg-[#eaf9ee]/40 px-4 py-3">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-[#06a63e]/50">From</p>
+                          <p className="mt-1 text-sm font-bold text-[#03652a]">{inq.userName}</p>
+                          <p className="text-xs text-[#06a63e]/50 font-medium">{inq.userEmail}</p>
                         </div>
-                        <div className="rounded-2xl bg-[#D6E9CA]/40 px-4 py-3">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50">Submitted</p>
-                          <p className="mt-1 text-xs font-bold text-[#244c21]">{formatDateTime(inq.createdAt)}</p>
+                        <div className="rounded-2xl bg-[#eaf9ee]/40 px-4 py-3">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-[#06a63e]/50">Submitted</p>
+                          <p className="mt-1 text-xs font-bold text-[#03652a]">{formatDateTime(inq.createdAt)}</p>
                         </div>
                         {isReplied && inq.repliedAt && (
                           <div className="rounded-2xl bg-green-50 px-4 py-3 border border-green-100">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50">Replied by</p>
-                            <p className="mt-1 text-xs font-bold text-[#244c21]">{inq.repliedBy || 'Staff'}</p>
-                            <p className="text-[10px] text-[#397239]/40 font-medium">{formatDateTime(inq.repliedAt)}</p>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-[#06a63e]/50">Replied by</p>
+                            <p className="mt-1 text-xs font-bold text-[#03652a]">{inq.repliedBy || 'Staff'}</p>
+                            <p className="text-[10px] text-[#06a63e]/40 font-medium">{formatDateTime(inq.repliedAt)}</p>
                           </div>
                         )}
                       </div>
@@ -1658,28 +1658,28 @@ export default function StaffDashboard() {
                       {/* Right: message + reply thread */}
                       <div className="space-y-3">
                         {/* Original message */}
-                        <div className="rounded-2xl bg-[#D6E9CA]/30 px-4 py-3 border border-[#397234]/10">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50 mb-2">Message</p>
-                          <p className="text-sm text-[#244c21] font-medium leading-relaxed">{inq.message}</p>
+                        <div className="rounded-2xl bg-[#eaf9ee]/30 px-4 py-3 border border-[#06a63e]/10">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-[#06a63e]/50 mb-2">Message</p>
+                          <p className="text-sm text-[#03652a] font-medium leading-relaxed">{inq.message}</p>
                         </div>
 
                         {/* Existing reply */}
                         {isReplied && inq.adminReply && (
-                          <div className="rounded-2xl bg-[#397239]/8 px-4 py-3 border border-[#397239]/15">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/60 mb-2 flex items-center gap-1.5">
+                          <div className="rounded-2xl bg-[#06a63e]/8 px-4 py-3 border border-[#06a63e]/15">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-[#06a63e]/60 mb-2 flex items-center gap-1.5">
                               <Icons.Send /> REPLY SENT
                             </p>
-                            <p className="text-sm text-[#244c21] font-medium leading-relaxed">{inq.adminReply}</p>
+                            <p className="text-sm text-[#03652a] font-medium leading-relaxed">{inq.adminReply}</p>
                           </div>
                         )}
 
                         {/* Reply composer — always show so staff can update/add another reply */}
                         <div
-                          className="rounded-2xl bg-white border border-[#397234]/15 p-3"
+                          className="rounded-2xl bg-white border border-[#06a63e]/15 p-3"
                           onMouseDown={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <p className="text-[9px] font-black uppercase tracking-widest text-[#397239]/50 mb-2">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-[#06a63e]/50 mb-2">
                             {isReplied ? 'Update Reply' : 'Write a Reply'}
                           </p>
                           <textarea
@@ -1691,7 +1691,7 @@ export default function StaffDashboard() {
                               setReplyTexts((prev) => ({ ...prev, [inq._id]: e.target.value }))
                             }
                             placeholder="Type your reply here..."
-                            className="w-full resize-none rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/20 px-3 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] focus:bg-white transition-all placeholder:text-[#397239]/30"
+                            className="w-full resize-none rounded-xl border border-[#06a63e]/10 bg-[#eaf9ee]/20 px-3 py-2.5 text-sm text-[#03652a] outline-none focus:border-[#06a63e] focus:bg-white transition-all placeholder:text-[#06a63e]/30"
                           />
                           <div className="mt-2 flex justify-end">
                             <button
@@ -1704,7 +1704,7 @@ export default function StaffDashboard() {
                               disabled={
                                 !replyTexts[inq._id]?.trim() || sendingReply === inq._id
                               }
-                              className="flex items-center gap-2 rounded-xl bg-[#397239] px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-50"
+                              className="flex items-center gap-2 rounded-xl bg-[#06a63e] px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-[#03652a] disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <Icons.Send />
                               {sendingReply === inq._id ? 'Sending...' : 'Send Reply'}
@@ -1724,11 +1724,11 @@ export default function StaffDashboard() {
   );
 
   return (
-    <div className="h-screen w-screen font-sans text-[#244c21] bg-[#f4f9f4] p-4 lg:p-3 overflow-hidden">
+    <div className="h-screen w-screen font-sans text-[#03652a] bg-[#f4fbf5] p-4 lg:p-3 overflow-hidden">
       <div className="flex h-full w-full gap-3">
 
         {/* Sidebar */}
-        <aside className="hidden lg:flex flex-col gap-4 bg-[#397234]/80 backdrop-blur-3xl border border-[#397234]/20 p-5 text-white/80 w-[240px] shrink-0 rounded-3xl shadow-2xl overflow-hidden h-full relative">
+        <aside className="hidden lg:flex flex-col gap-4 bg-[#03652a]/90 backdrop-blur-3xl border border-[#06a63e]/20 p-5 text-white/85 w-[240px] shrink-0 rounded-3xl shadow-2xl overflow-hidden h-full relative">
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
           <div className="flex items-center gap-3 pb-2">
             <h1 className="m-0 text-2xl font-black tracking-tighter text-white">Ecofy</h1>
@@ -1745,7 +1745,7 @@ export default function StaffDashboard() {
                 }}
                 className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${
                   activeTab === item.key
-                    ? "bg-[#397239] text-white shadow-lg shadow-black/20"
+                    ? "bg-[#06a63e] text-white shadow-lg shadow-black/20"
                     : "text-white/60 hover:bg-white/5 hover:text-white"
                 } ${mustChangePassword && item.key !== 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
@@ -1767,7 +1767,7 @@ export default function StaffDashboard() {
           </nav>
 
           <div className="mt-auto flex items-center gap-3 rounded-2xl bg-white/5 p-3 text-white border border-white/10 backdrop-blur-sm shrink-0">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#397239] text-xs font-bold text-white shadow-inner">{staffInitials}</div>
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#06a63e] text-xs font-bold text-white shadow-inner">{staffInitials}</div>
             <div className="min-w-0">
               <p className="m-0 text-[0.65rem] font-black uppercase tracking-wider text-white/60">Staff Portal</p>
               <p className="m-0 text-xs font-bold truncate">{staffName}</p>
@@ -1781,14 +1781,14 @@ export default function StaffDashboard() {
 
           {/* Header */}
           <header className="relative z-[1000] mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
-            <h2 className="m-0 text-2xl font-black tracking-tight text-[#244c21] truncate">
+            <h2 className="m-0 text-2xl font-black tracking-tight text-[#03652a] truncate">
               {getPageTitle()}
             </h2>
             <div className="flex items-center gap-3">
               <NotificationBell target="staff" />
-              <div className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-3 py-1.5 text-xs font-black text-[#397239] backdrop-blur-sm">Staff</div>
+              <div className="rounded-xl border border-[#06a63e]/10 bg-[#eaf9ee]/70 px-3 py-1.5 text-xs font-black text-[#06a63e] backdrop-blur-sm">Staff</div>
               {!roleLoading && role === 'Admin' && (
-                <button onClick={handleSwitchDashboard} className="rounded-xl bg-[#397239] px-4 py-2 text-xs font-black text-white transition-all hover:bg-[#244c21] shadow-md">Switch to Admin</button>
+                <button onClick={handleSwitchDashboard} className="rounded-xl bg-[#06a63e] px-4 py-2 text-xs font-black text-white transition-all hover:bg-[#03652a] shadow-md">Switch to Admin</button>
               )}
             </div>
           </header>
@@ -1798,7 +1798,7 @@ export default function StaffDashboard() {
             <div className="h-full">
               {notification && (
                 <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-xl text-white font-black text-sm animate-in fade-in slide-in-from-top-4 duration-300 uppercase tracking-widest ${
-                  notification.type === 'error' ? 'bg-red-500' : 'bg-[#397239]'
+                  notification.type === 'error' ? 'bg-red-500' : 'bg-[#06a63e]'
                 }`}>
                   {notification.message}
                 </div>
@@ -1820,7 +1820,7 @@ export default function StaffDashboard() {
                 {activeTab === 'settings' && (
                   <div className="col-span-full">
                     {settingsLoading ? (
-                      <div className="rounded-3xl border border-dashed border-[#397239]/20 bg-[#D6E9CA]/20 p-12 text-center text-[#397239]/60 font-black uppercase tracking-widest text-[10px]">
+                      <div className="rounded-3xl border border-dashed border-[#06a63e]/20 bg-[#eaf9ee]/30 p-12 text-center text-[#06a63e]/60 font-black uppercase tracking-widest text-[10px]">
                         Loading settings...
                       </div>
                     ) : (
@@ -1846,9 +1846,9 @@ export default function StaffDashboard() {
 
                 {activeTab === 'active' && (
                   ongoingTasks.length === 0 ? (
-                    <div className="col-span-full rounded-3xl border border-dashed border-[#397239]/20 bg-[#D6E9CA]/20 p-12 text-center flex flex-col items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-[#397234]/5 flex items-center justify-center text-[#397239] border border-[#397234]/10"><Icons.ActiveTasks /></div>
-                      <p className="text-[#397239]/60 font-black uppercase tracking-widest text-[10px]">No active tasks in progress.</p>
+                    <div className="col-span-full rounded-3xl border border-dashed border-[#06a63e]/20 bg-[#eaf9ee]/30 p-12 text-center flex flex-col items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-[#06a63e]/5 flex items-center justify-center text-[#06a63e] border border-[#06a63e]/10"><Icons.ActiveTasks /></div>
+                      <p className="text-[#06a63e]/60 font-black uppercase tracking-widest text-[10px]">No active tasks in progress.</p>
                     </div>
                   ) : (
                     ongoingTasks.map((task) => (
@@ -1861,9 +1861,9 @@ export default function StaffDashboard() {
 
                 {activeTab === 'completed' && (
                   completedTasks.length === 0 ? (
-                    <div className="col-span-full rounded-3xl border border-dashed border-[#397239]/20 bg-[#D6E9CA]/20 p-12 text-center flex flex-col items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-[#397234]/5 flex items-center justify-center text-[#397239] border border-[#397234]/10"><Icons.CompletedTasks /></div>
-                      <p className="text-[#397239]/60 font-black uppercase tracking-widest text-[10px]">No tasks completed yet today.</p>
+                    <div className="col-span-full rounded-3xl border border-dashed border-[#06a63e]/20 bg-[#eaf9ee]/30 p-12 text-center flex flex-col items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-[#06a63e]/5 flex items-center justify-center text-[#06a63e] border border-[#06a63e]/10"><Icons.CompletedTasks /></div>
+                      <p className="text-[#06a63e]/60 font-black uppercase tracking-widest text-[10px]">No tasks completed yet today.</p>
                     </div>
                   ) : (
                     completedTasks.map((task) => (
@@ -1874,14 +1874,14 @@ export default function StaffDashboard() {
                   )
                 )}
               </div>
-              <footer className="mt-8 text-[0.75rem] text-[#397239]/40 pb-6 text-center">&copy; 2026 Ecofy Waste Management</footer>
+              <footer className="mt-8 text-[0.75rem] text-[#06a63e]/40 pb-6 text-center">&copy; 2026 Ecofy Waste Management</footer>
             </div>
           </main>
         </div>
       </div>
 
       {/* Mobile top bar */}
-      <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-[#112A0F] px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">
+      <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-[#03652a] px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0"><h2 className="truncate text-base font-bold leading-tight">{getPageTitle()}</h2></div>
           <button onClick={() => setIsMobileMenuOpen(true)} className="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-white/10 text-white"><Icons.Menu /></button>
@@ -1891,14 +1891,14 @@ export default function StaffDashboard() {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <button className="absolute inset-0 bg-green-950/40 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="absolute left-4 top-4 bottom-4 flex w-[86%] max-w-[300px] flex-col gap-4 overflow-y-auto bg-[#397234]/90 backdrop-blur-3xl p-5 text-white shadow-2xl border border-white/10 rounded-3xl">
+          <aside className="absolute left-4 top-4 bottom-4 flex w-[86%] max-w-[300px] flex-col gap-4 overflow-y-auto bg-[#03652a]/92 backdrop-blur-3xl p-5 text-white shadow-2xl border border-white/10 rounded-3xl">
             <div className="flex items-center justify-between gap-2 pb-2">
               <h1 className="m-0 text-lg font-bold">Ecofy</h1>
               <button onClick={() => setIsMobileMenuOpen(false)} className="text-white/60 text-xs font-bold">✕</button>
             </div>
             <nav className="flex flex-col gap-1">
               {menuItems.map((item) => (
-                <button key={item.key} disabled={mustChangePassword && item.key !== 'settings'} onClick={() => { if (mustChangePassword && item.key !== 'settings') return; setActiveTab(item.key); setIsMobileMenuOpen(false); }} className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${activeTab === item.key ? "bg-[#397239] text-white shadow-lg" : "hover:bg-white/10"} ${mustChangePassword && item.key !== 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                <button key={item.key} disabled={mustChangePassword && item.key !== 'settings'} onClick={() => { if (mustChangePassword && item.key !== 'settings') return; setActiveTab(item.key); setIsMobileMenuOpen(false); }} className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${activeTab === item.key ? "bg-[#06a63e] text-white shadow-lg" : "hover:bg-white/10"} ${mustChangePassword && item.key !== 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   <div className="flex items-center gap-3">{item.icon} {item.label}</div>
                   {item.count > 0 && <span className="text-[10px] opacity-60">{item.count}</span>}
                 </button>
@@ -1911,7 +1911,7 @@ export default function StaffDashboard() {
 
       {showLogoutModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-[360px] rounded-[2rem] border border-white/20 bg-[#397234] p-8 text-center shadow-2xl backdrop-blur-[50px] animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-[360px] rounded-[2rem] border border-white/20 bg-[#03652a] p-8 text-center shadow-2xl backdrop-blur-[50px] animate-in zoom-in-95 duration-200">
             <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-red-400/10 text-red-400">
               <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -1930,82 +1930,82 @@ export default function StaffDashboard() {
       {selectedPendingOrder && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/65 p-4 backdrop-blur-md animate-in fade-in duration-300">
           <div className="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/20 bg-[#f4f9f4] shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-start justify-between gap-4 border-b border-[#397234]/10 bg-white/85 px-6 py-5">
+            <div className="flex items-start justify-between gap-4 border-b border-[#06a63e]/10 bg-white/85 px-6 py-5">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#397239]/50">Pending order details</p>
-                <h3 className="mt-1 text-2xl font-black text-[#244c21]">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#06a63e]/50">Pending order details</p>
+                <h3 className="mt-1 text-2xl font-black text-[#03652a]">
                   Order #{selectedPendingOrder._id?.slice(-8)?.toUpperCase() || 'N/A'}
                 </h3>
-                <p className="mt-1 text-sm font-bold text-[#397239]/70">
+                <p className="mt-1 text-sm font-bold text-[#06a63e]/70">
                   {renderOrderDetailValue(selectedPendingOrder.location)}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedPendingOrder(null)}
-                className="rounded-full border border-[#397234]/10 bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+                className="rounded-full border border-[#06a63e]/10 bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#06a63e] transition hover:bg-[#eaf9ee]/40"
               >
                 Close
               </button>
             </div>
 
             <div className="grid gap-4 p-5 md:grid-cols-2">
-              <section className="rounded-2xl border border-[#397234]/10 bg-white/85 p-4 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Customer</p>
+              <section className="rounded-2xl border border-[#06a63e]/10 bg-white/85 p-4 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#06a63e]/45">Customer</p>
                 <dl className="mt-4 space-y-3 text-sm">
                   <div>
-                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Name</dt>
-                    <dd className="mt-1 font-black text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.customer_name)}</dd>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/45">Name</dt>
+                    <dd className="mt-1 font-black text-[#03652a]">{renderOrderDetailValue(selectedPendingOrder.customer_name)}</dd>
                   </div>
                   <div>
-                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Email</dt>
-                    <dd className="mt-1 break-words font-bold text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.customer_email)}</dd>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/45">Email</dt>
+                    <dd className="mt-1 break-words font-bold text-[#03652a]">{renderOrderDetailValue(selectedPendingOrder.customer_email)}</dd>
                   </div>
                   <div>
-                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Phone</dt>
-                    <dd className="mt-1 font-bold text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.customer_phone)}</dd>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/45">Phone</dt>
+                    <dd className="mt-1 font-bold text-[#03652a]">{renderOrderDetailValue(selectedPendingOrder.customer_phone)}</dd>
                   </div>
                 </dl>
               </section>
 
-              <section className="rounded-2xl border border-[#397234]/10 bg-white/85 p-4 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Pickup</p>
+              <section className="rounded-2xl border border-[#06a63e]/10 bg-white/85 p-4 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#06a63e]/45">Pickup</p>
                 <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Service</dt>
-                    <dd className="mt-1 font-black text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.service_type)}</dd>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/45">Service</dt>
+                    <dd className="mt-1 font-black text-[#03652a]">{renderOrderDetailValue(selectedPendingOrder.service_type)}</dd>
                   </div>
                   <div>
-                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Waste</dt>
-                    <dd className="mt-1 font-bold text-[#244c21]">{renderOrderDetailValue(selectedPendingOrder.waste_category)}</dd>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/45">Waste</dt>
+                    <dd className="mt-1 font-bold text-[#03652a]">{renderOrderDetailValue(selectedPendingOrder.waste_category)}</dd>
                   </div>
                   <div>
-                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#397239]/45">Date</dt>
-                    <dd className="mt-1 font-bold text-[#244c21]">{formatOrderDate(selectedPendingOrder.scheduled_date)}</dd>
+                    <dt className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/45">Date</dt>
+                    <dd className="mt-1 font-bold text-[#03652a]">{formatOrderDate(selectedPendingOrder.scheduled_date)}</dd>
                   </div>
                 </dl>
               </section>
 
-              <section className="rounded-2xl border border-[#397234]/10 bg-white/85 p-4 shadow-sm md:col-span-2">
+              <section className="rounded-2xl border border-[#06a63e]/10 bg-white/85 p-4 shadow-sm md:col-span-2">
                 <div className="grid gap-4 md:grid-cols-[1fr_0.6fr]">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Address</p>
-                    <p className="mt-2 text-sm font-bold leading-relaxed text-[#244c21]">
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#06a63e]/45">Address</p>
+                    <p className="mt-2 text-sm font-bold leading-relaxed text-[#03652a]">
                       {renderOrderDetailValue(selectedPendingOrder.location)}
                     </p>
                     {selectedPendingOrder.notes && (
                       <>
-                        <p className="mt-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Notes</p>
-                        <p className="mt-2 text-sm font-medium leading-relaxed text-[#244c21]">{selectedPendingOrder.notes}</p>
+                        <p className="mt-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#06a63e]/45">Notes</p>
+                        <p className="mt-2 text-sm font-medium leading-relaxed text-[#03652a]">{selectedPendingOrder.notes}</p>
                       </>
                     )}
                   </div>
-                  <div className="rounded-2xl bg-[#D6E9CA]/45 p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#397239]/45">Estimated amount</p>
-                    <p className="mt-2 text-2xl font-black text-[#244c21]">
+                  <div className="rounded-2xl bg-[#eaf9ee]/45 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#06a63e]/45">Estimated amount</p>
+                    <p className="mt-2 text-2xl font-black text-[#03652a]">
                       {formatCurrency(getEstimatedAmount(selectedPendingOrder))}
                     </p>
-                    <p className="mt-2 text-xs font-bold text-[#397239]/60">
+                    <p className="mt-2 text-xs font-bold text-[#06a63e]/60">
                       Status: {selectedPendingOrder.status || 'Pending'}
                     </p>
                   </div>
@@ -2013,14 +2013,14 @@ export default function StaffDashboard() {
               </section>
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-[#397234]/10 bg-white/80 px-5 py-4 sm:flex-row sm:justify-end">
+            <div className="flex flex-col gap-3 border-t border-[#06a63e]/10 bg-white/80 px-5 py-4 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => {
                   setSelectedPendingOrder(null);
                   openNavigationForOrder(selectedPendingOrder);
                 }}
-                className="rounded-2xl border border-[#397234]/10 bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+                className="rounded-2xl border border-[#06a63e]/10 bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-[#06a63e] transition hover:bg-[#eaf9ee]/40"
               >
                 View route
               </button>
@@ -2028,7 +2028,7 @@ export default function StaffDashboard() {
                 type="button"
                 onClick={() => confirmPickup(selectedPendingOrder)}
                 disabled={confirmingOrderId === selectedPendingOrder._id}
-                className="rounded-2xl bg-[#397239] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#244c21] disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-2xl bg-[#06a63e] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#03652a] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {confirmingOrderId === selectedPendingOrder._id ? 'Confirming...' : 'Confirm Pickup'}
               </button>
@@ -2040,44 +2040,44 @@ export default function StaffDashboard() {
       {showNavigationModal && navigationOrder && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/65 p-4 backdrop-blur-md animate-in fade-in duration-300">
           <div className="w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/20 bg-[#f4f9f4] shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-start justify-between gap-4 border-b border-[#397234]/10 bg-white/80 px-6 py-5">
+            <div className="flex items-start justify-between gap-4 border-b border-[#06a63e]/10 bg-white/80 px-6 py-5">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#397239]/50">Pickup route</p>
-                <h3 className="mt-1 text-2xl font-black text-[#244c21]">Leaflet + OSRM navigation</h3>
-                <p className="mt-1 text-sm font-medium text-[#397239]/70">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#06a63e]/50">Pickup route</p>
+                <h3 className="mt-1 text-2xl font-black text-[#03652a]">Leaflet + OSRM navigation</h3>
+                <p className="mt-1 text-sm font-medium text-[#06a63e]/70">
                   {navigationOrder.location || 'Location not available'}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowNavigationModal(false)}
-                className="rounded-full border border-[#397234]/10 bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+                className="rounded-full border border-[#06a63e]/10 bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#06a63e] transition hover:bg-[#eaf9ee]/40"
               >
                 Close
               </button>
             </div>
 
             <div className="grid gap-4 p-4 lg:grid-cols-[1.3fr_0.7fr]">
-              <div className="overflow-hidden rounded-[1.5rem] border border-[#397234]/10 bg-white shadow-inner min-h-[520px]">
+              <div className="overflow-hidden rounded-[1.5rem] border border-[#06a63e]/10 bg-white shadow-inner min-h-[520px]">
                 <PickupNavigationMap order={navigationOrder} />
               </div>
 
-              <div className="flex flex-col justify-between gap-4 rounded-[1.5rem] border border-[#397234]/10 bg-white/90 p-5 shadow-sm">
+              <div className="flex flex-col justify-between gap-4 rounded-[1.5rem] border border-[#06a63e]/10 bg-white/90 p-5 shadow-sm">
                 <div className="space-y-4">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/40">Destination</p>
-                    <p className="mt-1 text-sm font-bold text-[#244c21]">{navigationOrder.location || 'Location not available'}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#06a63e]/40">Destination</p>
+                    <p className="mt-1 text-sm font-bold text-[#03652a]">{navigationOrder.location || 'Location not available'}</p>
                   </div>
 
-                  <div className="rounded-2xl bg-[#D6E9CA]/35 p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/40">Order</p>
-                    <p className="mt-1 text-sm font-black text-[#244c21]">{navigationOrder._id?.slice(-8)?.toUpperCase() || 'N/A'}</p>
-                    <p className="text-xs font-medium text-[#397239]/60">{navigationOrder.service_type || 'Pickup'}</p>
+                  <div className="rounded-2xl bg-[#eaf9ee]/35 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#06a63e]/40">Order</p>
+                    <p className="mt-1 text-sm font-black text-[#03652a]">{navigationOrder._id?.slice(-8)?.toUpperCase() || 'N/A'}</p>
+                    <p className="text-xs font-medium text-[#06a63e]/60">{navigationOrder.service_type || 'Pickup'}</p>
                   </div>
 
-                  <div className="rounded-2xl bg-[#D6E9CA]/35 p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/40">Navigation</p>
-                    <p className="mt-1 text-xs font-medium text-[#397239]/60">Use your current location inside the map to draw the OSRM route line, then open the same path in OpenStreetMap directions if needed.</p>
+                  <div className="rounded-2xl bg-[#eaf9ee]/35 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#06a63e]/40">Navigation</p>
+                    <p className="mt-1 text-xs font-medium text-[#06a63e]/60">Use your current location inside the map to draw the OSRM route line, then open the same path in OpenStreetMap directions if needed.</p>
                   </div>
                 </div>
 
@@ -2090,7 +2090,7 @@ export default function StaffDashboard() {
                         window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
                       }
                     }}
-                    className="rounded-2xl bg-[#397239] px-4 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#244c21]"
+                    className="rounded-2xl bg-[#06a63e] px-4 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#03652a]"
                   >
                     Open On Map
                   </button>
@@ -2100,7 +2100,7 @@ export default function StaffDashboard() {
                       setShowNavigationModal(false);
                       setNavigationOrder(null);
                     }}
-                    className="rounded-2xl border border-[#397234]/10 bg-white px-4 py-3 text-xs font-black uppercase tracking-widest text-[#397239] transition hover:bg-[#D6E9CA]/40"
+                    className="rounded-2xl border border-[#06a63e]/10 bg-white px-4 py-3 text-xs font-black uppercase tracking-widest text-[#06a63e] transition hover:bg-[#eaf9ee]/40"
                   >
                     Back to dashboard
                   </button>
