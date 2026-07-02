@@ -1724,11 +1724,11 @@ export default function StaffDashboard() {
   );
 
   return (
-    <div className="h-screen w-screen font-sans text-[#244c21] bg-[#f4f9f4] p-4 lg:p-3 overflow-hidden">
+    <div className="h-screen w-screen font-sans text-[#03652a] bg-[#f4fbf5] p-4 lg:p-3 overflow-hidden">
       <div className="flex h-full w-full gap-3">
 
         {/* Sidebar */}
-        <aside className="hidden lg:flex flex-col gap-4 bg-[#397234]/80 backdrop-blur-3xl border border-[#397234]/20 p-5 text-white/80 w-[240px] shrink-0 rounded-3xl shadow-2xl overflow-hidden h-full relative">
+        <aside className="hidden lg:flex flex-col gap-4 bg-[#03652a]/90 backdrop-blur-3xl border border-[#06a63e]/20 p-5 text-white/85 w-[240px] shrink-0 rounded-3xl shadow-2xl overflow-hidden h-full relative">
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
           <div className="flex items-center gap-3 pb-2">
             <h1 className="m-0 text-2xl font-black tracking-tighter text-white">Ecofy</h1>
@@ -1745,7 +1745,7 @@ export default function StaffDashboard() {
                 }}
                 className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${
                   activeTab === item.key
-                    ? "bg-[#397239] text-white shadow-lg shadow-black/20"
+                    ? "bg-[#06a63e] text-white shadow-lg shadow-black/20"
                     : "text-white/60 hover:bg-white/5 hover:text-white"
                 } ${mustChangePassword && item.key !== 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
@@ -1767,7 +1767,7 @@ export default function StaffDashboard() {
           </nav>
 
           <div className="mt-auto flex items-center gap-3 rounded-2xl bg-white/5 p-3 text-white border border-white/10 backdrop-blur-sm shrink-0">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#397239] text-xs font-bold text-white shadow-inner">{staffInitials}</div>
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#06a63e] text-xs font-bold text-white shadow-inner">{staffInitials}</div>
             <div className="min-w-0">
               <p className="m-0 text-[0.65rem] font-black uppercase tracking-wider text-white/60">Staff Portal</p>
               <p className="m-0 text-xs font-bold truncate">{staffName}</p>
@@ -1781,14 +1781,14 @@ export default function StaffDashboard() {
 
           {/* Header */}
           <header className="relative z-[1000] mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
-            <h2 className="m-0 text-2xl font-black tracking-tight text-[#244c21] truncate">
+            <h2 className="m-0 text-2xl font-black tracking-tight text-[#03652a] truncate">
               {getPageTitle()}
             </h2>
             <div className="flex items-center gap-3">
               <NotificationBell target="staff" />
-              <div className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-3 py-1.5 text-xs font-black text-[#397239] backdrop-blur-sm">Staff</div>
+              <div className="rounded-xl border border-[#06a63e]/10 bg-[#eaf9ee]/70 px-3 py-1.5 text-xs font-black text-[#06a63e] backdrop-blur-sm">Staff</div>
               {!roleLoading && role === 'Admin' && (
-                <button onClick={handleSwitchDashboard} className="rounded-xl bg-[#397239] px-4 py-2 text-xs font-black text-white transition-all hover:bg-[#244c21] shadow-md">Switch to Admin</button>
+                <button onClick={handleSwitchDashboard} className="rounded-xl bg-[#06a63e] px-4 py-2 text-xs font-black text-white transition-all hover:bg-[#03652a] shadow-md">Switch to Admin</button>
               )}
             </div>
           </header>
@@ -1798,7 +1798,7 @@ export default function StaffDashboard() {
             <div className="h-full">
               {notification && (
                 <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-xl text-white font-black text-sm animate-in fade-in slide-in-from-top-4 duration-300 uppercase tracking-widest ${
-                  notification.type === 'error' ? 'bg-red-500' : 'bg-[#397239]'
+                  notification.type === 'error' ? 'bg-red-500' : 'bg-[#06a63e]'
                 }`}>
                   {notification.message}
                 </div>
@@ -1820,7 +1820,7 @@ export default function StaffDashboard() {
                 {activeTab === 'settings' && (
                   <div className="col-span-full">
                     {settingsLoading ? (
-                      <div className="rounded-3xl border border-dashed border-[#397239]/20 bg-[#D6E9CA]/20 p-12 text-center text-[#397239]/60 font-black uppercase tracking-widest text-[10px]">
+                      <div className="rounded-3xl border border-dashed border-[#06a63e]/20 bg-[#eaf9ee]/30 p-12 text-center text-[#06a63e]/60 font-black uppercase tracking-widest text-[10px]">
                         Loading settings...
                       </div>
                     ) : (
@@ -1846,9 +1846,9 @@ export default function StaffDashboard() {
 
                 {activeTab === 'active' && (
                   ongoingTasks.length === 0 ? (
-                    <div className="col-span-full rounded-3xl border border-dashed border-[#397239]/20 bg-[#D6E9CA]/20 p-12 text-center flex flex-col items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-[#397234]/5 flex items-center justify-center text-[#397239] border border-[#397234]/10"><Icons.ActiveTasks /></div>
-                      <p className="text-[#397239]/60 font-black uppercase tracking-widest text-[10px]">No active tasks in progress.</p>
+                    <div className="col-span-full rounded-3xl border border-dashed border-[#06a63e]/20 bg-[#eaf9ee]/30 p-12 text-center flex flex-col items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-[#06a63e]/5 flex items-center justify-center text-[#06a63e] border border-[#06a63e]/10"><Icons.ActiveTasks /></div>
+                      <p className="text-[#06a63e]/60 font-black uppercase tracking-widest text-[10px]">No active tasks in progress.</p>
                     </div>
                   ) : (
                     ongoingTasks.map((task) => (
@@ -1861,9 +1861,9 @@ export default function StaffDashboard() {
 
                 {activeTab === 'completed' && (
                   completedTasks.length === 0 ? (
-                    <div className="col-span-full rounded-3xl border border-dashed border-[#397239]/20 bg-[#D6E9CA]/20 p-12 text-center flex flex-col items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-[#397234]/5 flex items-center justify-center text-[#397239] border border-[#397234]/10"><Icons.CompletedTasks /></div>
-                      <p className="text-[#397239]/60 font-black uppercase tracking-widest text-[10px]">No tasks completed yet today.</p>
+                    <div className="col-span-full rounded-3xl border border-dashed border-[#06a63e]/20 bg-[#eaf9ee]/30 p-12 text-center flex flex-col items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-[#06a63e]/5 flex items-center justify-center text-[#06a63e] border border-[#06a63e]/10"><Icons.CompletedTasks /></div>
+                      <p className="text-[#06a63e]/60 font-black uppercase tracking-widest text-[10px]">No tasks completed yet today.</p>
                     </div>
                   ) : (
                     completedTasks.map((task) => (
@@ -1874,14 +1874,14 @@ export default function StaffDashboard() {
                   )
                 )}
               </div>
-              <footer className="mt-8 text-[0.75rem] text-[#397239]/40 pb-6 text-center">&copy; 2026 Ecofy Waste Management</footer>
+              <footer className="mt-8 text-[0.75rem] text-[#06a63e]/40 pb-6 text-center">&copy; 2026 Ecofy Waste Management</footer>
             </div>
           </main>
         </div>
       </div>
 
       {/* Mobile top bar */}
-      <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-[#112A0F] px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">
+      <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-[#03652a] px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0"><h2 className="truncate text-base font-bold leading-tight">{getPageTitle()}</h2></div>
           <button onClick={() => setIsMobileMenuOpen(true)} className="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-white/10 text-white"><Icons.Menu /></button>
@@ -1891,14 +1891,14 @@ export default function StaffDashboard() {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <button className="absolute inset-0 bg-green-950/40 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="absolute left-4 top-4 bottom-4 flex w-[86%] max-w-[300px] flex-col gap-4 overflow-y-auto bg-[#397234]/90 backdrop-blur-3xl p-5 text-white shadow-2xl border border-white/10 rounded-3xl">
+          <aside className="absolute left-4 top-4 bottom-4 flex w-[86%] max-w-[300px] flex-col gap-4 overflow-y-auto bg-[#03652a]/92 backdrop-blur-3xl p-5 text-white shadow-2xl border border-white/10 rounded-3xl">
             <div className="flex items-center justify-between gap-2 pb-2">
               <h1 className="m-0 text-lg font-bold">Ecofy</h1>
               <button onClick={() => setIsMobileMenuOpen(false)} className="text-white/60 text-xs font-bold">✕</button>
             </div>
             <nav className="flex flex-col gap-1">
               {menuItems.map((item) => (
-                <button key={item.key} disabled={mustChangePassword && item.key !== 'settings'} onClick={() => { if (mustChangePassword && item.key !== 'settings') return; setActiveTab(item.key); setIsMobileMenuOpen(false); }} className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${activeTab === item.key ? "bg-[#397239] text-white shadow-lg" : "hover:bg-white/10"} ${mustChangePassword && item.key !== 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                <button key={item.key} disabled={mustChangePassword && item.key !== 'settings'} onClick={() => { if (mustChangePassword && item.key !== 'settings') return; setActiveTab(item.key); setIsMobileMenuOpen(false); }} className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${activeTab === item.key ? "bg-[#06a63e] text-white shadow-lg" : "hover:bg-white/10"} ${mustChangePassword && item.key !== 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   <div className="flex items-center gap-3">{item.icon} {item.label}</div>
                   {item.count > 0 && <span className="text-[10px] opacity-60">{item.count}</span>}
                 </button>
@@ -1911,7 +1911,7 @@ export default function StaffDashboard() {
 
       {showLogoutModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-[360px] rounded-[2rem] border border-white/20 bg-[#397234] p-8 text-center shadow-2xl backdrop-blur-[50px] animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-[360px] rounded-[2rem] border border-white/20 bg-[#03652a] p-8 text-center shadow-2xl backdrop-blur-[50px] animate-in zoom-in-95 duration-200">
             <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-red-400/10 text-red-400">
               <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
