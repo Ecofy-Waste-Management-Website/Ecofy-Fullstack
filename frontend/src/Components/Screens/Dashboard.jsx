@@ -993,7 +993,8 @@ export default function Dashboard() {
           {/* Mobile top bar */}
           <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 lg:hidden sticky top-[88px] z-10 shadow-sm">
             <button type="button" onClick={() => setSidebarOpen(true)}
-              className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-100">
+              className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-[#06a63e] outline-none"
+              aria-label="Open navigation menu">
               <Icon name="menu" className="h-5 w-5" />
             </button>
             <p className="text-sm font-bold text-gray-800">
