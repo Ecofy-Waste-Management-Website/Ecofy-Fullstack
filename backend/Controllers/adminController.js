@@ -146,9 +146,11 @@ const createStaffAccount = async (req, res) => {
 
 const getAllStaffAccounts = async (_req, res) => {
   try {
+    // ⚡ Bolt Optimization: Use .lean() for read-only query to bypass document hydration
     const staffUsers = await User.find({ role: 'Staff' })
       .sort({ createdAt: -1 })
-      .select('clerkId firstName username lastName email role status mustChangePassword passwordChangedAt createdAt updatedAt');
+      .select('clerkId firstName username lastName email role status mustChangePassword passwordChangedAt createdAt updatedAt')
+      .lean();
 
     console.log('Staff accounts fetched successfully', { count: staffUsers.length });
 

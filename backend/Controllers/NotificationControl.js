@@ -14,9 +14,11 @@ const getNotifications = async (req, res) => {
       ],
     };
     
+    // ⚡ Bolt Optimization: Use .lean() for read-only query to bypass document hydration
     const records = await Notification.find(filter)
       .sort({ createdAt: -1 })
-      .select("-__v");
+      .select("-__v")
+      .lean();
 
     res.status(200).json({
       message: "Notifications fetched successfully",
