@@ -6,7 +6,6 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 require('dotenv').config();
 console.log("env files loaded!")
 
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors'); {/*to allow frontend  access*/}
@@ -31,8 +30,8 @@ const chatbotRouter = require("./Route/ChatbotRoute.js");
 const blogRoute = require("./Route/ContentBlogRoute.js");
 const serviceManagementRouter = require("./Route/ServiceManagementRoute.js");
 
-
-const server = http.createServer(app);   
+const app = express();
+const server = http.createServer(app); 
 
 const wss = new WebSocketServer({ server });
 
