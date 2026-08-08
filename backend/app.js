@@ -64,9 +64,27 @@ const allowedOrigins = [
   'http://127.0.0.1:3000',
 ].filter(Boolean);
 
+app.use((req, res, next) => {
+  const requestOrigin = req.headers.origin;
+  const allowedOrigin = requestOrigin && (allowedOrigins.includes(requestOrigin) || requestOrigin.startsWith('https://'))
+    ? requestOrigin
+    : process.env.FRONTEND_URL || '*';
+
+  res.header('Access-Control-Allow-Origin', allowedOrigin);
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('https://')) {
       callback(null, true);
       return;
     }
