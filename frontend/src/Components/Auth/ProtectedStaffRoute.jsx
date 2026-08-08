@@ -1,17 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-const resolveRole = (mongoRole, clerkRole) => {
-  const normalizedMongoRole = typeof mongoRole === 'string' ? mongoRole.trim().toLowerCase() : '';
-  const normalizedClerkRole = typeof clerkRole === 'string' ? clerkRole.trim().toLowerCase() : '';
-
-  if (normalizedClerkRole) return normalizedClerkRole;
-  if (normalizedMongoRole) return normalizedMongoRole;
-  return 'customer';
-};
+import { buildApiUrl } from '../../utils/apiBaseUrl';
+import { resolveRole } from '../../utils/roles';
 
 export default function ProtectedStaffRoute({ children }) {
   const { user, isLoaded } = useUser();
@@ -30,22 +21,29 @@ export default function ProtectedStaffRoute({ children }) {
 
     const checkRole = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/users/${user.id}`);
+        let role = resolveRole('', user.publicMetadata?.role);
+        const response = await fetch(buildApiUrl(`/users/${user.id}`));
+
         if (response.ok) {
           const data = await response.json();
-          const role = resolveRole(data.user.role, user.publicMetadata?.role);
+          role = resolveRole(data.user?.role, user.publicMetadata?.role);
+        } else {
+          console.warn('ProtectedStaffRoute: User profile lookup failed, using Clerk metadata role');
+        }
 
-          if (role === 'staff' || role === 'admin') {
-            setAuthorized(true);
-          } else {
-            setRedirectTo('/dashboard');
-          }
+        if (role === 'staff' || role === 'admin') {
+          setAuthorized(true);
         } else {
           setRedirectTo('/dashboard');
         }
       } catch (err) {
         console.error('Role check failed:', err);
-        setRedirectTo('/dashboard');
+        const fallbackRole = resolveRole('', user.publicMetadata?.role);
+        if (fallbackRole === 'staff' || fallbackRole === 'admin') {
+          setAuthorized(true);
+        } else {
+          setRedirectTo('/dashboard');
+        }
       } finally {
         setChecking(false);
       }

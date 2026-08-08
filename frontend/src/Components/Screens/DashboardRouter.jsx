@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useUser } from "@clerk/clerk-react";
 import Dashboard from './Dashboard';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const rawApiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || window.location.origin;
+const API_BASE_URL = rawApiBaseUrl.replace(/\/$/, '');
 
 export default function DashboardRouter() {
   const { user, isLoaded } = useUser();

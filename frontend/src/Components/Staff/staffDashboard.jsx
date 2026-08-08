@@ -9,7 +9,8 @@ import ActiveTasksPanel from './ActiveTasksPanel';
 import CompleteTodayPanel from './CompleteTodayPanel';
 import SettingsPanel from './SettingsPanel';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const rawApiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || window.location.origin;
+const API_BASE_URL = rawApiBaseUrl.replace(/\/$/, '');
 
 const SERVICE_PRICES = {
   Household: 1500,
