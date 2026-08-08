@@ -99,6 +99,11 @@ app.use("/chatbot", chatbotRouter);
 app.use("/blog", blogRoute);
 app.use('/services', serviceManagementRouter);
 
+// Quick test route to verify backend is alive
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ message: "Backend is successfully connected!" });
+});
+
 
 mongoose.connect(process.env.MONGO_URI, {
   family: 4,                        // Force IPv4 – avoids SRV/DNS lookup failures
