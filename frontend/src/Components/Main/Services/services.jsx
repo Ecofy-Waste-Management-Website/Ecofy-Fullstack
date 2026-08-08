@@ -88,7 +88,7 @@ function ServiceCard({ service, index }) {
   useEffect(() => {
     gsap.fromTo(cardRef.current,
       { opacity: 0, y: 40, scale: 0.95 },
-      { 
+      {
         opacity: 1, y: 0, scale: 1,
         duration: 0.8,
         ease: "power2.out",
@@ -145,7 +145,7 @@ export default function Services() {
         @keyframes dashMove {
           to { stroke-dashoffset: -28; }
         }
-        
+
         /* Waving Animation for Chatbot */
         @keyframes wave {
           0%, 100% { transform: rotate(0deg); }
@@ -208,8 +208,8 @@ export default function Services() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 items-start">
             {services.map((s, i) => (
-              <div 
-                key={s.id} 
+              <div
+                key={s.id}
                 className={`w-full ${i % 2 !== 0 ? 'sm:mt-12 lg:mt-24' : 'sm:mt-0'}`}
               >
                 <ServiceCard service={s} index={i} />

@@ -236,7 +236,7 @@ export default function Staff_creation_test() {
       {/* Creation Card */}
       <div className="w-full rounded-3xl border border-white/20 bg-white/30 backdrop-blur-xl p-8 shadow-sm">
         <div className="mb-8 flex items-center gap-5 border-b border-white/20 pb-6">
-          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-blue-50 to-blue-100/70 shadow-inner border border-white/30" style={{ backgroundColor: theme.colors.primary + '15' }}>
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-emerald-50 to-green-100/70 shadow-inner border border-white/30" style={{ backgroundColor: theme.colors.primary + '15' }}>
             <UserPlus size={20} style={{ color: theme.colors.primary }} />
           </div>
           <div>
