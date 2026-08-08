@@ -29,7 +29,7 @@ const authTestRouter = require("./Route/authTestRoute");
 const stripeRoute = require("./Route/stripe.route");
 const chatbotRouter = require("./Route/chatbotRoute");
 const blogRoute = require("./Route/ContentBlogRoute");
-const serviceManagementRouter = require('./Route/serviceManagementRoute');
+const serviceManagementRouter = require('./Route/ServiceManagementRoute.js');
 const app = express();
 
 
