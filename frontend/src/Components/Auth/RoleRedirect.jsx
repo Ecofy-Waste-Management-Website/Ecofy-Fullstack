@@ -1,23 +1,8 @@
 import React, { useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
-
-const rawApiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || window.location.origin;
-const API_BASE_URL = rawApiBaseUrl.replace(/\/$/, '');
-
-const resolveRole = (mongoRole, clerkRole) => {
-  const normalizedMongoRole = typeof mongoRole === 'string' ? mongoRole.trim().toLowerCase() : '';
-  const normalizedClerkRole = typeof clerkRole === 'string' ? clerkRole.trim().toLowerCase() : '';
-
-  if (normalizedClerkRole) return normalizedClerkRole;
-  if (normalizedMongoRole) return normalizedMongoRole;
-  return 'customer';
-};
-
-const buildApiUrl = (path) => {
-  if (!API_BASE_URL) return path;
-  return `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
-};
+import { buildApiUrl } from '../../utils/apiBaseUrl';
+import { resolveRole } from '../../utils/roles';
 
 export default function RoleRedirect() {
   const { isLoaded, user } = useUser();
