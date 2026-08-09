@@ -63,39 +63,39 @@ export default function InquiryManagement() {
   };
 
   return (
-    <section className="space-y-6 text-[#244c21]">
-      <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 shadow-sm">
+    <section className="space-y-6 text-[#03652a]">
+      <div className="rounded-2xl border border-[#06a63e]/15 bg-[#eaf9ee]/70 backdrop-blur-[40px] p-6 shadow-sm">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h3 className="m-0 text-2xl font-black tracking-tight text-[#244c21]">Inquiry Workspace</h3>
-            <p className="m-0 mt-1 text-[10px] font-bold text-[#397239]/70 uppercase tracking-widest">Respond to user feedback and questions</p>
+            <h3 className="m-0 text-2xl font-black tracking-tight text-[#03652a]">Inquiry Workspace</h3>
+            <p className="m-0 mt-1 text-[10px] font-bold text-[#06a63e]/70 uppercase tracking-widest">Respond to user feedback and questions</p>
           </div>
 
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 p-4 shadow-sm">
-              <p className="m-0 text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest mb-1">Total</p>
-              <p className="m-0 text-xl font-black text-[#244c21]">{inquiries.length}</p>
+            <div className="rounded-2xl border border-[#06a63e]/15 bg-white/75 p-4 shadow-sm">
+              <p className="m-0 text-[10px] font-bold text-[#06a63e]/60 uppercase tracking-widest mb-1">Total</p>
+              <p className="m-0 text-xl font-black text-[#03652a]">{inquiries.length}</p>
             </div>
-            <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 p-4 shadow-sm">
-              <p className="m-0 text-[10px] font-bold text-[#397239]/80 uppercase tracking-widest mb-1">Pending</p>
-              <p className="m-0 text-xl font-black text-[#397239]">{pendingCount}</p>
+            <div className="rounded-2xl border border-[#06a63e]/15 bg-white/75 p-4 shadow-sm">
+              <p className="m-0 text-[10px] font-bold text-[#06a63e]/80 uppercase tracking-widest mb-1">Pending</p>
+              <p className="m-0 text-xl font-black text-[#06a63e]">{pendingCount}</p>
             </div>
-            <div className="rounded-2xl border border-[#397234]/20 bg-[#D6E9CA]/50 p-4 shadow-sm">
-              <p className="m-0 text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest mb-1">Replied</p>
-              <p className="m-0 text-xl font-black text-[#244c21]">{repliedCount}</p>
+            <div className="rounded-2xl border border-[#06a63e]/15 bg-white/75 p-4 shadow-sm">
+              <p className="m-0 text-[10px] font-bold text-[#06a63e]/60 uppercase tracking-widest mb-1">Replied</p>
+              <p className="m-0 text-xl font-black text-[#03652a]">{repliedCount}</p>
             </div>
           </div>
         </div>
 
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center">
           <input
-            className="w-full flex-1 rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-3 text-sm text-[#244c21] outline-none focus:border-[#397239] focus:bg-white transition-all placeholder:text-[#397239]/20"
+            className="w-full flex-1 rounded-xl border border-[#06a63e]/10 bg-white/75 px-4 py-3 text-sm text-[#03652a] outline-none focus:border-[#06a63e] focus:bg-white transition-all placeholder:text-[#06a63e]/25"
             placeholder="Filter by name, email, subject or message contents..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <select
-            className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-3 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all cursor-pointer font-bold"
+            className="rounded-xl border border-[#06a63e]/10 bg-white/75 px-4 py-3 text-sm text-[#03652a] outline-none focus:border-[#06a63e] transition-all cursor-pointer font-bold"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -123,51 +123,51 @@ export default function InquiryManagement() {
         </div>
       )}
 
-      <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 backdrop-blur-[40px] shadow-sm overflow-hidden">
+      <div className="rounded-3xl border border-[#06a63e]/15 bg-[#eaf9ee]/70 backdrop-blur-[40px] shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex flex-col items-center justify-center p-20 gap-4">
-            <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#397239] border-t-transparent" />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#397239]/20">Syncing inquiries...</p>
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#06a63e] border-t-transparent" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/20">Syncing inquiries...</p>
           </div>
         ) : filteredInquiries.length === 0 ? (
           <div className="p-20 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#397239]/20">No matching inquiries found</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/20">No matching inquiries found</p>
           </div>
         ) : (
-          <div className="divide-y divide-[#397239]/10 p-6 space-y-6">
+          <div className="divide-y divide-[#06a63e]/10 p-6 space-y-6">
             {filteredInquiries.map((item) => (
               <article key={item._id} className="pt-6 first:pt-0 group">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-3">
-                      <h4 className="m-0 text-lg font-black text-[#244c21] group-hover:text-[#397239] transition-colors">{item.subject || "General Inquiry"}</h4>
+                      <h4 className="m-0 text-lg font-black text-[#03652a] group-hover:text-[#06a63e] transition-colors">{item.subject || "General Inquiry"}</h4>
                       <Badge variant={item.status === "Replied" ? "active" : "pending"}>
                         {item.status}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-[#397239]/80 uppercase tracking-widest">
-                      <span className="text-[#244c21]">{item.userName}</span>
-                      <span className="h-1 w-1 rounded-full bg-[#397239]/40" />
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-[#06a63e]/80 uppercase tracking-widest">
+                      <span className="text-[#03652a]">{item.userName}</span>
+                      <span className="h-1 w-1 rounded-full bg-[#06a63e]/40" />
                       <span>{item.userEmail}</span>
                     </div>
-                    <p className="m-0 text-[10px] font-bold text-[#397239]/60 uppercase tracking-widest italic">Submitted {formatDate(item.createdAt)}</p>
+                    <p className="m-0 text-[10px] font-bold text-[#06a63e]/60 uppercase tracking-widest italic">Submitted {formatDate(item.createdAt)}</p>
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-5 text-sm text-[#244c21] font-medium leading-relaxed shadow-inner">
+                <div className="mt-4 rounded-2xl border border-[#06a63e]/10 bg-white/75 p-5 text-sm text-[#03652a] font-medium leading-relaxed shadow-inner">
                   {item.message}
                 </div>
 
                 {item.adminReply && (
-                  <div className="mt-4 rounded-2xl border border-[#112A0F]/20 bg-white p-5 relative overflow-hidden group/reply shadow-sm">
-                    <div className="absolute top-0 right-0 p-3 opacity-5 text-[#397239]">
+                  <div className="mt-4 rounded-2xl border border-[#06a63e]/15 bg-white p-5 relative overflow-hidden group/reply shadow-sm">
+                    <div className="absolute top-0 right-0 p-3 opacity-5 text-[#06a63e]">
                       <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
                     </div>
-                    <p className="m-0 text-[9px] font-black uppercase tracking-[0.2em] text-[#397239] mb-2">Previous Response</p>
-                    <p className="m-0 text-sm text-[#397239] font-medium leading-relaxed italic">{item.adminReply}</p>
-                    <div className="mt-3 flex items-center gap-2 text-[9px] font-bold text-[#397239]/60 uppercase tracking-widest">
-                      <span className="text-[#397239]">{item.repliedBy || "Admin"}</span>
-                      <span className="h-1 w-1 rounded-full bg-[#397239]/20" />
+                    <p className="m-0 text-[9px] font-black uppercase tracking-[0.2em] text-[#06a63e] mb-2">Previous Response</p>
+                    <p className="m-0 text-sm text-[#06a63e] font-medium leading-relaxed italic">{item.adminReply}</p>
+                    <div className="mt-3 flex items-center gap-2 text-[9px] font-bold text-[#06a63e]/60 uppercase tracking-widest">
+                      <span className="text-[#06a63e]">{item.repliedBy || "Admin"}</span>
+                      <span className="h-1 w-1 rounded-full bg-[#06a63e]/20" />
                       <span>{formatDate(item.repliedAt)}</span>
                     </div>
                   </div>
@@ -175,7 +175,7 @@ export default function InquiryManagement() {
 
                 <div className="mt-6 flex flex-col gap-4 md:flex-row">
                   <textarea
-                    className="min-h-[100px] flex-1 rounded-2xl border border-[#397234]/10 bg-[#D6E9CA]/50 p-4 text-sm text-[#244c21] font-medium outline-none focus:border-[#397239] focus:bg-white transition-all placeholder:text-[#397239]/40 leading-relaxed"
+                    className="min-h-[100px] flex-1 rounded-2xl border border-[#06a63e]/10 bg-white/75 p-4 text-sm text-[#03652a] font-medium outline-none focus:border-[#06a63e] focus:bg-white transition-all placeholder:text-[#06a63e]/40 leading-relaxed"
                     placeholder="Draft your professional response here..."
                     value={replyText[item._id] || ""}
                     onChange={(e) =>

@@ -4,9 +4,11 @@ const PaymentHistory = require("../Model/PaymentHistoryModel");
 const getPaymentHistory = async (req, res) => {
   try {
     const { clerkId } = req.params;
+    // ⚡ Bolt Optimization: Use .lean() for read-only query to bypass document hydration
     const records = await PaymentHistory.find({ clerkId })
       .sort({ createdAt: -1 })
-      .select("-__v");
+      .select("-__v")
+      .lean();
 
     res.status(200).json({
       message: "Payment history fetched successfully",
