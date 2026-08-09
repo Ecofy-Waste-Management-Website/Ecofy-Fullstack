@@ -18,10 +18,17 @@ DEFAULT_TIMEOUT = int(os.getenv("ECOFY_TIMEOUT", "20"))
 HEADLESS = os.getenv("ECOFY_HEADLESS", "0") == "1"
 MANUAL_LOGIN = os.getenv("ECOFY_MANUAL_LOGIN", "1") != "0"
 AUTH_TOKEN = os.getenv("ECOFY_TEST_TOKEN", "").strip()
+CHROME_DEBUGGER_ADDRESS = os.getenv("ECOFY_CHROME_DEBUGGER_ADDRESS", "").strip()
 
 
 def build_driver() -> webdriver.Chrome:
     options = webdriver.ChromeOptions()
+    if CHROME_DEBUGGER_ADDRESS:
+        # Attach to Chrome launched manually with --remote-debugging-port. This
+        # preserves the user-completed Clerk CAPTCHA and signed-in session.
+        options.debugger_address = CHROME_DEBUGGER_ADDRESS
+        return webdriver.Chrome(options=options)
+
     options.add_argument("--window-size=1440,1200")
     options.add_argument("--disable-gpu")
     options.add_argument("--start-maximized")

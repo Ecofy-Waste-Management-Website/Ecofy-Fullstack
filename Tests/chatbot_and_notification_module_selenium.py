@@ -102,7 +102,7 @@ def run_nt_02_customer_inquiry(driver) -> None:
 def run_nt_03_contact_form(driver) -> None:
     open_route(driver, "/contact")
     fill_input_by_name(driver, "name", "Aira Santos")
-    fill_input_by_name(driver, "email", "aira.santos+01@ecofy.test")
+    fill_input_by_name(driver, "email", "airasantos01@ecofy.test")
     fill_input_by_name(driver, "subject", "Billing Issue")
     fill_textarea_by_label(driver, "Message", "Charged twice?")
     driver.find_element(By.XPATH, "//*[self::button][contains(normalize-space(), 'Send Message')]").click()

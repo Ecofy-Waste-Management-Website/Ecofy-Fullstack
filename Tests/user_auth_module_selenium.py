@@ -73,7 +73,7 @@ def run_au_06_logout_note(driver) -> None:
 
 def run_um_01_registration(driver) -> None:
     open_route(driver, "/landing")
-    manual_step("UM-01: register Aira Santos / aira.santos+01@ecofy.test / Ecofy@123 / 09171234567, then continue.")
+    manual_step("UM-01: register Aira Santos / airasantos01@ecofy.test / Ecofy@123 / 09171234567, then continue.")
     assert_any_text_present(driver, ["Dashboard", "Schedule a Pickup", "success", "Verify"])
 
 
