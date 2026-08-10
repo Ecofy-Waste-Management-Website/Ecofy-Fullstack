@@ -795,11 +795,10 @@ export default function Dashboard() {
         <h2 className="text-xl font-black text-gray-900">Payments</h2>
         <p className="mt-1 text-sm text-gray-500">Your billing summary and transaction history.</p>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {[
-          { icon: "creditCard", label: "Total Paid",      value: `LKR ${totalPaid.toLocaleString()}`,                                                         border: "border-blue-200",   bg: "bg-blue-50",   color: "text-blue-600" },
-          { icon: "clock",      label: "Transactions",    value: payments.length,                                                                              border: "border-green-200",  bg: "bg-green-50",  color: "text-green-600" },
-          { icon: "sparkles",   label: "Avg per Booking", value: `LKR ${payments.length > 0 ? Math.round(totalPaid / payments.length).toLocaleString() : 0}`, border: "border-purple-200", bg: "bg-purple-50", color: "text-purple-600" },
+          { icon: "creditCard", label: "Total Paid",   value: `LKR ${totalPaid.toLocaleString()}`, border: "border-blue-200",  bg: "bg-blue-50",  color: "text-blue-600" },
+          { icon: "clock",      label: "Transactions", value: payments.length,                      border: "border-green-200", bg: "bg-green-50", color: "text-green-600" },
         ].map(({ icon, label, value, border, bg, color }) => (
           <div key={label} className={`rounded-3xl border bg-white p-5 shadow-sm ${border}`}>
             <div className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl ${bg}`}>
