@@ -129,16 +129,29 @@ const updateTaskStatus = async (req, res) => {
     const staffRecord = (await User.findOne({ clerkId, role: 'Staff' })) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }));
     const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
 
-    const assignedMatch = staffName ? { $in: [clerkId, staffName] } : clerkId;
-
-    const task = await ServiceRequest.findOne({
-      _id: taskId,
-      assignedStaff: assignedMatch,
-    });
+    const task = await ServiceRequest.findById(taskId);
 
     if (!task) {
-      return res.status(404).json({
-        message: "Task not found or not assigned to you",
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    const isAssignedToCurrentStaff =
+      task.assignedStaff === clerkId ||
+      (staffName && task.assignedStaff === staffName);
+
+    if (task.assignedStaff && !isAssignedToCurrentStaff) {
+      return res.status(403).json({
+        message: "Task is assigned to another staff member",
+      });
+    }
+
+    // Auto-claim unassigned orders when a staff member accepts/updates them.
+    // This keeps manual assignment optional while preserving ownership checks.
+    if (!task.assignedStaff && status !== "Pending") {
+      task.assignedStaff = clerkId;
+      task.timeline.push({
+        event: `Task claimed by ${staffName || clerkId}`,
+        time: new Date(),
       });
     }
 

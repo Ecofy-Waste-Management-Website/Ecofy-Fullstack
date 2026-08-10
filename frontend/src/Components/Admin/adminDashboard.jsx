@@ -669,7 +669,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="h-screen w-screen font-sans text-[#244c21] bg-[#f4f9f4] p-4 lg:p-3 overflow-hidden">
+    <div className="h-screen w-screen font-sans text-[#244c21] bg-white p-4 lg:p-3 overflow-hidden">
       <div className="flex h-full w-full gap-3">
 
         {/* Sidebar - Desktop Only */}

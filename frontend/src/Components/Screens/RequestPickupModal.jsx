@@ -113,56 +113,49 @@ export default function RequestPickupModal({
   const minDate = new Date().toISOString().split("T")[0];
 
   return (
-    /* Backdrop */
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm"
       onClick={onClose}
     >
-      {/* Modal Card */}
       <div
-        className="relative w-full max-w-lg mx-4 bg-white/50 backdrop-blur-md border border-white/60 rounded-2xl shadow-xl overflow-hidden animate-[fadeScaleIn_0.25s_ease-out]"
+        className="relative w-full max-w-2xl overflow-hidden rounded-4xl border border-gray-200 bg-[#f4f9f4] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-
-        <div className="px-6 pt-5 pb-6">
-          {/* Title Row */}
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-green-100/70 backdrop-blur-sm text-xl text-green-800 shadow-sm border border-green-200/50">
-                <svg className="w-[60%] h-[60%] text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="1" y="3" width="15" height="13" rx="2" ry="2"></rect>
-                  <path d="M16 8h4l3 3v5h-7V8z"></path>
-                  <circle cx="5.5" cy="18.5" r="2.5"></circle>
-                  <circle cx="18.5" cy="18.5" r="2.5"></circle>
-                </svg>
-              </span>
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">Request Pickup</h2>
-                <p className="text-xs text-gray-600">Schedule a new waste collection</p>
-              </div>
+        <div className="bg-linear-to-r from-[#06a63e] to-[#047a2e] px-7 py-5 text-white">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/70">Pickup Form</p>
+              <h2 className="mt-1 text-2xl font-black leading-tight">Request a Pickup</h2>
+              <p className="mt-1 text-sm text-white/80">Fill in the details and we will schedule your collection.</p>
             </div>
             <button
               onClick={() => { resetForm(); onClose(); }}
-              className="text-gray-500 hover:text-gray-800 transition text-xl leading-none"
+              className="grid h-9 w-9 place-items-center rounded-full border border-white/40 bg-white/10 text-lg leading-none text-white transition hover:bg-white/20"
               aria-label="Close"
             >
               ✕
             </button>
           </div>
+        </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Service Type & Waste Category — side by side */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="p-7">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Pickup Details</p>
+                <p className="text-[11px] font-bold text-gray-400">Required fields marked *</p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Service Type <span className="text-red-400">*</span>
+                <label className="mb-1 block text-sm font-bold text-gray-700">
+                  Service Type <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="service_type"
                   value={form.service_type}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
                 >
                   <option value="">Select type</option>
                   {SERVICE_TYPES.map((t) => (
@@ -172,14 +165,14 @@ export default function RequestPickupModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Waste Category <span className="text-red-400">*</span>
+                <label className="mb-1 block text-sm font-bold text-gray-700">
+                  Waste Category <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="waste_category"
                   value={form.waste_category}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
                 >
                   <option value="">Select category</option>
                   {WASTE_CATEGORIES.map((c) => (
@@ -187,57 +180,55 @@ export default function RequestPickupModal({
                   ))}
                 </select>
               </div>
+              </div>
+
+              <div className="mt-4">
+                <label className="mb-1 block text-sm font-bold text-gray-700">
+                  Pickup Location <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={form.location}
+                  onChange={handleChange}
+                  placeholder="e.g. 123 Main Street, Colombo"
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
+                />
+              </div>
+
+              <div className="mt-4">
+                <label className="mb-1 block text-sm font-bold text-gray-700">
+                  Preferred Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="scheduled_date"
+                  value={form.scheduled_date}
+                  onChange={handleChange}
+                  min={minDate}
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
+                />
+              </div>
             </div>
 
-            {/* Location */}
-            <div>
-              <label className="block text-sm font-medium text-gray-800 mb-1">
-                Pickup Location <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={form.location}
-                onChange={handleChange}
-                placeholder="e.g. 123 Main Street, Colombo"
-                className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
-              />
-            </div>
-
-            {/* Scheduled Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-800 mb-1">
-                Preferred Date <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="date"
-                name="scheduled_date"
-                value={form.scheduled_date}
-                onChange={handleChange}
-                min={minDate}
-                className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
-              />
-            </div>
-
-            {/* Notes */}
-            <div>
-              <label className="block text-sm font-medium text-gray-800 mb-1">
+            <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+              <label className="mb-1 block text-sm font-bold text-gray-700">
                 Additional Notes
               </label>
               <textarea
                 name="notes"
                 value={form.notes}
                 onChange={handleChange}
-                rows={3}
+                rows={4}
                 placeholder="Any special instructions for the pickup crew..."
-                className="w-full rounded-lg border border-green-200/50 bg-white/70 backdrop-blur-sm px-3 py-2 text-sm text-green-950 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition resize-none"
+                className="w-full resize-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
               />
+              <p className="mt-2 text-xs text-gray-400">Add gate notes, landmarks, or timing preferences if needed.</p>
             </div>
 
-            {/* Status Message */}
             {status.text && (
               <div
-                className={`rounded-lg px-4 py-2.5 text-sm font-medium ${
+                className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${
                   status.type === "success"
                     ? "bg-green-50 text-green-700 border border-green-200"
                     : "bg-red-50 text-red-700 border border-red-200"
@@ -247,19 +238,18 @@ export default function RequestPickupModal({
               </div>
             )}
 
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => { resetForm(); onClose(); }}
-                className="rounded-lg border border-gray-300/80 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100/50 transition bg-white/30 backdrop-blur-sm"
+                className="rounded-2xl border border-gray-300 bg-white px-5 py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-100"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-lg bg-linear-to-r from-green-600 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-green-700 hover:to-teal-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                className="rounded-2xl bg-[#06a63e] px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#058b33] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting ? (
                   <span className="flex items-center gap-2">
@@ -277,14 +267,6 @@ export default function RequestPickupModal({
           </form>
         </div>
       </div>
-
-      {/* Keyframe for fade + scale animation (injected via style tag once) */}
-      <style>{`
-        @keyframes fadeScaleIn {
-          from { opacity: 0; transform: scale(0.95) translateY(10px); }
-          to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

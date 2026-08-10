@@ -996,17 +996,6 @@ export default function StaffDashboard() {
 
     setConfirmingOrderId(order._id);
     try {
-      const assignRes = await fetch(`${API_BASE_URL}/service-monitoring/${order._id}/assign`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignedStaff: staffName }),
-      });
-      const assignData = await assignRes.json();
-
-      if (!assignRes.ok) {
-        throw new Error(assignData.message || 'Failed to assign pickup');
-      }
-
       const statusRes = await fetch(`${API_BASE_URL}/staff/tasks/${order._id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -1032,7 +1021,7 @@ export default function StaffDashboard() {
 
       setPendingOrders((prev) => prev.filter((item) => item._id !== order._id));
       setActiveTasks((prev) => [
-        { ...order, assignedStaff: staffName, status: 'Assigned' },
+        { ...order, assignedStaff: user.id, status: 'Assigned' },
         ...prev.filter((item) => item._id !== order._id),
       ]);
       setSelectedPendingOrder(null);
@@ -1322,8 +1311,9 @@ export default function StaffDashboard() {
   );
 
   const formatCurrency = (value) => {
-    if (typeof value !== 'number') return 'N/A';
-    return `LKR ${value.toLocaleString()}`;
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) return 'N/A';
+    return `LKR ${numericValue.toLocaleString()}`;
   };
 
   const formatOrderDate = (value) => {
@@ -1337,7 +1327,20 @@ export default function StaffDashboard() {
     });
   };
 
-  const getEstimatedAmount = (order) => order.servicePrice || SERVICE_PRICES[order.service_type] || order.estimated_amt || 0;
+  const normalizeServiceAmount = (value) => {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue) || numericValue <= 0) return null;
+    // Older records may store cents (e.g. 150000 instead of 1500).
+    if (numericValue >= 100000) return numericValue / 100;
+    return numericValue;
+  };
+
+  const getEstimatedAmount = (order) =>
+    normalizeServiceAmount(order?.servicePrice) ||
+    normalizeServiceAmount(order?.estimated_amt) ||
+    normalizeServiceAmount(order?.amount) ||
+    SERVICE_PRICES[order?.service_type] ||
+    0;
   const renderOrderDetailValue = (value) => value || 'N/A';
   const pendingOrderPins = getPendingOrderPins(pendingOrders);
   const unresolvedPendingOrders = pendingOrders.length - pendingOrderPins.length;
