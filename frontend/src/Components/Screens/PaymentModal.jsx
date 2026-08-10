@@ -123,7 +123,7 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
         <div className="flex justify-between border-t border-green-200 pt-2 mt-1">
           <span className="font-semibold text-green-700">Total</span>
           <span className="font-bold text-green-700">
-            LKR {SERVICE_PRICES[bookingDetails.service_type]?.toLocaleString()}
+            LKR {(bookingDetails.servicePrice || SERVICE_PRICES[bookingDetails.service_type] || 0)?.toLocaleString()}
           </span>
         </div>
       </div>

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Plus, Edit, Trash2, X, Search } from 'lucide-react';
 import { Button, Badge } from './UIComponents';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const CATEGORIES = ["Residential", "Industrial", "Eco", "Commercial"];
 const UNITS      = ["per visit", "per load", "per ton", "per consignment", "per month"];
