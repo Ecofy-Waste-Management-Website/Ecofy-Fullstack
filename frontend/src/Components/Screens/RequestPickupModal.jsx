@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { createPickupRequest } from "../../services/api/bookingService";
+import { createPickupRequest, fetchActiveServices } from "../../services/api/bookingService";
 
-const SERVICE_TYPES = ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
+const DEFAULT_SERVICE_TYPES = ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
 const WASTE_CATEGORIES = ["General", "Recyclable", "Hazardous", "Electronic", "Garden"];
 
 export default function RequestPickupModal({
@@ -13,12 +13,15 @@ export default function RequestPickupModal({
   initialCoordinates = null,
 }) {
   const { user } = useUser();
+  const [serviceOptions, setServiceOptions] = useState(DEFAULT_SERVICE_TYPES);
+  const [dynamicServices, setDynamicServices] = useState([]);
 
   const createEmptyForm = (location = "") => ({
     service_type: "",
     waste_category: "",
     location,
     scheduled_date: "",
+    customer_phone: user?.phoneNumbers?.[0]?.phoneNumber || "",
     notes: "",
   });
 
@@ -27,17 +30,34 @@ export default function RequestPickupModal({
     waste_category: "",
     location: "",
     scheduled_date: "",
+    customer_phone: "",
     notes: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState({ type: "", text: "" });
 
   useEffect(() => {
+    let isMounted = true;
     if (isOpen) {
       setForm(createEmptyForm(initialLocation));
       setStatus({ type: "", text: "" });
+
+      fetchActiveServices()
+        .then((services) => {
+          if (!isMounted) return;
+          if (Array.isArray(services) && services.length > 0) {
+            setDynamicServices(services);
+            const fetchedNames = services.map((s) => s.name?.trim()).filter(Boolean);
+            const combined = Array.from(new Set([...fetchedNames, ...DEFAULT_SERVICE_TYPES]));
+            setServiceOptions(combined);
+          }
+        })
+        .catch((err) => console.error("Failed to load active services:", err));
     }
-  }, [isOpen, initialLocation]);
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, initialLocation, user]);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -52,7 +72,7 @@ export default function RequestPickupModal({
     e.preventDefault();
 
     // Basic validation
-    if (!form.service_type || !form.waste_category || !form.location || !form.scheduled_date) {
+    if (!form.service_type || !form.waste_category || !form.location || !form.scheduled_date || !form.customer_phone) {
       setStatus({ type: "error", text: "Please fill in all required fields." });
       return;
     }
@@ -69,15 +89,19 @@ export default function RequestPickupModal({
       setSubmitting(true);
       setStatus({ type: "", text: "" });
 
+      const selectedService = dynamicServices.find(
+        (s) => s.name?.trim().toLowerCase() === form.service_type?.trim().toLowerCase()
+      );
+
       const booking = await createPickupRequest({
         customer_name:
           `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
           user?.username ||
           "Ecofy Customer",
         customer_email: user?.primaryEmailAddress?.emailAddress || "",
-        customer_phone: user?.phoneNumbers?.[0]?.phoneNumber || "",
         clerkId: user?.id,
         pickupCoordinates: initialCoordinates,
+        servicePrice: selectedService?.price,
         ...form,
       });
 
@@ -118,7 +142,7 @@ export default function RequestPickupModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl overflow-hidden rounded-4xl border border-gray-200 bg-[#f4f9f4] shadow-2xl"
+        className="relative flex w-full max-w-2xl flex-col max-h-[90vh] overflow-hidden rounded-4xl border border-gray-200 bg-[#f4f9f4] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-linear-to-r from-[#06a63e] to-[#047a2e] px-7 py-5 text-white">
@@ -138,7 +162,7 @@ export default function RequestPickupModal({
           </div>
         </div>
 
-        <div className="p-7">
+        <div className="p-7 overflow-y-auto no-scrollbar">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between gap-3">
@@ -158,7 +182,7 @@ export default function RequestPickupModal({
                   className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
                 >
                   <option value="">Select type</option>
-                  {SERVICE_TYPES.map((t) => (
+                  {serviceOptions.map((t) => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
@@ -196,18 +220,33 @@ export default function RequestPickupModal({
                 />
               </div>
 
-              <div className="mt-4">
-                <label className="mb-1 block text-sm font-bold text-gray-700">
-                  Preferred Date <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  name="scheduled_date"
-                  value={form.scheduled_date}
-                  onChange={handleChange}
-                  min={minDate}
-                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
-                />
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-gray-700">
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="customer_phone"
+                    value={form.customer_phone}
+                    onChange={handleChange}
+                    placeholder="e.g. 077 123 4567"
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-gray-700">
+                    Preferred Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="scheduled_date"
+                    value={form.scheduled_date}
+                    onChange={handleChange}
+                    min={minDate}
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
+                  />
+                </div>
               </div>
             </div>
 

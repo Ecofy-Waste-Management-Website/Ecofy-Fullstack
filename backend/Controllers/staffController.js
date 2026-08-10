@@ -8,8 +8,8 @@ const getStaffProfile = async (req, res) => {
   try {
     const { clerkId } = req.params;
     const staff =
-      (await User.findOne({ clerkId, role: "Staff" })) ||
-      (await LegacyUser.findOne({ clerkId, role: "Staff" }));
+      (await User.findOne({ clerkId, role: "Staff" }).lean()) ||
+      (await LegacyUser.findOne({ clerkId, role: "Staff" }).lean());
 
     if (!staff) {
       return res.status(404).json({ message: "Staff member not found" });
@@ -32,7 +32,7 @@ const getAssignedTasks = async (req, res) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     // Allow tasks where assignedStaff is either the clerkId or the staff display name
-    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' })) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }));
+    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' }).lean()) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }).lean());
     const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
 
     const matchAssigned = staffName ? { $in: [clerkId, staffName] } : clerkId;
@@ -40,7 +40,7 @@ const getAssignedTasks = async (req, res) => {
     const tasks = await ServiceRequest.find({
       assignedStaff: matchAssigned,
       scheduled_date: { $gte: today, $lt: tomorrow },
-    }).sort({ scheduled_date: 1 });
+    }).sort({ scheduled_date: 1 }).lean();
 
     res.status(200).json({
       message: "Tasks fetched successfully",
@@ -57,14 +57,14 @@ const getAssignedTasks = async (req, res) => {
 const getActiveTasks = async (req, res) => {
   try {
     const { clerkId } = req.params;
-    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' })) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }));
+    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' }).lean()) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }).lean());
     const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
     const matchAssigned = staffName ? { $in: [clerkId, staffName] } : clerkId;
 
     const tasks = await ServiceRequest.find({
       assignedStaff: matchAssigned,
       status: { $in: ["Pending", "Assigned", "In Progress", "En Route"] },
-    }).sort({ scheduled_date: 1 });
+    }).sort({ scheduled_date: 1 }).lean();
 
     res.status(200).json({
       message: "Active tasks fetched",
@@ -81,14 +81,14 @@ const getActiveTasks = async (req, res) => {
 const getCompletedTasks = async (req, res) => {
   try {
     const { clerkId } = req.params;
-    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' })) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }));
+    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' }).lean()) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }).lean());
     const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
     const matchAssigned = staffName ? { $in: [clerkId, staffName] } : clerkId;
 
     const tasks = await ServiceRequest.find({
       assignedStaff: matchAssigned,
       status: "Completed",
-    }).sort({ scheduled_date: -1 });
+    }).sort({ scheduled_date: -1 }).lean();
 
     res.status(200).json({
       message: "Completed tasks fetched",

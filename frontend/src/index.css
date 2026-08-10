@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 * {
@@ -7,29 +8,7 @@
 body {
   background-color: #000000; /* Pure black, just like EatNaked */
   color: #ffffff; /* Default text to white */
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
-@keyframes wobble-float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-15px) rotate(-6deg); }
-  50% { transform: translateY(-25px) rotate(0deg); }
-  75% { transform: translateY(-15px) rotate(6deg); }
-}
-
-@keyframes wobble-float-reverse {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(15px) rotate(6deg); }
-  50% { transform: translateY(25px) rotate(0deg); }
-  75% { transform: translateY(15px) rotate(-6deg); }
-}
-
-.animate-wobble {
-  animation: wobble-float 8s ease-in-out infinite;
-}
-
-.animate-wobble-reverse {
-  animation: wobble-float-reverse 10s ease-in-out infinite;
+  font-family: 'Inter', sans-serif;
 }
 
 /* ── Horizontal Snap Sections ───────────────────────────────── */
@@ -39,7 +18,8 @@ body {
   transform-origin: center center;
 }
 
-/* Smooth custom scrollbar */
+/* ── Custom Scrollbar ───────────────────────────────── */
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -56,6 +36,8 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #0f3d1a;
 }
+
+/* ── Eco Loader Animations ───────────────────────────────── */
 
 @keyframes eco-loader-float {
   0%, 100% { transform: translateY(0) rotate(-18deg); }

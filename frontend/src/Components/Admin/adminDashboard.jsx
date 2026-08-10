@@ -10,8 +10,10 @@ import InquiryManagement from "./InquiryManagement";
 import ChatbotManagement from "./ChatbotManagement";
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
 import ServiceManagement from "./ServiceManagement";
+import SystemLogs from "./SystemLogs";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const rawApiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || window.location.origin;
+const API_BASE_URL = rawApiBaseUrl.replace(/\/$/, "");
 
 const formatHistoryDate = (value) => {
   if (!value) return "Unknown date";
@@ -173,6 +175,7 @@ const menuItems = [
   { label: "Content/Blog", key: "CONTENT_BLOG", hasSubmenu: false },
   { label: "Inquiry", key: "INQUIRY", hasSubmenu: false },
   { label: "Chatbot Management", key: "CHATBOT_MGMT", hasSubmenu: false },
+  { label: "System Logs", key: "SYSTEM_LOGS", hasSubmenu: false },
 ];
 
 // ─── USER MANAGEMENT COMPONENT ────────────────────────────────────────────
@@ -537,14 +540,14 @@ function DashboardHome() {
         {statCards.map((stat) => (
           <article
             key={stat.key}
-            className="flex items-start gap-4 rounded-3xl bg-[#D6E9CA]/50 backdrop-blur-xl border border-[#397234]/20 p-6 shadow-sm transition-all duration-200 hover:bg-[#D6E9CA]/70 hover:shadow-md"
+            className="flex items-start gap-4 rounded-3xl bg-[#eaf9ee]/80 backdrop-blur-xl border border-[#06a63e]/15 p-6 shadow-sm transition-all duration-200 hover:bg-[#eaf9ee] hover:shadow-md"
           >
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#397239]/10 text-[#397239] border border-[#397234]/10">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#06a63e]/10 text-[#06a63e] border border-[#06a63e]/10">
               {stat.icon}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="m-0 text-xs font-black text-[#397239]/50 uppercase tracking-wider mb-2">{stat.label}</p>
-              <h3 className="m-0 text-3xl font-black text-[#244c21]">{dashboardMetrics[stat.key] ?? 0}</h3>
+              <p className="m-0 text-xs font-black text-[#03652a]/55 uppercase tracking-wider mb-2">{stat.label}</p>
+              <h3 className="m-0 text-3xl font-black text-[#03652a]">{dashboardMetrics[stat.key] ?? 0}</h3>
             </div>
           </article>
         ))}
@@ -553,8 +556,8 @@ function DashboardHome() {
       {/* Main Content Grid */}
       <section className="grid grid-cols-1 gap-6 flex-1 min-h-0 lg:grid-cols-2">
         {/* Left: Waste Types Pie Chart */}
-        <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-6 shadow-sm min-h-[420px]">
-          <h3 className="text-lg font-black mb-4 text-[#244c21]">Waste Types</h3>
+        <div className="rounded-3xl border border-[#06a63e]/15 bg-[#eaf9ee]/60 p-6 shadow-sm min-h-[420px]">
+          <h3 className="text-lg font-black mb-4 text-[#03652a]">Waste Types</h3>
           <div className="w-full h-[380px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -571,10 +574,10 @@ function DashboardHome() {
         </div>
 
         {/* Right: Average Daily Sales */}
-        <div className="rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-6 shadow-sm min-h-[420px]">
-          <h3 className="text-lg font-black mb-4 text-[#244c21]">Average Daily Sales</h3>
+        <div className="rounded-3xl border border-[#06a63e]/15 bg-[#eaf9ee]/60 p-6 shadow-sm min-h-[420px]">
+          <h3 className="text-lg font-black mb-4 text-[#03652a]">Average Daily Sales</h3>
           {salesLoading ? (
-            <div className="flex h-[330px] items-center justify-center text-sm text-[#397239]/50">Loading sales data...</div>
+            <div className="flex h-[330px] items-center justify-center text-sm text-[#06a63e]/60">Loading sales data...</div>
           ) : salesError ? (
             <div className="flex h-[330px] items-center justify-center text-sm text-red-500">{salesError}</div>
           ) : (
@@ -585,7 +588,7 @@ function DashboardHome() {
                   <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                   <YAxis />
                   <Tooltip formatter={(value) => [value, 'Sales']} />
-                  <Bar dataKey="sales" fill="#397239" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="sales" fill="#06a63e" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -615,7 +618,7 @@ export default function AdminDashboard() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   useEffect(() => {
@@ -653,6 +656,7 @@ export default function AdminDashboard() {
     INQUIRY: <InquiryManagement />,
     CHATBOT_MGMT: <ChatbotManagement />,
     SERVICE_MGMT: <ServiceManagement />,
+    SYSTEM_LOGS: <SystemLogs />,
   };
 
   const renderMainContent = () => COMPONENT_MAP[activeTab] || <div className="p-6 text-[#397239]/50">Not found.</div>;
@@ -669,11 +673,11 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="h-screen w-screen font-sans text-[#244c21] bg-white p-4 lg:p-3 overflow-hidden">
+    <div className="h-screen w-screen font-sans text-[#03652a] bg-white p-4 lg:p-3 overflow-hidden">
       <div className="flex h-full w-full gap-3">
 
         {/* Sidebar - Desktop Only */}
-        <aside className="hidden lg:flex flex-col gap-4 bg-[#397234]/80 backdrop-blur-3xl border border-[#397234]/20 p-5 text-white/80 w-[240px] shrink-0 rounded-3xl shadow-2xl overflow-hidden h-full relative">
+        <aside className="hidden lg:flex flex-col gap-4 bg-[#03652a]/90 backdrop-blur-3xl border border-[#06a63e]/20 p-5 text-white/85 w-[240px] shrink-0 rounded-3xl shadow-2xl overflow-hidden h-full relative">
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
 
           <div className="flex items-center gap-3 pb-2">
@@ -687,7 +691,7 @@ export default function AdminDashboard() {
                   type="button"
                   className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${
                     activeTab === item.key && !item.hasSubmenu
-                      ? "bg-[#397239] text-white shadow-lg shadow-black/20"
+                      ? "bg-[#06a63e] text-white shadow-lg shadow-black/20"
                       : "text-white/60 hover:bg-white/5 hover:text-white"
                   }`}
                   onClick={(event) => {
@@ -719,7 +723,7 @@ export default function AdminDashboard() {
                         type="button"
                         className={`text-left text-xs px-4 py-2 rounded-lg transition-colors font-bold ${
                           activeTab === sub.key
-                            ? "bg-[#397239]/80 text-white"
+                            ? "bg-[#06a63e]/85 text-white"
                             : "text-white/50 hover:text-white hover:bg-white/5"
                         }`}
                         onClick={(event) => {
@@ -736,8 +740,8 @@ export default function AdminDashboard() {
             ))}
           </nav>
 
-          <div className="mt-auto flex items-center gap-3 rounded-2xl bg-white/5 p-3 text-white border border-white/10 backdrop-blur-sm shrink-0">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#397239] text-xs font-bold text-white shadow-inner">{adminInitials}</div>
+          <div className="mt-auto flex items-center gap-3 rounded-2xl bg-white/8 p-3 text-white border border-white/10 backdrop-blur-sm shrink-0">
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#06a63e] text-xs font-bold text-white shadow-inner">{adminInitials}</div>
             <div className="min-w-0">
               <p className="m-0 text-[0.65rem] font-black uppercase tracking-wider text-white/60">Admin Portal</p>
               <p className="m-0 text-xs font-bold truncate">{adminName}</p>
@@ -746,7 +750,7 @@ export default function AdminDashboard() {
                 className="mt-0.5 cursor-pointer border-none bg-transparent p-0 text-[0.65rem] font-bold text-white/40 hover:text-white hover:underline transition-all"
                 onClick={() => setShowLogoutModal(true)}
               >
-                Logout
+                Log Out
               </button>
             </div>
           </div>
@@ -756,21 +760,29 @@ export default function AdminDashboard() {
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
           {/* Header - Desktop */}
           <header className="mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
-            <h2 className="m-0 text-2xl font-black tracking-tight text-[#244c21] truncate">
+            <h2 className="m-0 text-2xl font-black tracking-tight text-[#03652a] truncate">
               {getPageTitle()}
             </h2>
             <div className="flex items-center gap-3">
               <NotificationBell target="admin" />
-              <div className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-3 py-1.5 text-xs font-black text-[#397239] backdrop-blur-sm">Admin</div>
+              <div className="rounded-xl border border-[#06a63e]/10 bg-[#eaf9ee]/70 px-3 py-1.5 text-xs font-black text-[#06a63e] backdrop-blur-sm">Admin</div>
               {!roleLoading && role === "Admin" && (
                 <button
                   type="button"
                   onClick={handleSwitchDashboard}
-                  className="rounded-xl bg-[#397239] px-4 py-2 text-xs font-black text-white transition-all hover:bg-[#244c21] shadow-md"
+                  className="rounded-xl bg-[#06a63e] px-4 py-2 text-xs font-black text-white transition-all hover:bg-[#03652a] shadow-md"
                 >
                   Switch to Staff
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(true)}
+                className="inline-flex items-center gap-2 rounded-xl border border-[#06a63e]/15 bg-white px-4 py-2 text-xs font-black text-[#03652a] shadow-sm transition-all hover:border-[#06a63e]/30 hover:bg-[#f4f9f4]"
+              >
+                <LogOut className="h-4 w-4" />
+                Log Out
+              </button>
             </div>
           </header>
 
@@ -778,7 +790,7 @@ export default function AdminDashboard() {
           <main className="flex-1 overflow-y-auto no-scrollbar lg:pr-1">
             <div className="h-full">
               {renderMainContent()}
-              <footer className="mt-8 text-xs text-[#397239]/40 pb-4 text-center">&copy; 2026 Ecofy Waste Management</footer>
+              <footer className="mt-8 text-xs text-[#06a63e]/45 pb-4 text-center">&copy; 2026 Ecofy Waste Management</footer>
             </div>
           </main>
         </div>
@@ -786,18 +798,28 @@ export default function AdminDashboard() {
       </div>
 
       {/* Mobile Header */}
-      <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-[#112A0F] px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">
+      <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-[#03652a] px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <h2 className="truncate text-base font-bold leading-tight">{getPageTitle()}</h2>
           </div>
-          <button
-            type="button"
-            onClick={handleToggleMobileMenu}
-            className="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-white/10 text-white"
-          >
-            <Icons.Menu />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Log Out
+            </button>
+            <button
+              type="button"
+              onClick={handleToggleMobileMenu}
+              className="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-white/10 text-white"
+            >
+              <Icons.Menu />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -805,7 +827,7 @@ export default function AdminDashboard() {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <button type="button" className="absolute inset-0 bg-green-950/40 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="absolute left-4 top-4 bottom-4 flex w-[86%] max-w-[300px] flex-col gap-4 overflow-y-auto bg-[#397234]/90 backdrop-blur-3xl p-5 text-white shadow-2xl border border-white/10 rounded-3xl">
+          <aside className="absolute left-4 top-4 bottom-4 flex w-[86%] max-w-[300px] flex-col gap-4 overflow-y-auto bg-[#03652a]/92 backdrop-blur-3xl p-5 text-white shadow-2xl border border-white/10 rounded-3xl">
             <div className="flex items-center justify-between gap-2 pb-2">
               <h1 className="m-0 text-lg font-black">Ecofy</h1>
               <button type="button" onClick={() => setIsMobileMenuOpen(false)} className="text-white/60 text-xs font-bold">✕</button>
@@ -820,7 +842,7 @@ export default function AdminDashboard() {
                       onClick={(event) => { event.preventDefault(); handleSelectTab(sub.key); }}
                       className={`text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${
                         activeTab === sub.key
-                          ? "bg-[#397239] text-white shadow-lg"
+                          ? "bg-[#06a63e] text-white shadow-lg"
                           : "text-white/70 hover:bg-white/10 hover:text-white"
                       }`}
                     >
@@ -834,7 +856,7 @@ export default function AdminDashboard() {
                     onClick={(event) => { event.preventDefault(); handleSelectTab(item.key); }}
                     className={`text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${
                       activeTab === item.key
-                        ? "bg-[#397239] text-white shadow-lg"
+                        ? "bg-[#06a63e] text-white shadow-lg"
                         : "text-white/70 hover:bg-white/10 hover:text-white"
                     }`}
                   >
@@ -846,9 +868,16 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={handleSwitchDashboard}
-              className="mt-auto w-full rounded-xl bg-white py-2.5 text-xs font-bold text-green-900"
+              className="mt-auto w-full rounded-xl bg-white py-2.5 text-xs font-bold text-[#03652a]"
             >
               Switch to Staff
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(true)}
+              className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 text-xs font-bold text-white"
+            >
+              Log Out
             </button>
           </aside>
         </div>
@@ -857,13 +886,13 @@ export default function AdminDashboard() {
       {/* Logout Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-[360px] rounded-[2rem] border border-white/20 bg-[#397234] p-8 text-center shadow-2xl backdrop-blur-[50px] animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-[360px] rounded-[2rem] border border-white/20 bg-[#03652a] p-8 text-center shadow-2xl backdrop-blur-[50px] animate-in zoom-in-95 duration-200">
             <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-red-400/10 text-red-400">
               <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </div>
-            <h3 className="mb-2 text-2xl font-extrabold text-white">Sign Out?</h3>
+            <h3 className="mb-2 text-2xl font-extrabold text-white">Log Out?</h3>
             <p className="mb-8 text-xs font-bold text-white/40 uppercase tracking-widest">Are you sure you want to exit the portal?</p>
             <div className="flex gap-4">
               <button
@@ -878,7 +907,7 @@ export default function AdminDashboard() {
                 onClick={handleSignOut}
                 className="flex-1 rounded-2xl bg-red-500 py-4 text-[10px] font-extrabold text-white shadow-lg shadow-red-500/20 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
               >
-                Sign Out
+                Log Out
               </button>
             </div>
           </div>

@@ -8,6 +8,306 @@ import PaymentModal from "./PaymentModal";
 import ProfileSettings from "./ProfileSettings";
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
 
+// ===== LEAFLET IMPORTS =====
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for default Leaflet markers
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const BALANGODA_MAP_CENTER = [6.6617, 80.6937];
+const BALANGODA_MAP_BOUNDS = L.latLngBounds(
+  [6.54, 80.56],
+  [6.79, 80.84]
+);
+
+// ===== LeafletMapPicker Component =====
+function LeafletMapPicker({ value, onSelect }) {
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapMessage, setMapMessage] = useState("");
+  const prevValueRef = useRef(value);
+
+  // Reverse geocode using Nominatim
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const url = new URL('https://nominatim.openstreetmap.org/reverse');
+      url.searchParams.set('format', 'jsonv2');
+      url.searchParams.set('lat', lat);
+      url.searchParams.set('lon', lng);
+      url.searchParams.set('zoom', '18');
+      url.searchParams.set('addressdetails', '1');
+
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!response.ok) throw new Error('Geocoding failed');
+
+      const data = await response.json();
+      const address = data?.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      
+      setMapMessage(`📍 ${address}`);
+      
+      onSelect({
+        address: address,
+        coordinates: { latitude: lat, longitude: lng },
+      });
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+      const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      setMapMessage(`📍 ${fallback}`);
+      onSelect({
+        address: fallback,
+        coordinates: { latitude: lat, longitude: lng },
+      });
+    }
+  };
+
+  // Geocode address using Nominatim with multiple strategies
+  const geocodeAddress = async (address) => {
+    if (!address || !mapRef.current) return;
+
+    try {
+      let data = null;
+      
+      // Strategy 1: Search with the exact address in Balangoda area
+      let url = new URL('https://nominatim.openstreetmap.org/search');
+      url.searchParams.set('format', 'jsonv2');
+      url.searchParams.set('limit', '1');
+      url.searchParams.set('q', `${address}, Balangoda, Ratnapura, Sri Lanka`);
+      url.searchParams.set('viewbox', '80.56,6.79,80.84,6.54');
+      url.searchParams.set('bounded', '1');
+
+      let response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!response.ok) throw new Error('Geocoding failed');
+      data = await response.json();
+      
+      // Strategy 2: If no results, try with just Balangoda
+      if (!data || data.length === 0) {
+        url = new URL('https://nominatim.openstreetmap.org/search');
+        url.searchParams.set('format', 'jsonv2');
+        url.searchParams.set('limit', '1');
+        url.searchParams.set('q', `${address}, Balangoda, Sri Lanka`);
+        
+        response = await fetch(url.toString(), {
+          headers: { Accept: 'application/json' },
+        });
+        
+        if (!response.ok) throw new Error('Geocoding failed');
+        data = await response.json();
+      }
+      
+      // Strategy 3: If still no results, try without any context
+      if (!data || data.length === 0) {
+        url = new URL('https://nominatim.openstreetmap.org/search');
+        url.searchParams.set('format', 'jsonv2');
+        url.searchParams.set('limit', '1');
+        url.searchParams.set('q', address);
+        
+        response = await fetch(url.toString(), {
+          headers: { Accept: 'application/json' },
+        });
+        
+        if (!response.ok) throw new Error('Geocoding failed');
+        data = await response.json();
+      }
+      
+      if (data && data[0]) {
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        
+        if (!isNaN(lat) && !isNaN(lng)) {
+          mapRef.current.setView([lat, lng], 16);
+          markerRef.current?.setLatLng([lat, lng]);
+          
+          const fullAddress = data[0].display_name || address;
+          setMapMessage(`📍 ${fullAddress}`);
+          
+          onSelect({
+            address: fullAddress,
+            coordinates: { latitude: lat, longitude: lng },
+          });
+          return;
+        }
+      }
+      
+      // If we get here, no results found
+      setMapMessage('⚠️ Location not found. Try a more specific address or click on the map.');
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      setMapMessage('⚠️ Error finding location. Please click on the map.');
+    }
+  };
+
+  // Initialize map (runs once)
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = L.map(mapContainerRef.current, {
+      zoomControl: true,
+      scrollWheelZoom: true,
+    }).setView(BALANGODA_MAP_CENTER, 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+      minZoom: 12,
+    }).addTo(map);
+
+    // Custom green marker icon
+    const greenIcon = L.divIcon({
+      className: '',
+      html: `
+        <div style="
+          width: 36px;
+          height: 36px;
+          border-radius: 50% 50% 50% 0;
+          background: #06a63e;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 900;
+          font-size: 16px;
+          box-shadow: 0 8px 16px rgba(6, 166, 62, 0.4), 0 0 0 4px rgba(255, 255, 255, 0.8);
+          transform: rotate(-45deg);
+          border: 2px solid #ffffff;
+        ">
+          <span style="transform: rotate(45deg);">📍</span>
+        </div>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+      popupAnchor: [0, -32],
+    });
+
+    const marker = L.marker(BALANGODA_MAP_CENTER, {
+      icon: greenIcon,
+      draggable: true,
+    }).addTo(map);
+
+    // Click on map to place marker
+    map.on('click', (e) => {
+      const { lat, lng } = e.latlng;
+      marker.setLatLng([lat, lng]);
+      reverseGeocode(lat, lng);
+    });
+
+    // Drag end handler
+    marker.on('dragend', (e) => {
+      const { lat, lng } = e.target.getLatLng();
+      reverseGeocode(lat, lng);
+    });
+
+    mapRef.current = map;
+    markerRef.current = marker;
+    setMapLoaded(true);
+
+    // If there's an initial value, geocode it
+    if (value) {
+      setTimeout(() => geocodeAddress(value), 300);
+    }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  // Handle value changes from parent (when search is performed)
+  useEffect(() => {
+    if (!mapRef.current || !value) return;
+    if (prevValueRef.current === value) return;
+    
+    prevValueRef.current = value;
+    setTimeout(() => geocodeAddress(value), 300);
+  }, [value]);
+
+  // Use current location
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      setMapMessage('Geolocation is not supported in this browser.');
+      return;
+    }
+
+    setMapMessage('📍 Getting your location...');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        mapRef.current?.setView([latitude, longitude], 16);
+        markerRef.current?.setLatLng([latitude, longitude]);
+        reverseGeocode(latitude, longitude);
+      },
+      () => {
+        setMapMessage('⚠️ Location access denied. Please click on the map instead.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  return (
+    <div className="flex h-full flex-col gap-3">
+      {/* Map container */}
+      <div 
+        ref={mapContainerRef} 
+        className="w-full rounded-2xl border border-gray-200 bg-gray-50 min-h-[280px] h-[280px] relative"
+      >
+        {!mapLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50/80 rounded-2xl">
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#06a63e] border-t-transparent" />
+              <p className="text-sm text-gray-500">Loading map...</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Controls and status */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleUseMyLocation}
+            className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-50 transition flex items-center gap-1.5"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Use My Location
+          </button>
+          <span className="text-xs text-gray-400">|</span>
+          <p className="text-xs text-gray-500 flex items-center gap-1.5">
+            <span className="inline-block h-2 w-2 rounded-full bg-[#06a63e]" />
+            Click map or drag pin
+          </p>
+        </div>
+        {mapMessage && (
+          <p className="text-xs font-medium text-[#06a63e] truncate max-w-[50%]">{mapMessage}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ===== CONSTANTS =====
 const STATUS_STYLES = {
   Pending: "bg-amber-100 text-amber-700",
   Assigned: "bg-blue-100 text-blue-700",
@@ -17,9 +317,6 @@ const STATUS_STYLES = {
   Delayed: "bg-red-100 text-red-700",
   Cancelled: "bg-gray-100 text-gray-600",
 };
-
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
-const DEFAULT_MAP_CENTER = { lat: 6.6617, lng: 80.6937 };
 
 const Icon = ({ name, className = "h-5 w-5" }) => {
   const icons = {
@@ -53,77 +350,9 @@ const NAV_ITEMS = [
   { id: "payments",         icon: "creditCard", label: "Payments" },
   { id: "inquiry",          icon: "chat",       label: "Inquiry" },
   { id: "profile",          icon: "user",       label: "Profile" },
-  //{ id: "special-services", icon: "sparkles",   label: "Services" },
 ];
 
-function GoogleMapPicker({ value, onSelect }) {
-  const mapContainerRef = useRef(null);
-  const mapRef = useRef(null);
-  const markerRef = useRef(null);
-  const geocoderRef = useRef(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapMessage, setMapMessage] = useState("");
-
-  useEffect(() => {
-    if (!GOOGLE_MAPS_API_KEY) { setMapMessage("Add VITE_GOOGLE_MAPS_API_KEY to enable map selection."); return; }
-    if (window.google?.maps) { setMapLoaded(true); return; }
-    const existingScript = document.getElementById("google-maps-js");
-    if (existingScript) { existingScript.addEventListener("load", () => setMapLoaded(true)); return; }
-    const script = document.createElement("script");
-    script.id = "google-maps-js";
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
-    script.async = true; script.defer = true;
-    script.onload = () => setMapLoaded(true);
-    script.onerror = () => setMapMessage("Google Maps failed to load.");
-    document.head.appendChild(script);
-  }, []);
-
-  useEffect(() => {
-    if (!mapLoaded || !mapContainerRef.current || mapRef.current || !window.google?.maps) return;
-    const map = new window.google.maps.Map(mapContainerRef.current, {
-      center: DEFAULT_MAP_CENTER, zoom: 12, gestureHandling: "greedy",
-      streetViewControl: false, mapTypeControl: false, fullscreenControl: false,
-    });
-    const marker = new window.google.maps.Marker({ position: DEFAULT_MAP_CENTER, map, draggable: true });
-    const geocoder = new window.google.maps.Geocoder();
-    const resolveAddress = (latLng) => {
-      const coordinates = { latitude: latLng.lat(), longitude: latLng.lng() };
-      geocoder.geocode({ location: latLng }, (results, status) => {
-        if (status === "OK" && results?.[0]) { const address = results[0].formatted_address; setMapMessage(address); onSelect({ address, coordinates }); }
-        else { const fallback = `${latLng.lat().toFixed(5)}, ${latLng.lng().toFixed(5)}`; setMapMessage(fallback); onSelect({ address: fallback, coordinates }); }
-      });
-    };
-    map.addListener("click", (e) => { if (!e.latLng) return; marker.setPosition(e.latLng); resolveAddress(e.latLng); });
-    marker.addListener("dragend", (e) => { if (!e.latLng) return; resolveAddress(e.latLng); });
-    mapRef.current = map; markerRef.current = marker; geocoderRef.current = geocoder;
-  }, [mapLoaded, onSelect]);
-
-  useEffect(() => {
-    if (!mapRef.current || !geocoderRef.current || !value || !window.google?.maps) return;
-    geocoderRef.current.geocode({ address: value }, (results, status) => {
-      if (status === "OK" && results?.[0]) {
-        const loc = results[0].geometry?.location;
-        if (loc) { mapRef.current.panTo(loc); mapRef.current.setZoom(14); markerRef.current?.setPosition(loc); onSelect({ address: value, coordinates: { latitude: loc.lat(), longitude: loc.lng() } }); }
-      }
-    });
-  }, [value]);
-
-  if (!GOOGLE_MAPS_API_KEY) {
-    return (
-      <div className="flex h-full min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-400">
-        Add VITE_GOOGLE_MAPS_API_KEY to enable map selection.
-      </div>
-    );
-  }
-  return (
-    <div className="flex h-full flex-col gap-2">
-      <div ref={mapContainerRef} className="flex-1 w-full rounded-2xl border border-gray-200 min-h-[200px]" />
-      <p className="text-xs text-gray-400">Click the map or drag the pin to select a location.</p>
-      {mapMessage && <p className="text-xs font-medium text-[#06a63e]">{mapMessage}</p>}
-    </div>
-  );
-}
-
+// ===== Dashboard Component =====
 export default function Dashboard() {
   const { user } = useUser();
   const { signOut } = useClerk();
@@ -179,6 +408,10 @@ export default function Dashboard() {
 
   const closeBookingModal = () => setSelectedBooking(null);
   const navigate2Tab = (id) => { setActiveTab(id); setSidebarOpen(false); };
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/", { replace: true });
+  };
 
   const handleCancelBooking = async () => {
     if (!selectedBooking || cancellingBookingId === selectedBooking._id) return;
@@ -205,7 +438,9 @@ export default function Dashboard() {
   const handleLocationSearch = () => {
     const v = locationQuery.trim();
     if (!v) { setSearchStatus({ type: "error", text: "Please enter a location." }); return; }
-    setPickupLocation(v); setSelectedMapLocation(v); setPickupCoordinates(null);
+    setPickupLocation(v);
+    setSelectedMapLocation(v);
+    setPickupCoordinates(null);
     setSearchStatus({ type: "success", text: `Showing "${v}" on the map.` });
   };
 
@@ -390,7 +625,7 @@ export default function Dashboard() {
     </div>
   );
 
-  const SchedulePanel = () => (
+  const renderSchedulePanel = () => (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-black text-gray-900">Schedule a Pickup</h2>
@@ -402,20 +637,38 @@ export default function Dashboard() {
           <p className="mt-1 text-sm text-white/75">Enter your address or street name.</p>
           <div className="mt-5 rounded-2xl bg-white/15 p-5 border border-white/10 flex-1">
             <label className="block text-xs font-bold uppercase tracking-widest text-white/80 mb-3">Search pickup location</label>
-            <input type="text" value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)}
+            <input 
+              type="text" 
+              value={locationQuery} 
+              onChange={(e) => setLocationQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleLocationSearch()}
               placeholder="Enter a location, street, or area"
-              className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-white/40 mb-3" />
-            <button type="button" onClick={handleLocationSearch}
-              className="w-full rounded-xl bg-gray-900 px-6 py-3 text-sm font-bold text-white hover:bg-black active:scale-95 transition">
+              className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-white/40 mb-3" 
+            />
+            <button 
+              type="button" 
+              onClick={handleLocationSearch}
+              className="w-full rounded-xl bg-gray-900 px-6 py-3 text-sm font-bold text-white hover:bg-black active:scale-95 transition"
+            >
               Search Location
             </button>
             {searchStatus.text && (
-              <p className={`mt-3 text-sm ${searchStatus.type === "success" ? "text-green-200" : "text-red-200"}`}>{searchStatus.text}</p>
+              <p className={`mt-3 text-sm ${searchStatus.type === "success" ? "text-green-200" : "text-red-200"}`}>
+                {searchStatus.text}
+              </p>
             )}
           </div>
-          <button type="button" onClick={() => setShowPickupModal(true)}
-            className="mt-4 w-full rounded-2xl border border-white/25 bg-white/10 py-3 text-sm font-bold text-white hover:bg-white/20 transition active:scale-95">
+          <button 
+            type="button" 
+            onClick={() => {
+              if (pickupLocation) {
+                setShowPickupModal(true);
+              } else {
+                setSearchStatus({ type: "error", text: "Please select a location on the map first." });
+              }
+            }}
+            className="mt-4 w-full rounded-2xl border border-white/25 bg-white/10 py-3 text-sm font-bold text-white hover:bg-white/20 transition active:scale-95"
+          >
             Open Full Booking Form →
           </button>
         </div>
@@ -425,20 +678,34 @@ export default function Dashboard() {
               <h3 className="text-base font-black text-gray-800">Map Location Picker</h3>
               <p className="text-xs text-gray-400 mt-0.5">Click to pin your exact pickup spot.</p>
             </div>
-            {pickupLocation && <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-[10px] font-bold text-[#06a63e] uppercase tracking-wider">Pinned</span>}
+            {pickupLocation && (
+              <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-[10px] font-bold text-[#06a63e] uppercase tracking-wider flex items-center gap-1">
+                <span className="inline-block h-2 w-2 rounded-full bg-[#06a63e]" />
+                Pinned
+              </span>
+            )}
           </div>
-          <div className="flex-1 min-h-[220px]">
-            <GoogleMapPicker value={selectedMapLocation}
+          <div className="flex-1 min-h-[320px]">
+            <LeafletMapPicker 
+              value={selectedMapLocation}
               onSelect={({ address, coordinates }) => {
-                setLocationQuery(address); setPickupLocation(address);
-                setSelectedMapLocation(address); setPickupCoordinates(coordinates);
-                setSearchStatus({ type: "success", text: "Location selected from map." });
-              }} />
+                setLocationQuery(address);
+                setPickupLocation(address);
+                setSelectedMapLocation(address);
+                setPickupCoordinates(coordinates);
+                setSearchStatus({ type: "success", text: "📍 Location selected from map." });
+              }} 
+            />
           </div>
           {pickupLocation && (
             <div className="mt-4 p-3 rounded-xl bg-[#06a63e]/5 border border-[#06a63e]/15">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Selected Address</p>
               <p className="text-xs text-gray-700 truncate font-medium">{pickupLocation}</p>
+              {pickupCoordinates && (
+                <p className="text-[10px] text-gray-400 mt-1">
+                  {pickupCoordinates.latitude.toFixed(5)}, {pickupCoordinates.longitude.toFixed(5)}
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -528,11 +795,10 @@ export default function Dashboard() {
         <h2 className="text-xl font-black text-gray-900">Payments</h2>
         <p className="mt-1 text-sm text-gray-500">Your billing summary and transaction history.</p>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {[
-          { icon: "creditCard", label: "Total Paid",      value: `LKR ${totalPaid.toLocaleString()}`,                                                         border: "border-blue-200",   bg: "bg-blue-50",   color: "text-blue-600" },
-          { icon: "clock",      label: "Transactions",    value: payments.length,                                                                              border: "border-green-200",  bg: "bg-green-50",  color: "text-green-600" },
-          { icon: "sparkles",   label: "Avg per Booking", value: `LKR ${payments.length > 0 ? Math.round(totalPaid / payments.length).toLocaleString() : 0}`, border: "border-purple-200", bg: "bg-purple-50", color: "text-purple-600" },
+          { icon: "creditCard", label: "Total Paid",   value: `LKR ${totalPaid.toLocaleString()}`, border: "border-blue-200",  bg: "bg-blue-50",  color: "text-blue-600" },
+          { icon: "clock",      label: "Transactions", value: payments.length,                      border: "border-green-200", bg: "bg-green-50", color: "text-green-600" },
         ].map(({ icon, label, value, border, bg, color }) => (
           <div key={label} className={`rounded-3xl border bg-white p-5 shadow-sm ${border}`}>
             <div className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl ${bg}`}>
@@ -565,45 +831,191 @@ export default function Dashboard() {
   const InquiryPanel = React.memo(function InquiryPanelInner() {
     const [inquiry, setInquiry] = useState({ subject: "", message: "" });
     const [sending, setSending] = useState(false);
+    const [loadingInquiries, setLoadingInquiries] = useState(false);
     const [status, setStatus] = useState({ type: "", text: "" });
+    const [myInquiries, setMyInquiries] = useState([]);
+
+    const currentUserName = `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || user?.username || "Ecofy User";
+    const currentUserEmail = user?.primaryEmailAddress?.emailAddress || "";
+    const currentUserId = user?.id || "";
+
+    const loadMyInquiries = async () => {
+      if (!currentUserId && !currentUserEmail) {
+        setMyInquiries([]);
+        return;
+      }
+
+      setLoadingInquiries(true);
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/inquiries`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to fetch inquiries.");
+        }
+
+        const normalizedEmail = currentUserEmail.trim().toLowerCase();
+        const normalizedClerkId = currentUserId.trim();
+
+        const filtered = (data.inquiries || []).filter((item) => {
+          const itemClerkId = String(item.clerkId || "").trim();
+          const itemEmail = String(item.userEmail || "").trim().toLowerCase();
+          return (
+            (normalizedClerkId && itemClerkId === normalizedClerkId) ||
+            (normalizedEmail && itemEmail === normalizedEmail)
+          );
+        });
+
+        setMyInquiries(filtered);
+      } catch (err) {
+        setStatus({ type: "error", text: err.message || "Failed to load inquiry history." });
+      } finally {
+        setLoadingInquiries(false);
+      }
+    };
+
+    useEffect(() => {
+      loadMyInquiries();
+    }, [currentUserId, currentUserEmail]);
+
     const handleSubmit = async (e) => {
       e.preventDefault();
-      if (!inquiry.message.trim()) { setStatus({ type: "error", text: "Please enter a message." }); return; }
+
+      if (!inquiry.message.trim()) {
+        setStatus({ type: "error", text: "Please enter a message." });
+        return;
+      }
+
       try {
         setSending(true);
-        await submitInquiry({ clerkId: user?.id || "", userName: `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || user?.username || "Ecofy User", userEmail: user?.primaryEmailAddress?.emailAddress || "", subject: inquiry.subject || "General Inquiry", message: inquiry.message });
+        await submitInquiry({
+          clerkId: currentUserId,
+          userName: currentUserName,
+          userEmail: currentUserEmail,
+          subject: inquiry.subject || "General Inquiry",
+          message: inquiry.message,
+        });
+
         setInquiry({ subject: "", message: "" });
         setStatus({ type: "success", text: "Inquiry sent! Admin will respond soon." });
-      } catch (err) { setStatus({ type: "error", text: err.message || "Failed to send." }); }
-      finally { setSending(false); }
+        await loadMyInquiries();
+      } catch (err) {
+        setStatus({ type: "error", text: err.message || "Failed to send." });
+      } finally {
+        setSending(false);
+      }
     };
+
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-black text-gray-900">Send an Inquiry</h2>
-          <p className="mt-1 text-sm text-gray-500">Your message goes directly to the Ecofy admin team.</p>
+          <h2 className="text-xl font-black text-gray-900">Inquiry Center</h2>
+          <p className="mt-1 text-sm text-gray-500">Send a message to admin and review every reply here.</p>
         </div>
+
         <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Subject (optional)</label>
-              <input type="text" value={inquiry.subject} onChange={(e) => setInquiry((p) => ({ ...p, subject: e.target.value }))}
+              <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-400">Subject (optional)</label>
+              <input
+                type="text"
+                value={inquiry.subject}
+                onChange={(e) => setInquiry((p) => ({ ...p, subject: e.target.value }))}
                 placeholder="e.g. Missed pickup on 28th May"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[#06a63e] transition" />
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e]"
+              />
             </div>
+
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Message</label>
-              <textarea value={inquiry.message} onChange={(e) => setInquiry((p) => ({ ...p, message: e.target.value }))}
-                placeholder="Describe your issue or question..." rows={6}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[#06a63e] transition" />
+              <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-400">Message</label>
+              <textarea
+                value={inquiry.message}
+                onChange={(e) => setInquiry((p) => ({ ...p, message: e.target.value }))}
+                placeholder="Describe your issue or question..."
+                rows={6}
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e]"
+              />
             </div>
-            {status.text && <p className={`text-sm font-medium ${status.type === "success" ? "text-[#06a63e]" : "text-red-600"}`}>{status.text}</p>}
-            <button type="submit" disabled={sending}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#06a63e] px-6 py-3 text-sm font-bold text-white hover:bg-[#058b33] disabled:opacity-60 transition">
-              <Icon name="chat" className="h-4 w-4" />
-              {sending ? "Sending..." : "Send Inquiry"}
-            </button>
+
+            {status.text && (
+              <p className={`text-sm font-medium ${status.type === "success" ? "text-[#06a63e]" : "text-red-600"}`}>
+                {status.text}
+              </p>
+            )}
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="submit"
+                disabled={sending}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#06a63e] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#058b33] disabled:opacity-60"
+              >
+                <Icon name="chat" className="h-4 w-4" />
+                {sending ? "Sending..." : "Send Inquiry"}
+              </button>
+
+              <button
+                type="button"
+                onClick={loadMyInquiries}
+                disabled={loadingInquiries}
+                className="rounded-xl border border-gray-300 px-5 py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
+              >
+                {loadingInquiries ? "Loading..." : "Refresh history"}
+              </button>
+            </div>
           </form>
+        </div>
+
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-black text-gray-900">Your inquiries</h3>
+              <p className="text-sm text-gray-500">All messages you submitted and any replies from admin.</p>
+            </div>
+            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-600">
+              {myInquiries.length} total
+            </span>
+          </div>
+
+          {loadingInquiries ? (
+            <p className="text-sm text-gray-400">Loading inquiry history...</p>
+          ) : myInquiries.length === 0 ? (
+            <p className="text-sm text-gray-400">No inquiries found yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {myInquiries.map((item) => (
+                <div key={item._id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">{item.subject || "General Inquiry"}</p>
+                      <p className="text-xs text-gray-400">
+                        {item.createdAt ? new Date(item.createdAt).toLocaleString() : "—"}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${item.status === "Replied" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                      {item.status || "Pending"}
+                    </span>
+                  </div>
+
+                  <p className="mt-3 text-sm text-gray-700 whitespace-pre-wrap">{item.message}</p>
+
+                  <div className="mt-4 rounded-xl border border-dashed border-gray-200 bg-white p-4">
+                    <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">Admin reply</p>
+                    {item.adminReply ? (
+                      <>
+                        <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{item.adminReply}</p>
+                        <p className="mt-2 text-xs text-gray-400">
+                          {item.repliedBy ? `Replied by ${item.repliedBy}` : "Replied by admin"}
+                          {item.repliedAt ? ` · ${new Date(item.repliedAt).toLocaleString()}` : ""}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="mt-2 text-sm text-gray-400">No reply yet.</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -640,7 +1052,7 @@ export default function Dashboard() {
   const renderPanel = () => {
     switch (activeTab) {
       case "home":             return <HomePanel />;
-      case "schedule":         return <SchedulePanel />;
+      case "schedule":         return renderSchedulePanel();
       case "track-status":     return <TrackStatusPanel />;
       case "history":          return <HistoryPanel />;
       case "payments":         return <PaymentsPanel />;
@@ -655,25 +1067,7 @@ export default function Dashboard() {
     <>
       {/* Top-right actions */}
       <div className="fixed top-8 right-4 z-50 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => navigate('/landing')}
-          className="inline-flex h-9 items-center gap-2 rounded-full border border-green-100 bg-white px-4 text-sm font-semibold text-green-700 shadow-sm transition-colors hover:bg-green-50"
-        >
-          <Icon name="home" className="h-4 w-4" />
-          <span className="hidden sm:inline">Landing Page</span>
-        </button>
         <NotificationBell target="user" />
-      </div>
-
-      {/* Background decoration */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-20">
-        <svg className="absolute top-40 left-72 w-24 h-24 text-[#218845] animate-wobble" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        <svg className="absolute bottom-32 right-12 w-32 h-32 text-[#218845] animate-wobble-reverse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.5V11m0 0a5 5 0 0 1 5-5h2.5c0 4.5-2 6.5-4 8l-3.5 3m0-11a5 5 0 0 0-5-5H7c0 4.5 2 6.5 4 8l3.5 3" />
-        </svg>
       </div>
 
       <div className="relative z-10 flex">
@@ -721,7 +1115,14 @@ export default function Dashboard() {
 
           {/* Sidebar footer */}
           <div className="border-t border-gray-100 px-5 py-4">
-            <p className="text-xs text-gray-400">Ecofy © 2026</p>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+            >
+              <Icon name="logout" className="h-4 w-4" />
+              Log Out
+            </button>
           </div>
         </aside>
 
@@ -730,7 +1131,8 @@ export default function Dashboard() {
           {/* Mobile top bar */}
           <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 lg:hidden sticky top-[88px] z-10 shadow-sm">
             <button type="button" onClick={() => setSidebarOpen(true)}
-              className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-100">
+              className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-[#06a63e] outline-none"
+              aria-label="Open navigation menu">
               <Icon name="menu" className="h-5 w-5" />
             </button>
             <p className="text-sm font-bold text-gray-800">
@@ -761,7 +1163,7 @@ export default function Dashboard() {
       />
       <PaymentModal
         isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
+        onClose={() => { setShowPaymentModal(false); fetchBookings(); fetchPayments(); }}
         onSuccess={() => { setShowPaymentModal(false); fetchBookings(); fetchPayments(); }}
         bookingDetails={lastBooking}
       />

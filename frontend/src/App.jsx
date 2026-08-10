@@ -49,7 +49,7 @@ export default function App() {
     <>
       <Navbar />
       <Hero />
-      <Footer />
+      
     </>
   );
 
@@ -76,7 +76,7 @@ export default function App() {
         <>
           <Navbar />
           <Blogs />
-          <Footer />
+          
         </>
       } />
 <Route path="/blogs/:id" element={
@@ -95,14 +95,6 @@ export default function App() {
 
       {/* Admin Dashboard */}
       <Route path="/admin-dashboard" element={
-        <PrivateRoute>
-          <ProtectedRoute allowedRoles={["Admin"]}>
-            <AdminDashboard />
-          </ProtectedRoute>
-        </PrivateRoute>
-      } />
-
-      <Route path="/admin" element={
         <PrivateRoute>
           <ProtectedRoute allowedRoles={["Admin"]}>
             <AdminDashboard />
@@ -150,12 +142,12 @@ export default function App() {
       <Route path="/profile-settings" element={<ProfileSettings />} />
 
       {/* Contact */}
-      <Route path="/contact" element={<><Navbar /><ContactUs /><Footer /></>} />
+      <Route path="/contact" element={<><Navbar /><ContactUs /></>} />
 
       {/* About */}
-      <Route path="/about" element={ <><Navbar /> <About /> <Footer /></>} />
+      <Route path="/about" element={ <><Navbar /> <About /> </>} />
 
-      <Route path="/services" element={ <><Navbar /> <Services /> <Footer /></> } />
+      <Route path="/services" element={ <><Navbar /> <Services /> </> } />
 
     </Routes>
 

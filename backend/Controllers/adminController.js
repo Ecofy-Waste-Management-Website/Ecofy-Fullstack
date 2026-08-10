@@ -1,4 +1,5 @@
 const User = require('../Model/User.js');
+const SystemLog = require('../Model/SystemLog');
 const { clerkClient } = require('@clerk/clerk-sdk-node');
 
 const getClerkErrorMessage = (error) => {
@@ -27,9 +28,21 @@ const mapStaffForResponse = (staffUser) => ({
   role: staffUser.role,
   status: staffUser.status,
   displayStatus: toDisplayStatus(staffUser.status),
+  mustChangePassword: Boolean(staffUser.mustChangePassword),
+  passwordChangedAt: staffUser.passwordChangedAt,
   createdAt: staffUser.createdAt,
   updatedAt: staffUser.updatedAt,
 });
+
+const getSystemLogs = async (_req, res) => {
+  try {
+    const logs = await SystemLog.find().sort({ createdAt: -1 }).lean();
+    return res.status(200).json({ message: 'System logs fetched successfully', logs });
+  } catch (error) {
+    console.error('Error fetching system logs:', error);
+    return res.status(500).json({ message: 'Failed to fetch system logs.' });
+  }
+};
 
 const createStaffAccount = async (req, res) => {
   let createdClerkUserId = null;
@@ -77,7 +90,7 @@ const createStaffAccount = async (req, res) => {
       password,
       firstName,
       lastName: lastName || undefined,
-      publicMetadata: { role: 'Staff' },
+      publicMetadata: { role: 'Staff', mustChangePassword: true },
     });
 
     createdClerkUserId = clerkUser.id;
@@ -90,7 +103,8 @@ const createStaffAccount = async (req, res) => {
       lastName: lastName || '',
       email: normalizedEmail,
       role: 'Staff',
-      status: 'Activate'
+      status: 'Activate',
+      mustChangePassword: true,
     });
 
     console.log('Staff account created successfully', {
@@ -111,6 +125,7 @@ const createStaffAccount = async (req, res) => {
         email: staffUser.email,
         role: staffUser.role,
         status: staffUser.status,
+        mustChangePassword: staffUser.mustChangePassword,
       }
     });
   } catch (error) {
@@ -142,9 +157,11 @@ const createStaffAccount = async (req, res) => {
 
 const getAllStaffAccounts = async (_req, res) => {
   try {
+    // ⚡ Bolt Optimization: Use .lean() for read-only query to bypass document hydration
     const staffUsers = await User.find({ role: 'Staff' })
       .sort({ createdAt: -1 })
-      .select('clerkId firstName username lastName email role status createdAt updatedAt');
+      .select('clerkId firstName username lastName email role status mustChangePassword passwordChangedAt createdAt updatedAt')
+      .lean();
 
     console.log('Staff accounts fetched successfully', { count: staffUsers.length });
 
@@ -272,4 +289,5 @@ module.exports = {
   getAllStaffAccounts,
   updateStaffAccount,
   deleteStaffAccount,
+  getSystemLogs,
 };

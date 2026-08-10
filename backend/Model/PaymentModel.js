@@ -19,7 +19,6 @@ const paymentSchema = new Schema(
     transaction_ref: { type: String, required: true },
     service_type: {
       type: String,
-      enum: ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"],
       required: true,
     },
     payment_date: { type: Date, required: true },

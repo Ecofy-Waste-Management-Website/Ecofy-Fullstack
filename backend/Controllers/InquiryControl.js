@@ -39,8 +39,8 @@ const createInquiry = async (req, res) => {
       isRead: false,
     });
 
-    // Individual staff notifications
-    const staffUsers = await User.find({ role: "Staff" }).select("clerkId");
+    // ⚡ Bolt Optimization: Use .lean() for read-only query to bypass document hydration
+    const staffUsers = await User.find({ role: "Staff" }).select("clerkId").lean();
     const staffNotifications = staffUsers
       .filter((s) => s.clerkId)
       .map((s) => ({
@@ -68,7 +68,7 @@ const createInquiry = async (req, res) => {
 
 const getAllInquiries = async (_req, res) => {
   try {
-    const inquiries = await Inquiry.find().sort({ createdAt: -1 });
+    const inquiries = await Inquiry.find().sort({ createdAt: -1 }).lean();
     return res.status(200).json({ inquiries });
   } catch (error) {
     console.error("Error fetching inquiries:", error);
