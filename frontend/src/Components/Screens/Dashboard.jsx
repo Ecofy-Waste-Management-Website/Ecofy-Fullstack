@@ -408,6 +408,10 @@ export default function Dashboard() {
 
   const closeBookingModal = () => setSelectedBooking(null);
   const navigate2Tab = (id) => { setActiveTab(id); setSidebarOpen(false); };
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/", { replace: true });
+  };
 
   const handleCancelBooking = async () => {
     if (!selectedBooking || cancellingBookingId === selectedBooking._id) return;
@@ -791,11 +795,10 @@ export default function Dashboard() {
         <h2 className="text-xl font-black text-gray-900">Payments</h2>
         <p className="mt-1 text-sm text-gray-500">Your billing summary and transaction history.</p>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {[
-          { icon: "creditCard", label: "Total Paid",      value: `LKR ${totalPaid.toLocaleString()}`,                                                         border: "border-blue-200",   bg: "bg-blue-50",   color: "text-blue-600" },
-          { icon: "clock",      label: "Transactions",    value: payments.length,                                                                              border: "border-green-200",  bg: "bg-green-50",  color: "text-green-600" },
-          { icon: "sparkles",   label: "Avg per Booking", value: `LKR ${payments.length > 0 ? Math.round(totalPaid / payments.length).toLocaleString() : 0}`, border: "border-purple-200", bg: "bg-purple-50", color: "text-purple-600" },
+          { icon: "creditCard", label: "Total Paid",   value: `LKR ${totalPaid.toLocaleString()}`, border: "border-blue-200",  bg: "bg-blue-50",  color: "text-blue-600" },
+          { icon: "clock",      label: "Transactions", value: payments.length,                      border: "border-green-200", bg: "bg-green-50", color: "text-green-600" },
         ].map(({ icon, label, value, border, bg, color }) => (
           <div key={label} className={`rounded-3xl border bg-white p-5 shadow-sm ${border}`}>
             <div className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl ${bg}`}>
@@ -828,45 +831,191 @@ export default function Dashboard() {
   const InquiryPanel = React.memo(function InquiryPanelInner() {
     const [inquiry, setInquiry] = useState({ subject: "", message: "" });
     const [sending, setSending] = useState(false);
+    const [loadingInquiries, setLoadingInquiries] = useState(false);
     const [status, setStatus] = useState({ type: "", text: "" });
+    const [myInquiries, setMyInquiries] = useState([]);
+
+    const currentUserName = `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || user?.username || "Ecofy User";
+    const currentUserEmail = user?.primaryEmailAddress?.emailAddress || "";
+    const currentUserId = user?.id || "";
+
+    const loadMyInquiries = async () => {
+      if (!currentUserId && !currentUserEmail) {
+        setMyInquiries([]);
+        return;
+      }
+
+      setLoadingInquiries(true);
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/inquiries`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to fetch inquiries.");
+        }
+
+        const normalizedEmail = currentUserEmail.trim().toLowerCase();
+        const normalizedClerkId = currentUserId.trim();
+
+        const filtered = (data.inquiries || []).filter((item) => {
+          const itemClerkId = String(item.clerkId || "").trim();
+          const itemEmail = String(item.userEmail || "").trim().toLowerCase();
+          return (
+            (normalizedClerkId && itemClerkId === normalizedClerkId) ||
+            (normalizedEmail && itemEmail === normalizedEmail)
+          );
+        });
+
+        setMyInquiries(filtered);
+      } catch (err) {
+        setStatus({ type: "error", text: err.message || "Failed to load inquiry history." });
+      } finally {
+        setLoadingInquiries(false);
+      }
+    };
+
+    useEffect(() => {
+      loadMyInquiries();
+    }, [currentUserId, currentUserEmail]);
+
     const handleSubmit = async (e) => {
       e.preventDefault();
-      if (!inquiry.message.trim()) { setStatus({ type: "error", text: "Please enter a message." }); return; }
+
+      if (!inquiry.message.trim()) {
+        setStatus({ type: "error", text: "Please enter a message." });
+        return;
+      }
+
       try {
         setSending(true);
-        await submitInquiry({ clerkId: user?.id || "", userName: `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || user?.username || "Ecofy User", userEmail: user?.primaryEmailAddress?.emailAddress || "", subject: inquiry.subject || "General Inquiry", message: inquiry.message });
+        await submitInquiry({
+          clerkId: currentUserId,
+          userName: currentUserName,
+          userEmail: currentUserEmail,
+          subject: inquiry.subject || "General Inquiry",
+          message: inquiry.message,
+        });
+
         setInquiry({ subject: "", message: "" });
         setStatus({ type: "success", text: "Inquiry sent! Admin will respond soon." });
-      } catch (err) { setStatus({ type: "error", text: err.message || "Failed to send." }); }
-      finally { setSending(false); }
+        await loadMyInquiries();
+      } catch (err) {
+        setStatus({ type: "error", text: err.message || "Failed to send." });
+      } finally {
+        setSending(false);
+      }
     };
+
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-black text-gray-900">Send an Inquiry</h2>
-          <p className="mt-1 text-sm text-gray-500">Your message goes directly to the Ecofy admin team.</p>
+          <h2 className="text-xl font-black text-gray-900">Inquiry Center</h2>
+          <p className="mt-1 text-sm text-gray-500">Send a message to admin and review every reply here.</p>
         </div>
+
         <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Subject (optional)</label>
-              <input type="text" value={inquiry.subject} onChange={(e) => setInquiry((p) => ({ ...p, subject: e.target.value }))}
+              <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-400">Subject (optional)</label>
+              <input
+                type="text"
+                value={inquiry.subject}
+                onChange={(e) => setInquiry((p) => ({ ...p, subject: e.target.value }))}
                 placeholder="e.g. Missed pickup on 28th May"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[#06a63e] transition" />
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e]"
+              />
             </div>
+
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Message</label>
-              <textarea value={inquiry.message} onChange={(e) => setInquiry((p) => ({ ...p, message: e.target.value }))}
-                placeholder="Describe your issue or question..." rows={6}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[#06a63e] transition" />
+              <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-400">Message</label>
+              <textarea
+                value={inquiry.message}
+                onChange={(e) => setInquiry((p) => ({ ...p, message: e.target.value }))}
+                placeholder="Describe your issue or question..."
+                rows={6}
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e]"
+              />
             </div>
-            {status.text && <p className={`text-sm font-medium ${status.type === "success" ? "text-[#06a63e]" : "text-red-600"}`}>{status.text}</p>}
-            <button type="submit" disabled={sending}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#06a63e] px-6 py-3 text-sm font-bold text-white hover:bg-[#058b33] disabled:opacity-60 transition">
-              <Icon name="chat" className="h-4 w-4" />
-              {sending ? "Sending..." : "Send Inquiry"}
-            </button>
+
+            {status.text && (
+              <p className={`text-sm font-medium ${status.type === "success" ? "text-[#06a63e]" : "text-red-600"}`}>
+                {status.text}
+              </p>
+            )}
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="submit"
+                disabled={sending}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#06a63e] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#058b33] disabled:opacity-60"
+              >
+                <Icon name="chat" className="h-4 w-4" />
+                {sending ? "Sending..." : "Send Inquiry"}
+              </button>
+
+              <button
+                type="button"
+                onClick={loadMyInquiries}
+                disabled={loadingInquiries}
+                className="rounded-xl border border-gray-300 px-5 py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
+              >
+                {loadingInquiries ? "Loading..." : "Refresh history"}
+              </button>
+            </div>
           </form>
+        </div>
+
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-black text-gray-900">Your inquiries</h3>
+              <p className="text-sm text-gray-500">All messages you submitted and any replies from admin.</p>
+            </div>
+            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-600">
+              {myInquiries.length} total
+            </span>
+          </div>
+
+          {loadingInquiries ? (
+            <p className="text-sm text-gray-400">Loading inquiry history...</p>
+          ) : myInquiries.length === 0 ? (
+            <p className="text-sm text-gray-400">No inquiries found yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {myInquiries.map((item) => (
+                <div key={item._id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">{item.subject || "General Inquiry"}</p>
+                      <p className="text-xs text-gray-400">
+                        {item.createdAt ? new Date(item.createdAt).toLocaleString() : "—"}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${item.status === "Replied" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                      {item.status || "Pending"}
+                    </span>
+                  </div>
+
+                  <p className="mt-3 text-sm text-gray-700 whitespace-pre-wrap">{item.message}</p>
+
+                  <div className="mt-4 rounded-xl border border-dashed border-gray-200 bg-white p-4">
+                    <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">Admin reply</p>
+                    {item.adminReply ? (
+                      <>
+                        <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{item.adminReply}</p>
+                        <p className="mt-2 text-xs text-gray-400">
+                          {item.repliedBy ? `Replied by ${item.repliedBy}` : "Replied by admin"}
+                          {item.repliedAt ? ` · ${new Date(item.repliedAt).toLocaleString()}` : ""}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="mt-2 text-sm text-gray-400">No reply yet.</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -918,14 +1067,6 @@ export default function Dashboard() {
     <>
       {/* Top-right actions */}
       <div className="fixed top-8 right-4 z-50 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => navigate('/landing')}
-          className="inline-flex h-9 items-center gap-2 rounded-full border border-green-100 bg-white px-4 text-sm font-semibold text-green-700 shadow-sm transition-colors hover:bg-green-50"
-        >
-          <Icon name="home" className="h-4 w-4" />
-          <span className="hidden sm:inline">Landing Page</span>
-        </button>
         <NotificationBell target="user" />
       </div>
 
@@ -974,7 +1115,14 @@ export default function Dashboard() {
 
           {/* Sidebar footer */}
           <div className="border-t border-gray-100 px-5 py-4">
-            <p className="text-xs text-gray-400">Ecofy © 2026</p>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+            >
+              <Icon name="logout" className="h-4 w-4" />
+              Log Out
+            </button>
           </div>
         </aside>
 

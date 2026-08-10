@@ -618,7 +618,7 @@ export default function AdminDashboard() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   useEffect(() => {
@@ -750,7 +750,7 @@ export default function AdminDashboard() {
                 className="mt-0.5 cursor-pointer border-none bg-transparent p-0 text-[0.65rem] font-bold text-white/40 hover:text-white hover:underline transition-all"
                 onClick={() => setShowLogoutModal(true)}
               >
-                Logout
+                Log Out
               </button>
             </div>
           </div>
@@ -775,6 +775,14 @@ export default function AdminDashboard() {
                   Switch to Staff
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(true)}
+                className="inline-flex items-center gap-2 rounded-xl border border-[#06a63e]/15 bg-white px-4 py-2 text-xs font-black text-[#03652a] shadow-sm transition-all hover:border-[#06a63e]/30 hover:bg-[#f4f9f4]"
+              >
+                <LogOut className="h-4 w-4" />
+                Log Out
+              </button>
             </div>
           </header>
 
@@ -795,13 +803,23 @@ export default function AdminDashboard() {
           <div className="min-w-0">
             <h2 className="truncate text-base font-bold leading-tight">{getPageTitle()}</h2>
           </div>
-          <button
-            type="button"
-            onClick={handleToggleMobileMenu}
-            className="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-white/10 text-white"
-          >
-            <Icons.Menu />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Log Out
+            </button>
+            <button
+              type="button"
+              onClick={handleToggleMobileMenu}
+              className="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-white/10 text-white"
+            >
+              <Icons.Menu />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -854,6 +872,13 @@ export default function AdminDashboard() {
             >
               Switch to Staff
             </button>
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(true)}
+              className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 text-xs font-bold text-white"
+            >
+              Log Out
+            </button>
           </aside>
         </div>
       )}
@@ -867,7 +892,7 @@ export default function AdminDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </div>
-            <h3 className="mb-2 text-2xl font-extrabold text-white">Sign Out?</h3>
+            <h3 className="mb-2 text-2xl font-extrabold text-white">Log Out?</h3>
             <p className="mb-8 text-xs font-bold text-white/40 uppercase tracking-widest">Are you sure you want to exit the portal?</p>
             <div className="flex gap-4">
               <button
@@ -882,7 +907,7 @@ export default function AdminDashboard() {
                 onClick={handleSignOut}
                 className="flex-1 rounded-2xl bg-red-500 py-4 text-[10px] font-extrabold text-white shadow-lg shadow-red-500/20 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
               >
-                Sign Out
+                Log Out
               </button>
             </div>
           </div>

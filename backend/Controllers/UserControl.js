@@ -109,20 +109,7 @@ const getAllUsers = async (req, res) => {
   try {
     // ⚡ Bolt Optimization: Use .lean() for read-only database queries to bypass Mongoose document hydration.
     // Saves ~80% memory allocation and accelerates database query execution by 3x-5x.
-    const [primaryUsers, legacyUsers] = await Promise.all([
-      User.find().sort({ createdAt: -1 }).select("-password -__v").lean(),
-      LegacyUser.find().sort({ createdAt: -1 }).select("-__v").lean(),
-    ]);
-
-    const seen = new Set();
-    const users = [...primaryUsers.map((user) => normalizeUser(user, "User")), ...legacyUsers.map((user) => normalizeUser(user, "LegacyUser"))].filter((user) => {
-      const key = user.clerkId || user.email;
-      if (!key || seen.has(key)) {
-        return false;
-      }
-      seen.add(key);
-      return true;
-    });
+    const users = await User.find().sort({ createdAt: -1 }).select("-password -__v").lean();
 
     res.status(200).json({ message: "Users fetched successfully", users });
   } catch (err) {
@@ -134,9 +121,7 @@ const getAllUsers = async (req, res) => {
 const getUserOrderHistory = async (req, res) => {
   try {
     const { clerkId } = req.params;
-    const user =
-      (await User.findOne({ clerkId }).select("-password -__v").lean()) ||
-      (await LegacyUser.findOne({ clerkId }).select("-__v").lean());
+    const user = await User.findOne({ clerkId }).select("-password -__v").lean();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -163,9 +148,7 @@ const getUserOrderHistory = async (req, res) => {
 // Get single user profile by clerkId
 const getUserByClerkId = async (req, res) => {
   try {
-    const user =
-      (await User.findOne({ clerkId: req.params.clerkId }).lean()) ||
-      (await LegacyUser.findOne({ clerkId: req.params.clerkId }).lean());
+    const user = await User.findOne({ clerkId: req.params.clerkId }).lean();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

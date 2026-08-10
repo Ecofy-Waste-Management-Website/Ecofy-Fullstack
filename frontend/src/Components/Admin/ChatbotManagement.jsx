@@ -20,29 +20,9 @@ export default function ChatbotManagement() {
         if (!mounted) return;
         setSessions(Array.isArray(data.sessions) ? data.sessions : []);
       } catch (err) {
-        const mock = [
-          {
-            id: 's1',
-            user: { id: 'u1', name: 'Jane Doe', email: 'jane@example.com' },
-            lastUpdated: new Date().toISOString(),
-            messages: [
-              { role: 'user', text: 'Hi, how do I book a pickup?', time: new Date().toISOString() },
-              { role: 'bot', text: "Sure — I can help with that. What type of waste?", time: new Date().toISOString() }
-            ]
-          },
-          {
-            id: 's2',
-            user: { id: 'u2', name: 'Kamal Perera', email: 'kamal@example.com' },
-            lastUpdated: new Date(Date.now() - 3600 * 1000).toISOString(),
-            messages: [
-              { role: 'user', text: 'Do you collect electronics?', time: new Date(Date.now() - 3600 * 1000).toISOString() },
-              { role: 'bot', text: "Yes — we accept e-waste. Would you like to schedule a collection?", time: new Date(Date.now() - 3590 * 1000).toISOString() }
-            ]
-          }
-        ];
         if (mounted) {
-          setSessions(mock);
-          setError('Could not fetch sessions from backend; using mock data.');
+          setSessions([]);
+          setError('Could not fetch sessions from backend.');
         }
       } finally {
         if (mounted) setLoading(false);
@@ -169,7 +149,7 @@ export default function ChatbotManagement() {
 
       {/* ── CONVERSATION MODAL ── */}
       {selected && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="w-full max-w-2xl rounded-3xl border border-[#397234]/20 bg-white shadow-2xl overflow-hidden">
 
             {/* Modal header */}

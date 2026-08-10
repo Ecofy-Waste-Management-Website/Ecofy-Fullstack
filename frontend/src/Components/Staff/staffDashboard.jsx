@@ -725,6 +725,8 @@ export default function StaffDashboard() {
   const [inquiries, setInquiries] = useState([]);
   const [inquiriesLoading, setInquiriesLoading] = useState(false);
   const [expandedInquiryId, setExpandedInquiryId] = useState(null);
+  const [inquiryForm, setInquiryForm] = useState({ subject: '', message: '' });
+  const [sendingInquiry, setSendingInquiry] = useState(false);
   const [replyTexts, setReplyTexts] = useState({});
   const [sendingReply, setSendingReply] = useState(null);
   const [settingsForm, setSettingsForm] = useState({
@@ -747,6 +749,7 @@ export default function StaffDashboard() {
   const [isAccountBanned, setIsAccountBanned] = useState(null);
 
   const staffName = displayName;
+  const staffEmail = user?.primaryEmailAddress?.emailAddress || '';
   const staffInitials = staffName.split(" ").map(n => n[0] || "").join("").toUpperCase();
   const openPendingOrderDetails = (order) => {
     setSelectedPendingOrder(order);
@@ -857,11 +860,20 @@ export default function StaffDashboard() {
       const res = await fetch(`${API_BASE_URL}/inquiries`);
       if (res.ok) {
         const data = await res.json();
-        // Filter to only show inquiries whose clerkId matches this staff member
-        const filtered = (data.inquiries || []).filter(
-          (inq) => inq.clerkId && inq.clerkId === user.id
-        );
-        setInquiries(data.inquiries || []);
+        const staffEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase() || "";
+        const staffClerkId = user?.id || "";
+
+        const filtered = (data.inquiries || []).filter((inq) => {
+          const inquiryClerkId = String(inq.clerkId || "").trim();
+          const inquiryEmail = String(inq.userEmail || "").trim().toLowerCase();
+
+          return (
+            (staffClerkId && inquiryClerkId === staffClerkId) ||
+            (staffEmail && inquiryEmail === staffEmail)
+          );
+        });
+
+        setInquiries(filtered);
       }
     } catch (err) {
       console.error('Failed to fetch inquiries:', err);
@@ -901,6 +913,64 @@ export default function StaffDashboard() {
       showNotification('Failed to send reply. Please try again.', 'error');
     } finally {
       setSendingReply(null);
+    }
+  };
+
+  const handleInquiryFormChange = (field, value) => {
+    setInquiryForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSendInquiry = async (event) => {
+    event.preventDefault();
+
+    const subject = inquiryForm.subject.trim();
+    const message = inquiryForm.message.trim();
+
+    if (!message || sendingInquiry) {
+      return;
+    }
+
+    if (!staffEmail || !user?.id) {
+      showNotification('Your staff profile is not ready yet. Please reload and try again.', 'error');
+      return;
+    }
+
+    setSendingInquiry(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/inquiries`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userName: staffName || 'Staff Member',
+          userEmail: staffEmail,
+          clerkId: user.id,
+          subject: subject || 'General Inquiry',
+          message,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to submit inquiry');
+      }
+
+      setInquiryForm({ subject: '', message: '' });
+      showNotification('Inquiry sent to admin successfully!');
+
+      if (activeTab === 'inquiries') {
+        await fetchInquiries();
+      }
+    } catch (error) {
+      console.error('Failed to send inquiry:', error);
+      showNotification(error.message || 'Failed to send inquiry. Please try again.', 'error');
+    } finally {
+      setSendingInquiry(false);
     }
   };
 
@@ -1561,6 +1631,67 @@ export default function StaffDashboard() {
   // ─── Inquiry Panel ────────────────────────────────────────────────────────────
   const renderInquiriesPanel = () => (
     <div className="rounded-3xl border border-[#06a63e]/20 bg-[#eaf9ee]/35 p-5 shadow-sm">
+      <div className="mb-5 rounded-3xl border border-[#06a63e]/15 bg-white/80 p-5 shadow-sm">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="text-lg font-black text-[#03652a]">Send Inquiry to Admin</h3>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#06a63e]/50">
+              Use this form to report issues, request help, or ask for clarification
+            </p>
+          </div>
+          <div className="rounded-full bg-[#eaf9ee] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#06a63e]">
+            Admin will be notified
+          </div>
+        </div>
+
+        <form onSubmit={handleSendInquiry} className="grid gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#06a63e]/55">Subject</span>
+              <input
+                type="text"
+                value={inquiryForm.subject}
+                onChange={(e) => handleInquiryFormChange('subject', e.target.value)}
+                placeholder="Optional subject line"
+                className="rounded-2xl border border-[#06a63e]/15 bg-white px-4 py-3 text-sm font-medium text-[#03652a] outline-none transition-all placeholder:text-[#06a63e]/30 focus:border-[#06a63e]/35 focus:ring-2 focus:ring-[#06a63e]/10"
+              />
+            </label>
+
+            <label className="grid gap-2">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#06a63e]/55">From</span>
+              <div className="rounded-2xl border border-dashed border-[#06a63e]/15 bg-[#f8fbf7] px-4 py-3 text-sm font-bold text-[#03652a]">
+                {staffName} <span className="font-medium text-[#06a63e]/55">({staffEmail || 'No email available'})</span>
+              </div>
+            </label>
+          </div>
+
+          <label className="grid gap-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#06a63e]/55">Message</span>
+            <textarea
+              value={inquiryForm.message}
+              onChange={(e) => handleInquiryFormChange('message', e.target.value)}
+              placeholder="Write your inquiry here..."
+              rows={5}
+              className="resize-none rounded-2xl border border-[#06a63e]/15 bg-white px-4 py-3 text-sm font-medium text-[#03652a] outline-none transition-all placeholder:text-[#06a63e]/30 focus:border-[#06a63e]/35 focus:ring-2 focus:ring-[#06a63e]/10"
+            />
+          </label>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/40">
+              Your inquiry will be saved here and sent to admin notifications.
+            </p>
+            <button
+              type="submit"
+              disabled={sendingInquiry || !inquiryForm.message.trim()}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#06a63e] px-5 py-3 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-[#06a63e]/20 transition-all hover:bg-[#048936] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Icons.Send />
+              {sendingInquiry ? 'Sending...' : 'Send Inquiry'}
+            </button>
+          </div>
+        </form>
+      </div>
+
       {/* Header row */}
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
