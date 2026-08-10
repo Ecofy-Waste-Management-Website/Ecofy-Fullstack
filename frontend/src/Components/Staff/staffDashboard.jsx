@@ -826,6 +826,28 @@ export default function StaffDashboard() {
     fetchTasks();
   }, [isLoaded, user]);
 
+  // Poll pending orders every 10 seconds to keep staff updated
+  useEffect(() => {
+    if (!isLoaded || !user) return;
+
+    const fetchPendingOrders = async () => {
+      try {
+        const pendingRes = await fetch(`${API_BASE_URL}/bookings`);
+        if (pendingRes.ok) {
+          const pendingData = await pendingRes.json();
+          setPendingOrders((Array.isArray(pendingData) ? pendingData : [])
+            .filter((order) => order.status === 'Pending')
+            .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)));
+        }
+      } catch (err) {
+        console.error('Failed to fetch pending orders:', err);
+      }
+    };
+
+    const intervalId = setInterval(fetchPendingOrders, 10000);
+    return () => clearInterval(intervalId);
+  }, [isLoaded, user]);
+
   // Fetch inquiries when tab is opened
   useEffect(() => {
     if (activeTab !== 'inquiries' || !user?.id) return;
@@ -1217,7 +1239,7 @@ export default function StaffDashboard() {
           <p className="text-[10px] font-bold text-[#06a63e]/50 uppercase tracking-[0.2em] mt-1">{task.service_type || 'General Service'}</p>
         </div>
         <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest ${isCompleted ? 'bg-green-100 text-[#06a63e]' : getStatusColor(task.status)}`}>
-          {isCompleted ? 'Completed' : task.status}
+          {isCompleted ? 'Completed' : (task.status === 'En Route' ? 'On the Way' : task.status)}
         </span>
       </div>
 
@@ -1330,7 +1352,7 @@ export default function StaffDashboard() {
                 : 'bg-[#06a63e] text-white hover:bg-[#03652a] shadow-md'
             }`}
           >
-            {updatingTask === task._id && task.status !== 'En Route' ? '...' : <><Icons.ActiveTasks /> En Route</>}
+            {updatingTask === task._id && task.status !== 'En Route' ? '...' : <><Icons.ActiveTasks /> On the Way</>}
           </button>
           <button
             onClick={() => updateTaskStatus(task._id, 'Completed')}
