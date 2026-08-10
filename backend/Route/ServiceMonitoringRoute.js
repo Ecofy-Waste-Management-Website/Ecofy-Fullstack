@@ -2,6 +2,48 @@ const express = require("express");
 const router  = express.Router();
 const ServiceRequest = require("../Model/ServiceRequestModel");
 const Notification = require("../Model/NotificationModel");
+const User = require("../Model/User.js");
+
+const normalizeKey = (value) => String(value || "").trim().toLowerCase();
+
+async function buildStaffDirectory() {
+  const staffUsers = await User.find({ role: "Staff" })
+    .select("clerkId firstName lastName username email")
+    .lean();
+
+  const directory = new Map();
+
+  for (const staff of staffUsers) {
+    const fullName = [staff.firstName, staff.lastName].filter(Boolean).join(" ").trim();
+    const aliases = [
+      staff.clerkId,
+      staff.username,
+      staff.email,
+      fullName,
+      normalizeKey(fullName),
+      normalizeKey(staff.username),
+      normalizeKey(staff.email),
+      normalizeKey(staff.clerkId),
+    ].filter(Boolean);
+
+    for (const alias of aliases) {
+      if (!directory.has(alias)) {
+        directory.set(alias, {
+          value: staff.clerkId || staff.username || staff.email,
+          label: fullName || staff.username || staff.email || staff.clerkId,
+        });
+      }
+    }
+  }
+
+  return directory;
+}
+
+function resolveAssignedStaff(directory, value) {
+  if (!value) return null;
+  const direct = directory.get(value) || directory.get(normalizeKey(value));
+  return direct || null;
+}
 
 // ── Broadcast helper ──────────────────────────────────────────────────────────
 // Sends a WebSocket message to every connected dashboard client.
@@ -17,7 +59,10 @@ function broadcast(req, payload) {
 
 // ── Map DB document → frontend shape ─────────────────────────────────────────
 // Keeps the frontend free from knowing internal field names.
-function toFrontend(doc) {
+function toFrontend(doc, staffDirectory = new Map()) {
+  const assignedStaff = doc.assignedStaff;
+  const resolvedStaff = resolveAssignedStaff(staffDirectory, assignedStaff);
+
   return {
     id:            doc._id,           // frontend uses _id for PATCH calls
     requestId:     `#REQ-${doc._id.toString().slice(-5).toUpperCase()}`,
@@ -30,7 +75,9 @@ function toFrontend(doc) {
     servicePrice:  doc.servicePrice,
     pickupPin:     doc.pickupPin,
     status:        doc.status,
-    assignedStaff: doc.assignedStaff,
+    assignedStaff,
+    assignedStaffLabel: resolvedStaff?.label || assignedStaff || null,
+    assignedStaffValue: resolvedStaff?.value || assignedStaff || null,
     submittedAt:   doc.createdAt,
     scheduledDate: doc.scheduled_date,
     notes:         doc.notes,
@@ -43,6 +90,7 @@ function toFrontend(doc) {
 // Query params: status, type, location, search
 router.get("/", async (req, res) => {
   try {
+    const staffDirectory = await buildStaffDirectory();
     const { status, type, location, search } = req.query;
     const filter = {};
 
@@ -64,7 +112,7 @@ router.get("/", async (req, res) => {
     }
 
     const docs = await ServiceRequest.find(filter).sort({ createdAt: -1 });
-    res.json({ success: true, data: docs.map(toFrontend) });
+    res.json({ success: true, data: docs.map((doc) => toFrontend(doc, staffDirectory)) });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -97,9 +145,10 @@ router.get("/stats", async (req, res) => {
 // Single request — opened when the modal loads.
 router.get("/:id", async (req, res) => {
   try {
+    const staffDirectory = await buildStaffDirectory();
     const doc = await ServiceRequest.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: "Not found" });
-    res.json({ success: true, data: toFrontend(doc) });
+    res.json({ success: true, data: toFrontend(doc, staffDirectory) });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -141,15 +190,22 @@ router.patch("/:id/status", async (req, res) => {
 router.patch("/:id/assign", async (req, res) => {
   try {
     const { assignedStaff } = req.body; // pass null to unassign
+    const staffDirectory = await buildStaffDirectory();
 
     const doc = await ServiceRequest.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: "Not found" });
-    // Allow Clerk IDs (they may start with "user_") as well as plain staff names.
-    // No special-format rejection here — any string (or null) is accepted.
-    if (doc.assignedStaff !== assignedStaff) {
-      doc.assignedStaff = assignedStaff || null;
+    const resolvedStaff = assignedStaff ? resolveAssignedStaff(staffDirectory, assignedStaff) : null;
+
+    if (assignedStaff && !resolvedStaff) {
+      return res.status(400).json({ success: false, message: "Assigned staff must match a real staff account" });
+    }
+
+    const nextAssignedStaff = resolvedStaff ? resolvedStaff.value : null;
+
+    if (doc.assignedStaff !== nextAssignedStaff) {
+      doc.assignedStaff = nextAssignedStaff;
       const event = assignedStaff
-        ? `Assigned to ${assignedStaff}`
+        ? `Assigned to ${resolvedStaff.label}`
         : "Staff unassigned";
       doc.timeline.push({ event, time: new Date() });
 
@@ -167,7 +223,7 @@ router.patch("/:id/assign", async (req, res) => {
       await doc.save();
     }
 
-    const payload = toFrontend(doc);
+    const payload = toFrontend(doc, staffDirectory);
     broadcast(req, { type: "REQUEST_UPDATED", data: payload });
     res.json({ success: true, data: payload });
   } catch (err) {
@@ -180,6 +236,7 @@ router.patch("/:id/assign", async (req, res) => {
 router.patch("/:id/cancel", async (req, res) => {
   try {
     const { clerkId } = req.body;
+    const staffDirectory = await buildStaffDirectory();
 
     const doc = await ServiceRequest.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: "Not found" });
@@ -204,7 +261,7 @@ router.patch("/:id/cancel", async (req, res) => {
       });
     }
 
-    const payload = toFrontend(doc);
+    const payload = toFrontend(doc, staffDirectory);
     broadcast(req, { type: "REQUEST_UPDATED", data: payload });
     res.json({ success: true, data: payload });
   } catch (err) {
