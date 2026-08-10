@@ -1,0 +1,33 @@
+*   [33m43d9b41[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/tharuka3[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #119 from Ecofy-Waste-Management-Website/revert-118-copilot/worktree-2026-06-14T17-26-45
+[31m|[m[32m\[m  
+[31m|[m * [33m3c4744a[m[33m ([m[1;31morigin/revert-118-copilot/worktree-2026-06-14T17-26-45[m[33m)[m Revert "changes"
+[31m|[m[31m/[m  
+*   [33m4aad35e[m Merge pull request #118 from Ecofy-Waste-Management-Website/copilot/worktree-2026-06-14T17-26-45
+[33m|[m[34m\[m  
+[33m|[m *   [33m0c4abea[m[33m ([m[1;31morigin/copilot/worktree-2026-06-14T17-26-45[m[33m)[m Merge branch 'main' into copilot/worktree-2026-06-14T17-26-45
+[33m|[m [35m|[m[33m\[m  
+[33m|[m [35m|[m[33m/[m  
+[33m|[m[33m/[m[35m|[m   
+* [35m|[m   [33m8375dbf[m Merge pull request #117 from Ecofy-Waste-Management-Website/Yuthila
+[1;31m|[m[1;32m\[m [35m\[m  
+[1;31m|[m * [35m\[m   [33mdbf13b8[m[33m ([m[1;31morigin/Yuthila[m[33m, [m[1;32mYuthila[m[33m)[m Merge branch 'main' of https://github.com/Ecofy-Waste-Management-Website/Ecofy-Fullstack into Yuthila
+[1;31m|[m [1;33m|[m[1;31m\[m [35m\[m  
+[1;31m|[m [1;33m|[m[1;31m/[m [35m/[m  
+[1;31m|[m[1;31m/[m[1;33m|[m [35m|[m   
+* [1;33m|[m [35m|[m   [33mcd8bf97[m Merge pull request #116 from Ecofy-Waste-Management-Website/tharuka3
+[1;35m|[m[1;36m\[m [1;33m\[m [35m\[m  
+[1;35m|[m * [1;33m|[m [35m|[m [33m5f5c7e3[m System logs
+[1;35m|[m * [1;33m|[m [35m|[m [33m5fee4d6[m updated the user dashboard refresh after order
+[1;35m|[m * [1;33m|[m [35m|[m   [33mca13757[m Merge branch 'tharuka3' of https://github.com/Ecofy-Waste-Management-Website/Ecofy-Fullstack into tharuka3
+[1;35m|[m [31m|[m[1;35m\[m [1;33m\[m [35m\[m  
+[1;35m|[m [31m|[m[1;35m/[m [1;33m/[m [35m/[m  
+[1;35m|[m[1;35m/[m[31m|[m [1;33m|[m [35m|[m   
+* [31m|[m [1;33m|[m [35m|[m   [33mb4636fa[m[33m ([m[1;32mtharuka3[m[33m)[m Merge pull request #115 from Ecofy-Waste-Management-Website/tharuka3
+[33m|[m[34m\[m [31m\[m [1;33m\[m [35m\[m  
+* [34m\[m [31m\[m [1;33m\[m [35m\[m   [33me0d937b[m Merge pull request #113 from Ecofy-Waste-Management-Website/Yuthila
+[35m|[m[36m\[m [34m\[m [31m\[m [1;33m\[m [35m\[m  
+* [36m\[m [34m\[m [31m\[m [1;33m\[m [35m\[m   [33ma4445e2[m Merge pull request #112 from Ecofy-Waste-Management-Website/Yuthila
+[1;31m|[m[1;32m\[m [36m\[m [34m\[m [31m\[m [1;33m\[m [35m\[m  
+[1;31m|[m [1;32m|[m [36m|[m [34m|[m * [1;33m|[m [35m|[m [33m1b04160[m feat: implement service management dashboard and backend support for service requests and payments
+[1;31m|[m [1;32m|[m [36m|[m [34m|[m[34m/[m [1;33m/[m [35m/[m  
+[1;31m|[m [1;32m|[m [36m|[m * [1;33m|[m [35m|[m [33m72d7ecb[m feat: add staff dashboard with integrated Leaflet map for visualizing pending service order locations
