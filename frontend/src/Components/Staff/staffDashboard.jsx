@@ -1234,7 +1234,7 @@ export default function StaffDashboard() {
   const menuItems = [
     { label: 'Pending Tasks', key: 'pending', icon: <Icons.PendingTasks />, count: pendingTasks.length },
     { label: 'Active Tasks', key: 'active', icon: <Icons.ActiveTasks />, count: ongoingTasks.length },
-    { label: 'Completed Today', key: 'completed', icon: <Icons.CompletedTasks />, count: completedTasks.length },
+    { label: 'Completed', key: 'completed', icon: <Icons.CompletedTasks />, count: completedTasks.length },
     { label: 'Inquiries', key: 'inquiries', icon: <Icons.Inquiry />, count: pendingInquiriesCount },
     { label: 'Settings', key: 'settings', icon: <Icons.Bell />, count: 0 },
   ];
