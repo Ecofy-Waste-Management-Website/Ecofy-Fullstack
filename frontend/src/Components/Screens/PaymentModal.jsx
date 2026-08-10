@@ -142,7 +142,7 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
       <div className="flex items-center justify-end gap-3 pt-1">
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => { onSuccess?.(); onClose(); }}
           className="rounded-lg border border-gray-300/80 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100/50 transition bg-white/30 backdrop-blur-sm"
         >
           Skip for now
