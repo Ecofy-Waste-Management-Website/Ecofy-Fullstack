@@ -12,6 +12,7 @@ const cors = require('cors'); {/*to allow frontend  access*/}
 const http = require('http'); 
 const { WebSocketServer } = require('ws'); {/*get real time updates */}
 const { clerkMiddleware } = require('@clerk/express'); 
+const { systemLogger } = require('./Middleware/systemLogger');
 
 const userRouter = require("./Route/UserRoute.js");
 const staffRouter = require("./Route/StaffRoute.js");
@@ -74,6 +75,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(systemLogger);
 
 // Register Clerk middleware only when keys are available.
 // This prevents global 500s on public routes when env vars are missing.
