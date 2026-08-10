@@ -1,49 +1,8 @@
 const express = require("express");
-const router  = express.Router();
+const router = express.Router();
 const ServiceRequest = require("../Model/ServiceRequestModel");
 const Notification = require("../Model/NotificationModel");
-const User = require("../Model/User.js");
-
-const normalizeKey = (value) => String(value || "").trim().toLowerCase();
-
-async function buildStaffDirectory() {
-  const staffUsers = await User.find({ role: "Staff" })
-    .select("clerkId firstName lastName username email")
-    .lean();
-
-  const directory = new Map();
-
-  for (const staff of staffUsers) {
-    const fullName = [staff.firstName, staff.lastName].filter(Boolean).join(" ").trim();
-    const aliases = [
-      staff.clerkId,
-      staff.username,
-      staff.email,
-      fullName,
-      normalizeKey(fullName),
-      normalizeKey(staff.username),
-      normalizeKey(staff.email),
-      normalizeKey(staff.clerkId),
-    ].filter(Boolean);
-
-    for (const alias of aliases) {
-      if (!directory.has(alias)) {
-        directory.set(alias, {
-          value: staff.clerkId || staff.username || staff.email,
-          label: fullName || staff.username || staff.email || staff.clerkId,
-        });
-      }
-    }
-  }
-
-  return directory;
-}
-
-function resolveAssignedStaff(directory, value) {
-  if (!value) return null;
-  const direct = directory.get(value) || directory.get(normalizeKey(value));
-  return direct || null;
-}
+const { rejectBannedStaff } = require('../Middleware/staffAccountStatus');
 
 // ── Broadcast helper ──────────────────────────────────────────────────────────
 // Sends a WebSocket message to every connected dashboard client.
@@ -64,24 +23,24 @@ function toFrontend(doc, staffDirectory = new Map()) {
   const resolvedStaff = resolveAssignedStaff(staffDirectory, assignedStaff);
 
   return {
-    id:            doc._id,           // frontend uses _id for PATCH calls
-    requestId:     `#REQ-${doc._id.toString().slice(-5).toUpperCase()}`,
-    customer:      doc.customer_name,
-    email:         doc.customer_email,
+    id: doc._id,           // frontend uses _id for PATCH calls
+    requestId: `#REQ-${doc._id.toString().slice(-5).toUpperCase()}`,
+    customer: doc.customer_name,
+    email: doc.customer_email,
     customer_phone: doc.customer_phone,
-    location:      doc.location,
-    type:          doc.service_type,
+    location: doc.location,
+    type: doc.service_type,
     wasteCategory: doc.waste_category,
-    servicePrice:  doc.servicePrice,
-    pickupPin:     doc.pickupPin,
-    status:        doc.status,
+    servicePrice: doc.servicePrice,
+    pickupPin: doc.pickupPin,
+    status: doc.status,
     assignedStaff,
     assignedStaffLabel: resolvedStaff?.label || assignedStaff || null,
     assignedStaffValue: resolvedStaff?.value || assignedStaff || null,
-    submittedAt:   doc.createdAt,
+    submittedAt: doc.createdAt,
     scheduledDate: doc.scheduled_date,
-    notes:         doc.notes,
-    timeline:      doc.timeline,
+    notes: doc.notes,
+    timeline: doc.timeline,
   };
 }
 
@@ -94,20 +53,22 @@ router.get("/", async (req, res) => {
     const { status, type, location, search } = req.query;
     const filter = {};
 
-    if (status   && status   !== "All") filter.status       = status;
-    if (type     && type     !== "All") filter.service_type = type;
-    if (location && location !== "All") filter.location     = location;
+    if (status && status !== "All") filter.status = status;
+    if (type && type !== "All") filter.service_type = type;
+    if (location && location !== "All") filter.location = location;
 
     // Search across customer name, email, and location
     // Uses $and so search doesn't override status/type/location filters
     if (search) {
       const regex = new RegExp(search, "i");
       filter.$and = [
-        { $or: [
-          { customer_name:  regex },
-          { customer_email: regex },
-          { location:       regex },
-        ]},
+        {
+          $or: [
+            { customer_name: regex },
+            { customer_email: regex },
+            { location: regex },
+          ]
+        },
       ];
     }
 
@@ -233,7 +194,7 @@ router.patch("/:id/assign", async (req, res) => {
 
 // ── PATCH /service-monitoring/:id/cancel ─────────────────────────────────────
 // Cancels a staff pickup, returns it to pending, and notifies the customer.
-router.patch("/:id/cancel", async (req, res) => {
+router.patch("/:id/cancel", rejectBannedStaff, async (req, res) => {
   try {
     const { clerkId } = req.body;
     const staffDirectory = await buildStaffDirectory();

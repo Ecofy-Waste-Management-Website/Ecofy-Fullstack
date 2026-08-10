@@ -123,7 +123,7 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
         <div className="flex justify-between border-t border-green-200 pt-2 mt-1">
           <span className="font-semibold text-green-700">Total</span>
           <span className="font-bold text-green-700">
-            LKR {SERVICE_PRICES[bookingDetails.service_type]?.toLocaleString()}
+            LKR {(bookingDetails.servicePrice || SERVICE_PRICES[bookingDetails.service_type] || 0)?.toLocaleString()}
           </span>
         </div>
       </div>
@@ -142,7 +142,7 @@ function CheckoutForm({ bookingDetails, onSuccess, onClose }) {
       <div className="flex items-center justify-end gap-3 pt-1">
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => { onSuccess?.(); onClose(); }}
           className="rounded-lg border border-gray-300/80 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100/50 transition bg-white/30 backdrop-blur-sm"
         >
           Skip for now

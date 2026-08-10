@@ -178,6 +178,10 @@ const updateUserSettings = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    if (user.role === 'Staff' && user.status === 'Banned') {
+      return res.status(403).json({ banned: true, message: 'Your account is banned. Contact Ecofy Team.' });
+    }
+
     const nextFirstName = typeof firstName === "string" ? firstName.trim() : user.firstName;
     const nextLastName = typeof lastName === "string" ? lastName.trim() : user.lastName;
     const nextAvailability = typeof availabilityStatus === "string" ? availabilityStatus.trim() : user.availabilityStatus || "Available";
@@ -247,6 +251,10 @@ const changeStaffPassword = async (req, res) => {
 
     if (user.role !== "Staff") {
       return res.status(403).json({ message: "Only staff members can use this password update endpoint" });
+    }
+
+    if (user.status === 'Banned') {
+      return res.status(403).json({ banned: true, message: 'Your account is banned. Contact Ecofy Team.' });
     }
 
     await clerkClient.users.updateUser(clerkId, {

@@ -10,6 +10,7 @@ import InquiryManagement from "./InquiryManagement";
 import ChatbotManagement from "./ChatbotManagement";
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
 import ServiceManagement from "./ServiceManagement";
+import SystemLogs from "./SystemLogs";
 
 const rawApiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || window.location.origin;
 const API_BASE_URL = rawApiBaseUrl.replace(/\/$/, "");
@@ -174,6 +175,7 @@ const menuItems = [
   { label: "Content/Blog", key: "CONTENT_BLOG", hasSubmenu: false },
   { label: "Inquiry", key: "INQUIRY", hasSubmenu: false },
   { label: "Chatbot Management", key: "CHATBOT_MGMT", hasSubmenu: false },
+  { label: "System Logs", key: "SYSTEM_LOGS", hasSubmenu: false },
 ];
 
 // ─── USER MANAGEMENT COMPONENT ────────────────────────────────────────────
@@ -654,6 +656,7 @@ export default function AdminDashboard() {
     INQUIRY: <InquiryManagement />,
     CHATBOT_MGMT: <ChatbotManagement />,
     SERVICE_MGMT: <ServiceManagement />,
+    SYSTEM_LOGS: <SystemLogs />,
   };
 
   const renderMainContent = () => COMPONENT_MAP[activeTab] || <div className="p-6 text-[#397239]/50">Not found.</div>;

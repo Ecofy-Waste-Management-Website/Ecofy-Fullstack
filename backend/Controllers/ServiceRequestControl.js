@@ -104,7 +104,24 @@ const createBooking = async (req, res) => {
       notes,
     } = req.body;
 
-    const servicePrice = SERVICE_PRICES[service_type] || 0;
+    let servicePrice = req.body.servicePrice || SERVICE_PRICES[service_type];
+    if (servicePrice == null || servicePrice === undefined) {
+      try {
+        const mongoose = require("mongoose");
+        if (mongoose.models.Service) {
+          const dbService = await mongoose.models.Service.findOne({
+            name: new RegExp(`^${service_type.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+          });
+          if (dbService) {
+            servicePrice = dbService.price;
+          }
+        }
+      } catch (err) {
+        console.log("Error finding service price:", err);
+      }
+    }
+    if (!servicePrice) servicePrice = 0;
+
     const pickupPin = req.body.pickupPin || generatePickupPin();
     const normalizedCoordinates = normalizePickupCoordinates(pickupCoordinates);
     const resolvedCoordinates = normalizedCoordinates || await geocodePickupLocation(location);

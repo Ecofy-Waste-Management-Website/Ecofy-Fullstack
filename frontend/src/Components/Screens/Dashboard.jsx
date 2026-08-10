@@ -1163,7 +1163,7 @@ export default function Dashboard() {
       />
       <PaymentModal
         isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
+        onClose={() => { setShowPaymentModal(false); fetchBookings(); fetchPayments(); }}
         onSuccess={() => { setShowPaymentModal(false); fetchBookings(); fetchPayments(); }}
         bookingDetails={lastBooking}
       />

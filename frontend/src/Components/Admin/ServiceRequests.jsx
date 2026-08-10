@@ -208,12 +208,26 @@ export default function ServiceRequests() {
   const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, completed: 0, delayed: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [staffRoster, setStaffRoster] = useState([]);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({ status: "All", type: "All", location: "All" });
+  const [typeOptions, setTypeOptions] = useState(TYPE_OPTIONS);
   const [selected, setSelected] = useState(null);
   const [, setTick] = useState(0);
 
+  useEffect(() => {
+    fetch(`${API_ORIGIN}/services`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          const names = json.data.map((s) => s.name?.trim()).filter(Boolean);
+          const combined = Array.from(new Set(["All", ...names, ...TYPE_OPTIONS.slice(1)]));
+          setTypeOptions(combined);
+        }
+      })
+      .catch((err) => console.error("Error loading services filter options:", err));
+  }, []);
+
+  // Refresh relative timestamps every 30s
   useEffect(() => {
     const timer = setInterval(() => setTick((value) => value + 1), 30000);
     return () => clearInterval(timer);
@@ -413,10 +427,8 @@ export default function ServiceRequests() {
                 <option key={option} value={option} className="bg-white">{option}</option>
               ))}
             </select>
-            <select className="cursor-pointer rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm font-bold text-[#244c21] outline-none transition-all focus:border-[#397239]" value={filters.type} onChange={(event) => setFilters((current) => ({ ...current, type: event.target.value }))}>
-              {TYPE_OPTIONS.map((option) => (
-                <option key={option} value={option} className="bg-white">{option}</option>
-              ))}
+            <select className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all cursor-pointer font-bold" value={filters.type} onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}>
+              {typeOptions.map(o => <option key={o} value={o} className="bg-white">{o}</option>)}
             </select>
             <select className="cursor-pointer rounded-xl border border-[#397234]/10 bg-white/40 px-4 py-2.5 text-sm font-bold text-[#244c21] outline-none transition-all focus:border-[#397239]" value={filters.location} onChange={(event) => setFilters((current) => ({ ...current, location: event.target.value }))}>
               {LOCATION_OPTIONS.map((option) => (
@@ -475,7 +487,7 @@ export default function ServiceRequests() {
                     </td>
                     <td className="px-8 py-5">
                       {request.assignedStaff ? (
-                          <span className="font-bold text-[#397239]">{request.assignedStaffLabel || formatAssignedStaff(request.assignedStaff, staffLookup)}</span>
+                        <span className="font-bold text-[#397239]">{request.assignedStaffLabel || formatAssignedStaff(request.assignedStaff, staffLookup)}</span>
                       ) : (
                         <span className="font-medium italic text-[#397239]/20">Unassigned</span>
                       )}
