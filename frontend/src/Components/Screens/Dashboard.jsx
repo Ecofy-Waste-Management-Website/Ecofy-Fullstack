@@ -929,16 +929,6 @@ export default function Dashboard() {
         <NotificationBell target="user" />
       </div>
 
-      {/* Background decoration */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-20">
-        <svg className="absolute top-40 left-72 w-24 h-24 text-[#218845] animate-wobble" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        <svg className="absolute bottom-32 right-12 w-32 h-32 text-[#218845] animate-wobble-reverse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.5V11m0 0a5 5 0 0 1 5-5h2.5c0 4.5-2 6.5-4 8l-3.5 3m0-11a5 5 0 0 0-5-5H7c0 4.5 2 6.5 4 8l3.5 3" />
-        </svg>
-      </div>
-
       <div className="relative z-10 flex">
         {/* Mobile overlay */}
         {sidebarOpen && (
