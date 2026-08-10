@@ -2,6 +2,7 @@ const express = require("express");
 const router  = express.Router();
 const ServiceRequest = require("../Model/ServiceRequestModel");
 const Notification = require("../Model/NotificationModel");
+const { rejectBannedStaff } = require('../Middleware/staffAccountStatus');
 
 // ── Broadcast helper ──────────────────────────────────────────────────────────
 // Sends a WebSocket message to every connected dashboard client.
@@ -177,7 +178,7 @@ router.patch("/:id/assign", async (req, res) => {
 
 // ── PATCH /service-monitoring/:id/cancel ─────────────────────────────────────
 // Cancels a staff pickup, returns it to pending, and notifies the customer.
-router.patch("/:id/cancel", async (req, res) => {
+router.patch("/:id/cancel", rejectBannedStaff, async (req, res) => {
   try {
     const { clerkId } = req.body;
 

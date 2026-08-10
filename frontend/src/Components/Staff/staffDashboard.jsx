@@ -744,6 +744,7 @@ export default function StaffDashboard() {
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ password: '', confirmPassword: '' });
   const [changingPassword, setChangingPassword] = useState(false);
+  const [isAccountBanned, setIsAccountBanned] = useState(null);
 
   const staffName = displayName;
   const staffInitials = staffName.split(" ").map(n => n[0] || "").join("").toUpperCase();
@@ -759,13 +760,16 @@ export default function StaffDashboard() {
   useEffect(() => {
     if (!isLoaded || !user) return;
 
-    const fetchRoleAndProfile = async () => {
+    const loadDashboard = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/users/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           setRole(data.user.role);
           const profile = data.user;
+          const isBanned = profile.status === 'Banned';
+          setIsAccountBanned(isBanned);
+          if (isBanned) return;
           const mustChange = profile.mustChangePassword === true;
           setMustChangePassword(mustChange);
           if (mustChange) {
@@ -785,19 +789,6 @@ export default function StaffDashboard() {
               branch: profile.bankDetails?.branch || '',
             },
           });
-        }
-      } catch (error) {
-        console.error('Failed to fetch staff role:', error);
-      } finally {
-        setRoleLoading(false);
-        setSettingsLoading(false);
-      }
-    };
-
-    fetchRoleAndProfile();
-
-    const fetchTasks = async () => {
-      try {
         const activeRes = await fetch(`${API_BASE_URL}/staff/tasks/active/${user.id}`);
         const completedRes = await fetch(`${API_BASE_URL}/staff/tasks/completed/${user.id}`);
         const pendingRes = await fetch(`${API_BASE_URL}/bookings`);
@@ -816,19 +807,25 @@ export default function StaffDashboard() {
             .filter((order) => order.status === 'Pending')
             .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)));
         }
-      } catch (err) {
-        console.error('Failed to fetch tasks:', err);
+        } else {
+          setIsAccountBanned(false);
+        }
+      } catch (error) {
+        console.error('Failed to load staff dashboard:', error);
+        setIsAccountBanned(false);
       } finally {
+        setRoleLoading(false);
+        setSettingsLoading(false);
         setLoading(false);
       }
     };
 
-    fetchTasks();
+    loadDashboard();
   }, [isLoaded, user]);
 
   // Poll pending orders every 10 seconds to keep staff updated
   useEffect(() => {
-    if (!isLoaded || !user) return;
+    if (!isLoaded || !user || isAccountBanned !== false) return;
 
     const fetchPendingOrders = async () => {
       try {
@@ -846,13 +843,13 @@ export default function StaffDashboard() {
 
     const intervalId = setInterval(fetchPendingOrders, 10000);
     return () => clearInterval(intervalId);
-  }, [isLoaded, user]);
+  }, [isLoaded, user, isAccountBanned]);
 
   // Fetch inquiries when tab is opened
   useEffect(() => {
-    if (activeTab !== 'inquiries' || !user?.id) return;
+    if (isAccountBanned || activeTab !== 'inquiries' || !user?.id) return;
     fetchInquiries();
-  }, [activeTab, user]);
+  }, [activeTab, user, isAccountBanned]);
 
   const fetchInquiries = async () => {
     setInquiriesLoading(true);
@@ -1206,12 +1203,25 @@ export default function StaffDashboard() {
 
   const handleSwitchDashboard = () => navigate('/admin-dashboard');
 
-  if (!isLoaded || loading) {
+  if (!isLoaded || loading || isAccountBanned === null) {
     return (
       <div className="flex items-center justify-center h-screen bg-[#f4f9f4]">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#06a63e] border-t-transparent" />
           <p className="text-[#06a63e] font-bold animate-pulse uppercase tracking-widest text-xs">Syncing Schedule...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAccountBanned) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f4fbf5] p-6 font-sans">
+        <div className="w-full max-w-lg rounded-3xl border border-red-200 bg-white p-10 text-center shadow-xl">
+          <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-red-50 text-3xl">!</div>
+          <h1 className="text-2xl font-black text-[#03652a]">Account Banned</h1>
+          <p className="mt-3 text-base font-semibold text-gray-600">Your account is banned. Contact Ecofy Team.</p>
+          <button onClick={handleSignOut} className="mt-8 rounded-xl bg-[#03652a] px-5 py-3 text-sm font-black text-white transition-colors hover:bg-[#024820]">Sign out</button>
         </div>
       </div>
     );
