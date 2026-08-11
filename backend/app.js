@@ -1,10 +1,10 @@
-{/* forces google DNS for more stable network*/}
+// forces google DNS for more stable network - updated
 const dns = require('dns');
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
-{/*load up the env file*/}
+// load up the env file
 require('dotenv').config();
-console.log("env files loaded!")
+console.log("env files loaded!");
 
 const express = require('express');
 const mongoose = require('mongoose');

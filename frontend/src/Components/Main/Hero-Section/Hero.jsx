@@ -15,8 +15,8 @@ gsap.registerPlugin(ScrollTrigger);
 // ── Section Data ───────────────────────────────────────────────────────────────
 const horizontalSections = [
   {
-    title: 'Smart Collection',
-    description: 'AI-powered waste collection scheduling optimized for your area and community.',
+    title: 'Eco-Certified Excellence',
+    description: 'All our services follow internationally certified sustainable practices that protect our environment.',
     icon: Truck,
     color: 'from-[#1a5c2a] to-[#397234]',
   },
@@ -27,8 +27,8 @@ const horizontalSections = [
     color: 'from-[#244c21] to-[#397234]',
   },
   {
-    title: 'Recycling Rewards',
-    description: 'Earn points for every kilogram recycled and redeem them for exciting rewards.',
+    title: 'Transparent Pricing',
+    description: 'Clear, upfront pricing with no hidden fees or surprise charges. What you see is what you pay.',
     icon: Recycle,
     color: 'from-[#2d7a3f] to-[#66c45e]',
   },
@@ -37,13 +37,7 @@ const horizontalSections = [
     description: 'See your environmental footprint and inspire your neighbours to go green.',
     icon: Globe,
     color: 'from-[#1a5c2a] to-[#244c21]',
-  },
-  {
-    title: 'Zero Waste Goals',
-    description: 'Set and achieve your zero-waste targets with personalised AI guidance.',
-    icon: Target,
-    color: 'from-[#397234] to-[#66c45e]',
-  },
+  }
 ];
 
 // ── Horizontal Reveal Component ────────────────────────────────────────────────
@@ -52,7 +46,7 @@ const horizontalSections = [
 // This eliminates all sources of jitter and layout shift.
 function HorizontalSections() {
   const wrapperRef = useRef(null);
-  const trackRef   = useRef(null);
+  const trackRef = useRef(null);
 
   useLayoutEffect(() => {
     if (!wrapperRef.current || !trackRef.current) return;
@@ -157,7 +151,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <main className="w-full bg-[#244c21] overflow-x-hidden">
+    <main className="w-full bg-white overflow-x-hidden">
       {/* Panel 1: Hero */}
       <ScrollPanel bgColor="bg-[#397234]">
         <HeroPanel />
