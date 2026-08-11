@@ -826,14 +826,16 @@ export default function StaffDashboard() {
     loadDashboard();
   }, [isLoaded, user]);
 
-  // Poll pending orders every 10 seconds to keep staff updated
+  // Real-time WebSocket + 3s fallback polling for pending tasks
   useEffect(() => {
     if (!isLoaded || !user || isAccountBanned !== false) return;
+
+    let isMounted = true;
 
     const fetchPendingOrders = async () => {
       try {
         const pendingRes = await fetch(`${API_BASE_URL}/bookings`);
-        if (pendingRes.ok) {
+        if (pendingRes.ok && isMounted) {
           const pendingData = await pendingRes.json();
           setPendingOrders((Array.isArray(pendingData) ? pendingData : [])
             .filter((order) => order.status === 'Pending')
@@ -844,8 +846,38 @@ export default function StaffDashboard() {
       }
     };
 
-    const intervalId = setInterval(fetchPendingOrders, 10000);
-    return () => clearInterval(intervalId);
+    // Immediate initial fetch
+    fetchPendingOrders();
+
+    // Setup WebSocket for instant pushed updates
+    const wsUrl = API_BASE_URL.replace(/^http/, 'ws');
+    let ws = null;
+    try {
+      ws = new WebSocket(wsUrl);
+      ws.onopen = () => {
+        if (!isMounted && ws && ws.readyState === WebSocket.OPEN) {
+          ws.close();
+        }
+      };
+      ws.onmessage = () => {
+        if (isMounted) {
+          fetchPendingOrders();
+        }
+      };
+      ws.onerror = () => {};
+    } catch {
+      /* WebSocket optional failover */
+    }
+
+    const intervalId = setInterval(fetchPendingOrders, 3000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
   }, [isLoaded, user, isAccountBanned]);
 
   // Fetch inquiries when tab is opened
@@ -1312,62 +1344,62 @@ export default function StaffDashboard() {
   const getPageTitle = () => menuItems.find(m => m.key === activeTab)?.label || "Staff Dashboard";
 
   const renderTaskCard = (task, isCompleted = false) => (
-    <div key={task._id} className={`bg-[#eaf9ee]/50 backdrop-blur-[40px] rounded-3xl p-6 border border-[#06a63e]/20 shadow-sm transition-all hover:shadow-md hover:border-[#06a63e]/30 ${isCompleted ? 'opacity-80' : ''}`}>
+    <div key={task._id} className={`rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-[#06a63e]/30 ${isCompleted ? 'opacity-80' : ''}`}>
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-lg font-black text-[#03652a] leading-tight">{task.customer_name || 'Customer'}</h3>
-          <p className="text-[10px] font-bold text-[#06a63e]/50 uppercase tracking-[0.2em] mt-1">{task.service_type || 'General Service'}</p>
+          <h3 className="text-lg font-black text-gray-900 leading-tight">{task.customer_name || 'Customer'}</h3>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{task.service_type || 'General Service'}</p>
         </div>
-        <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest ${isCompleted ? 'bg-green-100 text-[#06a63e]' : getStatusColor(task.status)}`}>
+        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${isCompleted ? 'bg-green-100 text-[#06a63e]' : getStatusColor(task.status)}`}>
           {isCompleted ? 'Completed' : (task.status === 'En Route' ? 'On the Way' : task.status)}
         </span>
       </div>
 
-      <div className="bg-[#eaf9ee]/50 rounded-2xl p-4 mb-4 border border-[#06a63e]/10 shadow-inner">
+      <div className="bg-gray-50/70 rounded-2xl p-4 mb-4 border border-gray-100">
         <div className="mb-2 flex items-center justify-between gap-3">
-          <p className="text-[9px] font-bold text-[#06a63e]/40 uppercase tracking-widest flex items-center gap-1.5"><Icons.MapPin /> LOCATION</p>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Icons.MapPin /> LOCATION</p>
           {task.location && (
             <a
               href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(task.location)}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#06a63e]/15 bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-[#06a63e] transition-all hover:bg-white"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#06a63e]/20 bg-white px-3 py-1 text-xs font-bold text-[#06a63e] transition-all hover:bg-[#06a63e]/5"
             >
               Open in OpenStreetMap
               <Icons.ExternalLink />
             </a>
           )}
         </div>
-        <p className="text-sm text-[#03652a] font-bold leading-relaxed truncate">{task.location || 'Location missing'}</p>
+        <p className="text-sm text-gray-800 font-bold leading-relaxed truncate">{task.location || 'Location missing'}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-[#eaf9ee]/50 rounded-2xl p-3 border border-[#06a63e]/10">
-          <p className="text-[9px] text-[#06a63e]/40 font-bold uppercase tracking-widest flex items-center gap-1.5"><Icons.Calendar /> DATE</p>
-          <p className="text-xs font-black text-[#03652a] mt-1">{formatDate(task.scheduled_date)}</p>
+        <div className="bg-gray-50/70 rounded-2xl p-3 border border-gray-100">
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1.5"><Icons.Calendar /> DATE</p>
+          <p className="text-xs font-bold text-gray-800 mt-1">{formatDate(task.scheduled_date)}</p>
         </div>
-        <div className="bg-[#eaf9ee]/50 rounded-2xl p-3 border border-[#06a63e]/10">
-          <p className="text-[9px] text-[#06a63e]/40 font-bold uppercase tracking-widest flex items-center gap-1.5">
+        <div className="bg-gray-50/70 rounded-2xl p-3 border border-gray-100">
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
             <Icons.Clock /> {isCompleted ? 'DONE' : 'TIME'}
           </p>
-          <p className="text-xs font-black text-[#03652a] mt-1">{isCompleted ? formatTime(task.completedAt) : formatTime(task.scheduled_date)}</p>
+          <p className="text-xs font-bold text-gray-800 mt-1">{isCompleted ? formatTime(task.completedAt) : formatTime(task.scheduled_date)}</p>
         </div>
       </div>
 
       {!isCompleted && (
       <div className="grid grid-cols-1 gap-3 mb-6 md:grid-cols-3">
-        <div className="rounded-2xl border border-[#06a63e]/10 bg-white/60 p-3">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-[#06a63e]/40">Order Price</p>
-          <p className="mt-1 text-sm font-black text-[#03652a]">{formatCurrency(getEstimatedAmount(task))}</p>
+        <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Order Price</p>
+          <p className="mt-1 text-sm font-black text-gray-900">{formatCurrency(getEstimatedAmount(task))}</p>
         </div>
 
-        <div className="rounded-2xl border border-[#06a63e]/10 bg-white/60 p-3">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-[#06a63e]/40">Customer Phone</p>
-          <p className="mt-1 text-sm font-black text-[#03652a] truncate">{task.customer_phone || 'Phone unavailable'}</p>
+        <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Customer Phone</p>
+          <p className="mt-1 text-sm font-bold text-gray-800 truncate">{task.customer_phone || 'Phone unavailable'}</p>
           {task.customer_phone ? (
             <a
               href={`tel:${task.customer_phone}`}
-              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#06a63e] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-[#03652a]"
+              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#06a63e] px-3 py-2 text-xs font-bold text-white transition-all hover:bg-[#058b33]"
             >
               Call User
             </a>
@@ -1375,15 +1407,15 @@ export default function StaffDashboard() {
             <button
               type="button"
               disabled
-              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#06a63e]/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-[#06a63e]/40"
+              className="mt-2 inline-flex items-center justify-center rounded-xl bg-gray-100 px-3 py-2 text-xs font-bold text-gray-400 cursor-not-allowed"
             >
               Call User
             </button>
           )}
         </div>
 
-        <div className="rounded-2xl border border-[#06a63e]/10 bg-white/60 p-3">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-[#06a63e]/40">Pickup PIN</p>
+        <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pickup PIN</p>
           <div className="mt-2 flex gap-2">
             <input
               type="text"
@@ -1391,22 +1423,22 @@ export default function StaffDashboard() {
               value={pickupPinValues[task._id] || ''}
               onChange={(event) => handlePickupPinChange(task._id, event.target.value)}
               placeholder={task.pickupPin ? 'Enter generated PIN' : 'No PIN available'}
-              className={`min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm font-bold text-[#03652a] outline-none transition-all ${
+              className={`min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm font-bold outline-none transition-all ${
                 verifiedPickupPins[task._id]
-                  ? 'border-green-400 bg-green-50'
-                  : 'border-[#06a63e]/15 bg-white/80 focus:border-[#06a63e]'
+                  ? 'border-green-400 bg-green-50 text-green-800'
+                  : 'border-gray-300 bg-white text-gray-900 focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20'
               }`}
             />
             <button
               type="button"
               onClick={() => verifyPickupPin(task)}
-              className="rounded-xl bg-[#03652a] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-[#06a63e]"
+              className="rounded-xl bg-[#06a63e] px-3 py-2 text-xs font-bold text-white transition-all hover:bg-[#058b33]"
             >
               Verify
             </button>
           </div>
           {task.pickupPin && (
-            <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/45">
+            <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
               {verifiedPickupPins[task._id] ? 'PIN verified' : 'Enter the order PIN before completing'}
             </p>
           )}
@@ -1415,9 +1447,9 @@ export default function StaffDashboard() {
       )}
 
       {!isCompleted && task.notes && (
-        <div className="bg-amber-50/30 rounded-2xl p-3 mb-6 border border-amber-100/30">
-          <p className="text-[9px] text-amber-600/50 font-bold uppercase tracking-widest flex items-center gap-1.5"><Icons.Notes /> NOTES</p>
-          <p className="text-[0.75rem] text-amber-900 font-bold mt-1 truncate">{task.notes}</p>
+        <div className="bg-amber-50 rounded-2xl p-3 mb-6 border border-amber-200/60">
+          <p className="text-[10px] text-amber-700 font-bold uppercase tracking-widest flex items-center gap-1.5"><Icons.Notes /> NOTES</p>
+          <p className="text-xs text-amber-900 font-medium mt-1 truncate">{task.notes}</p>
         </div>
       )}
 
@@ -1426,10 +1458,10 @@ export default function StaffDashboard() {
           <button
             onClick={() => updateTaskStatus(task._id, 'En Route')}
             disabled={updatingTask === task._id || task.status === 'En Route'}
-            className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
               task.status === 'En Route'
-                ? 'bg-[#06a63e]/10 text-[#06a63e]/40 cursor-not-allowed'
-                : 'bg-[#06a63e] text-white hover:bg-[#03652a] shadow-md'
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-[#06a63e] text-white hover:bg-[#058b33] shadow-sm'
             }`}
           >
             {updatingTask === task._id && task.status !== 'En Route' ? '...' : <><Icons.ActiveTasks /> On the Way</>}
@@ -1437,7 +1469,7 @@ export default function StaffDashboard() {
           <button
             onClick={() => updateTaskStatus(task._id, 'Completed')}
             disabled={updatingTask === task._id}
-            className="flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white border border-[#06a63e]/20 text-[#06a63e] transition-all hover:bg-[#03652a]/5"
+            className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-[#06a63e] text-[#06a63e] transition-all hover:bg-[#06a63e]/5"
           >
             {updatingTask === task._id ? '...' : <><Icons.CompletedTasks /> Complete</>}
           </button>
@@ -1450,7 +1482,7 @@ export default function StaffDashboard() {
             type="button"
             onClick={() => cancelPickup(task)}
             disabled={confirmingOrderId === task._id}
-            className="w-full rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-700 transition-all hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-bold uppercase tracking-wider text-red-700 transition-all hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {confirmingOrderId === task._id ? 'Cancelling...' : 'Cancel Pickup'}
           </button>
@@ -1495,18 +1527,18 @@ export default function StaffDashboard() {
   const unresolvedPendingOrders = pendingOrders.length - pendingOrderPins.length;
 
   const PendingOrdersPanel = () => (
-    <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.4fr] gap-4 min-h-[540px]">
-      <div className="rounded-3xl border border-[#06a63e]/20 bg-[#eaf9ee]/35 p-4 shadow-sm flex flex-col">
-        <div className="mb-4 flex items-center justify-between gap-3">
+    <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.4fr] gap-6 min-h-[540px]">
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col">
+        <div className="mb-5 flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-black text-[#03652a]">Pending Orders</h3>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#06a63e]/50">Orders waiting for pickup confirmation</p>
+            <h3 className="text-lg font-black text-gray-900">Pending Orders</h3>
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Orders waiting for pickup confirmation</p>
           </div>
-          <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#06a63e]">{pendingOrders.length} orders</span>
+          <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-xs font-bold text-[#06a63e]">{pendingOrders.length} orders</span>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-[#06a63e]/10 bg-white/70 shadow-inner flex-1">
-          <div className="grid grid-cols-[1.2fr_2fr_1fr_1fr] gap-3 border-b border-[#06a63e]/10 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#06a63e]/50">
+        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-gray-50/60 shadow-inner flex-1">
+          <div className="grid grid-cols-[1.2fr_2fr_1fr_1fr] gap-3 border-b border-gray-200 px-4 py-3 text-xs font-bold uppercase tracking-widest text-gray-400">
             <span>Order ID</span>
             <span>Pickup Address</span>
             <span>Estimated Amt</span>
@@ -1516,7 +1548,7 @@ export default function StaffDashboard() {
           <div className="max-h-[420px] overflow-y-auto">
             {pendingOrders.length === 0 ? (
               <div className="flex h-[360px] items-center justify-center px-6 text-center">
-                <p className="text-sm font-black uppercase tracking-widest text-[#06a63e]/50">No pending orders available</p>
+                <p className="text-sm font-semibold text-gray-400">No pending orders available</p>
               </div>
             ) : (
               pendingOrders.map((order) => (
@@ -1531,17 +1563,17 @@ export default function StaffDashboard() {
                       openPendingOrderDetails(order);
                     }
                   }}
-                  className="grid w-full cursor-pointer grid-cols-[1.2fr_2fr_1fr_1fr] items-center gap-3 border-b border-[#06a63e]/10 px-4 py-4 text-left transition hover:bg-[#eaf9ee]/25 focus:bg-[#eaf9ee]/25 focus:outline-none last:border-b-0"
+                  className="grid w-full cursor-pointer grid-cols-[1.2fr_2fr_1fr_1fr] items-center gap-3 border-b border-gray-100 px-4 py-4 text-left transition hover:bg-gray-50 focus:bg-gray-50 focus:outline-none last:border-b-0"
                 >
                   <div>
-                    <p className="text-sm font-black text-[#03652a]">{order._id.slice(-8).toUpperCase()}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/40">{order.service_type || 'Order'}</p>
+                    <p className="text-sm font-bold text-gray-900">{order._id.slice(-8).toUpperCase()}</p>
+                    <p className="text-xs text-gray-400">{order.service_type || 'Order'}</p>
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-[#03652a]">{order.location || 'Location missing'}</p>
+                    <p className="truncate text-sm font-semibold text-gray-800">{order.location || 'Location missing'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-black text-[#06a63e]">{formatCurrency(getEstimatedAmount(order))}</p>
+                    <p className="text-sm font-bold text-[#06a63e]">{formatCurrency(getEstimatedAmount(order))}</p>
                   </div>
                   <div>
                     <button
@@ -1551,7 +1583,7 @@ export default function StaffDashboard() {
                         confirmPickup(order);
                       }}
                       disabled={confirmingOrderId === order._id}
-                      className="rounded-xl bg-[#06a63e] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-[#03652a] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-xl bg-[#06a63e] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#058b33] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {confirmingOrderId === order._id ? 'Confirming...' : 'Confirm Pickup'}
                     </button>
@@ -1563,41 +1595,41 @@ export default function StaffDashboard() {
         </div>
       </div>
 
-      <div className="rounded-3xl border border-[#06a63e]/20 bg-[#eaf9ee]/20 p-4 shadow-sm flex flex-col min-h-[540px] overflow-hidden">
-        <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col min-h-[540px] overflow-hidden">
+        <div className="mb-5 flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-black text-[#03652a]">Pending Orders Map</h3>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#06a63e]/50">Pins for every pending pickup request</p>
+            <h3 className="text-lg font-black text-gray-900">Pending Orders Map</h3>
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Pins for every pending pickup request</p>
           </div>
-          <div className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#06a63e]">{pendingOrderPins.length} pins</div>
+          <div className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-xs font-bold text-[#06a63e]">{pendingOrderPins.length} pins</div>
         </div>
 
         {pendingOrders.length === 0 ? (
-          <div className="flex-1 grid place-items-center rounded-3xl border border-dashed border-[#06a63e]/15 bg-white/60 text-center px-6">
+          <div className="flex-1 grid place-items-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 text-center px-6">
             <div>
-              <p className="text-sm font-black uppercase tracking-widest text-[#06a63e]/50">No map pins yet</p>
-              <p className="mt-2 text-xs font-medium text-[#06a63e]/60">Pending pickups will appear here once customers submit requests.</p>
+              <p className="text-sm font-semibold text-gray-400">No map pins yet</p>
+              <p className="mt-1 text-xs text-gray-400">Pending pickups will appear here once customers submit requests.</p>
             </div>
           </div>
         ) : (
-          <div className="relative z-0 flex-1 overflow-hidden rounded-3xl border border-[#06a63e]/10 bg-white shadow-inner flex flex-col isolate">
-            <div className="flex flex-wrap items-center gap-2 border-b border-[#06a63e]/10 bg-[#f7fbf4] px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#06a63e]/60">
+          <div className="relative z-0 flex-1 overflow-hidden rounded-2xl border border-gray-100 bg-white flex flex-col isolate">
+            <div className="flex flex-wrap items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-3 text-xs font-bold uppercase tracking-widest text-gray-500">
               <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-[#06a63e]">{pendingOrderPins.length} pinned</span>
               {unresolvedPendingOrders > 0 && (
                 <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-700">{unresolvedPendingOrders} without coordinates</span>
               )}
-              <span className="rounded-full bg-white px-3 py-1 text-[#06a63e]/70">OpenStreetMap live markers</span>
+              <span className="rounded-full bg-white px-3 py-1 text-gray-500 border border-gray-100">OpenStreetMap live markers</span>
             </div>
 
             <PendingOrdersMapCanvas orders={pendingOrders} onOrderSelect={openPendingOrderDetails} />
 
-            <div className="relative -mt-4 mx-4 mb-4 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-xl backdrop-blur">
+            <div className="relative -mt-4 mx-4 mb-4 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#06a63e]/45">Pin directory</p>
-                    <p className="mt-1 text-sm font-black text-[#03652a]">Quick access to each pickup target</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pin directory</p>
+                    <p className="mt-0.5 text-sm font-bold text-gray-800">Quick access to each pickup target</p>
                   </div>
-                  <span className="rounded-full bg-[#eaf9ee]/60 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#06a63e]">
+                  <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-xs font-bold text-[#06a63e]">
                     {pendingOrderPins.length}
                   </span>
                 </div>
@@ -1607,14 +1639,14 @@ export default function StaffDashboard() {
                       key={order._id}
                       type="button"
                       onClick={() => openPendingOrderDetails(order)}
-                      className="rounded-xl border border-[#06a63e]/10 bg-[#f8fbf5] px-3 py-2 text-left transition hover:bg-[#eaf9ee]/35"
+                      className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-left transition hover:bg-white"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#06a63e]/45">Pin {label}</p>
-                          <p className="truncate text-xs font-bold text-[#03652a]">{order.location || target}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pin {label}</p>
+                          <p className="truncate text-xs font-semibold text-gray-800">{order.location || target}</p>
                         </div>
-                        <span className="shrink-0 rounded-full bg-[#06a63e] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white">
+                        <span className="shrink-0 rounded-xl bg-[#06a63e] px-3 py-1 text-xs font-bold text-white">
                           Details
                         </span>
                       </div>
@@ -1630,12 +1662,12 @@ export default function StaffDashboard() {
 
   // ─── Inquiry Panel ────────────────────────────────────────────────────────────
   const renderInquiriesPanel = () => (
-    <div className="rounded-3xl border border-[#06a63e]/20 bg-[#eaf9ee]/35 p-5 shadow-sm">
-      <div className="mb-5 rounded-3xl border border-[#06a63e]/15 bg-white/80 p-5 shadow-sm">
+    <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-6 rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h3 className="text-lg font-black text-[#03652a]">Send Inquiry to Admin</h3>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#06a63e]/50">
+            <h3 className="text-lg font-black text-gray-900">Send Inquiry to Admin</h3>
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
               Use this form to report issues, request help, or ask for clarification
             </p>
           </div>
@@ -1888,204 +1920,248 @@ export default function StaffDashboard() {
   );
 
   return (
-    <div className="h-screen w-screen font-sans text-[#03652a] bg-[#f4fbf5] p-4 lg:p-3 overflow-hidden">
-      <div className="flex h-full w-full gap-3">
+    <>
+      {/* Fixed Top-Right Actions */}
+      <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
+        <NotificationBell target="staff" />
+        <span className="rounded-full bg-white border border-gray-200 px-3.5 py-1.5 text-xs font-bold text-[#06a63e] shadow-sm">
+          Staff Portal
+        </span>
+        {!roleLoading && role === 'Admin' && (
+          <button
+            type="button"
+            onClick={handleSwitchDashboard}
+            className="rounded-full bg-[#06a63e] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#058b33] transition"
+          >
+            Switch to Admin
+          </button>
+        )}
+      </div>
 
-        {/* Sidebar */}
-        <aside className="hidden lg:flex flex-col gap-4 bg-[#03652a]/90 backdrop-blur-3xl border border-[#06a63e]/20 p-5 text-white/85 w-[240px] shrink-0 rounded-3xl shadow-2xl overflow-hidden h-full relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-          <div className="flex items-center gap-3 pb-2">
-            <h1 className="m-0 text-2xl font-black tracking-tighter text-white">Ecofy</h1>
+      <div className="relative z-10 flex min-h-screen bg-green-50">
+        {/* Mobile Sidebar Overlay */}
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* ── Sidebar ── */}
+        <aside className={`
+          fixed left-0 z-40 flex flex-col bg-white border-r border-gray-200 shadow-xl
+          transition-transform duration-300 ease-in-out
+          lg:sticky lg:translate-x-0 lg:shadow-sm
+          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
+          w-64 top-0 h-screen shrink-0
+        `}>
+          {/* Logo — 88px height matching Dashboard.jsx */}
+          <div className="flex h-[88px] items-center gap-3 border-b border-gray-100 px-5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#06a63e]">
+              <Icons.ActiveTasks />
+            </div>
+            <div>
+              <p className="text-base font-black text-gray-900">Ecofy</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#06a63e]">Staff Portal</p>
+            </div>
           </div>
 
-          <nav className="flex flex-col gap-1.5 overflow-y-auto no-scrollbar flex-1">
-            {menuItems.map((item) => (
-              <button
-                key={item.key}
-                disabled={mustChangePassword && item.key !== 'settings'}
-                onClick={() => {
-                  if (mustChangePassword && item.key !== 'settings') return;
-                  setActiveTab(item.key);
-                }}
-                className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${
-                  activeTab === item.key
-                    ? "bg-[#06a63e] text-white shadow-lg shadow-black/20"
-                    : "text-white/60 hover:bg-white/5 hover:text-white"
-                } ${mustChangePassword && item.key !== 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <div className="flex items-center gap-3">
-                  {item.icon}
+          {/* Nav items */}
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+            {menuItems.map((item) => {
+              const isActive = activeTab === item.key;
+              const isDisabled = mustChangePassword && item.key !== 'settings';
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  disabled={isDisabled}
+                  onClick={() => {
+                    if (isDisabled) return;
+                    setActiveTab(item.key);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+                    isActive
+                      ? "bg-[#06a63e] text-white"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <div className="h-[18px] w-[18px] shrink-0 flex items-center justify-center">{item.icon}</div>
                   <span className="truncate">{item.label}</span>
-                </div>
-                {item.count > 0 && (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                    item.key === 'inquiries'
-                      ? 'bg-amber-400/20 text-amber-300'
-                      : 'bg-white/10'
-                  }`}>
-                    {item.count}
-                  </span>
-                )}
-              </button>
-            ))}
+                  {item.count > 0 && (
+                    <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-black ${
+                      isActive ? "bg-white/20 text-white" : "bg-amber-100 text-amber-700"
+                    }`}>
+                      {item.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
 
-          <div className="mt-auto flex items-center gap-3 rounded-2xl bg-white/5 p-3 text-white border border-white/10 backdrop-blur-sm shrink-0">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#06a63e] text-xs font-bold text-white shadow-inner">{staffInitials}</div>
-            <div className="min-w-0">
-              <p className="m-0 text-[0.65rem] font-black uppercase tracking-wider text-white/60">Staff Portal</p>
-              <p className="m-0 text-xs font-bold truncate">{staffName}</p>
-              <button className="mt-0.5 cursor-pointer border-none bg-transparent p-0 text-[0.65rem] font-bold text-white/40 hover:text-white hover:underline transition-all" onClick={() => setShowLogoutModal(true)}>Logout</button>
+          {/* Staff Info Footer */}
+          <div className="border-t border-gray-100 px-5 py-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#06a63e]/10 text-xs font-bold text-[#06a63e]">
+                {staffInitials}
+              </div>
+              <p className="text-xs font-bold text-gray-800 truncate">{staffName}</p>
             </div>
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(true)}
+              className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 shrink-0"
+            >
+              Log Out
+            </button>
           </div>
         </aside>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-
-          {/* Header */}
-          <header className="relative z-[1000] mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
-            <h2 className="m-0 text-2xl font-black tracking-tight text-[#03652a] truncate">
+        {/* ── Main Content ── */}
+        <div className="flex-1 min-w-0 min-h-screen">
+          {/* Mobile Top Bar */}
+          <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 lg:hidden sticky top-0 z-20 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-100 outline-none"
+              aria-label="Open menu"
+            >
+              <Icons.Menu />
+            </button>
+            <p className="text-sm font-bold text-gray-800">
               {getPageTitle()}
-            </h2>
-            <div className="flex items-center gap-3">
-              <NotificationBell target="staff" />
-              <div className="rounded-xl border border-[#06a63e]/10 bg-[#eaf9ee]/70 px-3 py-1.5 text-xs font-black text-[#06a63e] backdrop-blur-sm">Staff</div>
-              {!roleLoading && role === 'Admin' && (
-                <button onClick={handleSwitchDashboard} className="rounded-xl bg-[#06a63e] px-4 py-2 text-xs font-black text-white transition-all hover:bg-[#03652a] shadow-md">Switch to Admin</button>
-              )}
-            </div>
-          </header>
+            </p>
+            <div className="w-9" />
+          </div>
 
-          {/* Scrollable Main Area */}
-          <main className="flex-1 overflow-y-auto no-scrollbar lg:pr-1">
-            <div className="h-full">
-              {notification && (
-                <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-xl text-white font-black text-sm animate-in fade-in slide-in-from-top-4 duration-300 uppercase tracking-widest ${
-                  notification.type === 'error' ? 'bg-red-500' : 'bg-[#06a63e]'
-                }`}>
-                  {notification.message}
+          <main className="p-6 pt-24 lg:p-8 lg:pt-24 space-y-6">
+            {notification && (
+              <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-xl text-white font-black text-sm animate-in fade-in slide-in-from-top-4 duration-300 uppercase tracking-widest ${
+                notification.type === 'error' ? 'bg-red-500' : 'bg-[#06a63e]'
+              }`}>
+                {notification.message}
+              </div>
+            )}
+
+            {/* Tab Header */}
+            <div>
+              <h2 className="text-xl font-black text-gray-900">{getPageTitle()}</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                {activeTab === 'pending' && 'Review incoming pickup orders and pin locations on the map.'}
+                {activeTab === 'active' && 'Manage pickups currently assigned and on the way.'}
+                {activeTab === 'completed' && 'View all pickups finished today.'}
+                {activeTab === 'inquiries' && 'Communicate with administrators and resolve inquiries.'}
+                {activeTab === 'settings' && 'Update your profile, password, and payout settings.'}
+              </p>
+            </div>
+
+            <div className={`grid grid-cols-1 gap-6 ${activeTab === 'active' || activeTab === 'completed' ? '' : 'md:grid-cols-2'}`}>
+              {activeTab === 'pending' && (
+                <div className="col-span-full">
+                  <PendingOrdersPanel />
                 </div>
               )}
 
-              <div className={`grid grid-cols-1 gap-4 ${activeTab === 'active' || activeTab === 'completed' ? '' : 'md:grid-cols-2'}`}>
-                {activeTab === 'pending' && (
-                  <div className="col-span-full">
-                    <PendingOrdersPanel />
-                  </div>
-                )}
+              {activeTab === 'inquiries' && (
+                <div className="col-span-full">
+                  {renderInquiriesPanel()}
+                </div>
+              )}
 
-                {activeTab === 'inquiries' && (
-                  <div className="col-span-full">
-                    {renderInquiriesPanel()}
-                  </div>
-                )}
-
-                {activeTab === 'settings' && (
-                  <div className="col-span-full">
-                    {settingsLoading ? (
-                      <div className="rounded-3xl border border-dashed border-[#06a63e]/20 bg-[#eaf9ee]/30 p-12 text-center text-[#06a63e]/60 font-black uppercase tracking-widest text-[10px]">
-                        Loading settings...
-                      </div>
-                    ) : (
-                      <SettingsPanel
-                        staffName={staffName}
-                        staffInitials={staffInitials}
-                        settingsForm={settingsForm}
-                        settingsMessage={settingsMessage}
-                        savingSettings={savingSettings}
-                        mustChangePassword={mustChangePassword}
-                        passwordForm={passwordForm}
-                        changingPassword={changingPassword}
-                        handleSettingsChange={handleSettingsChange}
-                        handleBankDetailChange={handleBankDetailChange}
-                        handlePasswordFormChange={(field, value) => setPasswordForm(prev => ({...prev, [field]: value}))}
-                        changePassword={changePassword}
-                        saveSettings={saveSettings}
-                        onClearMessage={() => setSettingsMessage(null)}
-                      />
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'active' && (
-                  ongoingTasks.length === 0 ? (
-                    <div className="col-span-full rounded-3xl border border-dashed border-[#06a63e]/20 bg-[#eaf9ee]/30 p-12 text-center flex flex-col items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-[#06a63e]/5 flex items-center justify-center text-[#06a63e] border border-[#06a63e]/10"><Icons.ActiveTasks /></div>
-                      <p className="text-[#06a63e]/60 font-black uppercase tracking-widest text-[10px]">No active tasks in progress.</p>
+              {activeTab === 'settings' && (
+                <div className="col-span-full">
+                  {settingsLoading ? (
+                    <div className="rounded-3xl border border-gray-200 bg-white p-12 text-center text-gray-400 font-bold text-sm">
+                      Loading settings...
                     </div>
                   ) : (
-                    ongoingTasks.map((task) => (
-                      <div key={task._id} className="col-span-full">
-                        {renderTaskCard(task)}
-                      </div>
-                    ))
-                  )
-                )}
+                    <SettingsPanel
+                      staffName={staffName}
+                      staffInitials={staffInitials}
+                      settingsForm={settingsForm}
+                      settingsMessage={settingsMessage}
+                      savingSettings={savingSettings}
+                      mustChangePassword={mustChangePassword}
+                      passwordForm={passwordForm}
+                      changingPassword={changingPassword}
+                      handleSettingsChange={handleSettingsChange}
+                      handleBankDetailChange={handleBankDetailChange}
+                      handlePasswordFormChange={(field, value) => setPasswordForm(prev => ({...prev, [field]: value}))}
+                      changePassword={changePassword}
+                      saveSettings={saveSettings}
+                      onClearMessage={() => setSettingsMessage(null)}
+                    />
+                  )}
+                </div>
+              )}
 
-                {activeTab === 'completed' && (
-                  completedTasks.length === 0 ? (
-                    <div className="col-span-full rounded-3xl border border-dashed border-[#06a63e]/20 bg-[#eaf9ee]/30 p-12 text-center flex flex-col items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-[#06a63e]/5 flex items-center justify-center text-[#06a63e] border border-[#06a63e]/10"><Icons.CompletedTasks /></div>
-                      <p className="text-[#06a63e]/60 font-black uppercase tracking-widest text-[10px]">No tasks completed yet today.</p>
+              {activeTab === 'active' && (
+                ongoingTasks.length === 0 ? (
+                  <div className="col-span-full rounded-3xl border border-gray-200 bg-white p-12 text-center flex flex-col items-center gap-3 shadow-sm">
+                    <div className="h-12 w-12 rounded-full bg-[#06a63e]/10 flex items-center justify-center text-[#06a63e]">
+                      <Icons.ActiveTasks />
                     </div>
-                  ) : (
-                    completedTasks.map((task) => (
-                      <div key={task._id} className="col-span-full">
-                        {renderTaskCard(task, true)}
-                      </div>
-                    ))
-                  )
-                )}
-              </div>
-              <footer className="mt-8 text-[0.75rem] text-[#06a63e]/40 pb-6 text-center">&copy; 2026 Ecofy Waste Management</footer>
+                    <p className="text-gray-500 font-bold text-sm">No active tasks in progress.</p>
+                  </div>
+                ) : (
+                  ongoingTasks.map((task) => (
+                    <div key={task._id} className="col-span-full">
+                      {renderTaskCard(task)}
+                    </div>
+                  ))
+                )
+              )}
+
+              {activeTab === 'completed' && (
+                completedTasks.length === 0 ? (
+                  <div className="col-span-full rounded-3xl border border-gray-200 bg-white p-12 text-center flex flex-col items-center gap-3 shadow-sm">
+                    <div className="h-12 w-12 rounded-full bg-[#06a63e]/10 flex items-center justify-center text-[#06a63e]">
+                      <Icons.CompletedTasks />
+                    </div>
+                    <p className="text-gray-500 font-bold text-sm">No tasks completed yet today.</p>
+                  </div>
+                ) : (
+                  completedTasks.map((task) => (
+                    <div key={task._id} className="col-span-full">
+                      {renderTaskCard(task, true)}
+                    </div>
+                  ))
+                )
+              )}
             </div>
           </main>
         </div>
       </div>
 
-      {/* Mobile top bar */}
-      <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-[#03652a] px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0"><h2 className="truncate text-base font-bold leading-tight">{getPageTitle()}</h2></div>
-          <button onClick={() => setIsMobileMenuOpen(true)} className="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-white/10 text-white"><Icons.Menu /></button>
-        </div>
-      </div>
-
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <button className="absolute inset-0 bg-green-950/40 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="absolute left-4 top-4 bottom-4 flex w-[86%] max-w-[300px] flex-col gap-4 overflow-y-auto bg-[#03652a]/92 backdrop-blur-3xl p-5 text-white shadow-2xl border border-white/10 rounded-3xl">
-            <div className="flex items-center justify-between gap-2 pb-2">
-              <h1 className="m-0 text-lg font-bold">Ecofy</h1>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="text-white/60 text-xs font-bold">✕</button>
-            </div>
-            <nav className="flex flex-col gap-1">
-              {menuItems.map((item) => (
-                <button key={item.key} disabled={mustChangePassword && item.key !== 'settings'} onClick={() => { if (mustChangePassword && item.key !== 'settings') return; setActiveTab(item.key); setIsMobileMenuOpen(false); }} className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${activeTab === item.key ? "bg-[#06a63e] text-white shadow-lg" : "hover:bg-white/10"} ${mustChangePassword && item.key !== 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                  <div className="flex items-center gap-3">{item.icon} {item.label}</div>
-                  {item.count > 0 && <span className="text-[10px] opacity-60">{item.count}</span>}
-                </button>
-              ))}
-            </nav>
-            <button onClick={handleSignOut} className="mt-auto w-full rounded-xl bg-white py-2.5 text-xs font-bold text-green-900">Logout</button>
-          </aside>
-        </div>
-      )}
-
+      {/* Sign Out Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-[360px] rounded-[2rem] border border-white/20 bg-[#03652a] p-8 text-center shadow-2xl backdrop-blur-[50px] animate-in zoom-in-95 duration-200">
-            <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-red-400/10 text-red-400">
-              <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 text-center shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-red-50 text-red-500">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </div>
-            <h3 className="mb-2 text-2xl font-extrabold text-white">Sign Out?</h3>
-            <p className="mb-8 text-xs font-bold text-white/40 uppercase tracking-widest">Are you sure you want to exit the portal?</p>
-            <div className="flex gap-4">
-              <button onClick={() => setShowLogoutModal(false)} className="flex-1 rounded-2xl border border-white/10 bg-white/5 py-4 text-[10px] font-extrabold text-white uppercase tracking-widest transition-all hover:bg-white/10">Stay Here</button>
-              <button onClick={handleSignOut} className="flex-1 rounded-2xl bg-red-500 py-4 text-[10px] font-extrabold text-white shadow-lg shadow-red-500/20 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest">Sign Out</button>
+            <h3 className="mb-1 text-xl font-black text-gray-900">Sign Out?</h3>
+            <p className="mb-6 text-xs text-gray-500 font-medium">Are you sure you want to exit the staff portal?</p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 rounded-xl border border-gray-300 bg-white py-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition"
+              >
+                Stay Here
+              </button>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="flex-1 rounded-xl bg-red-600 py-3 text-xs font-bold text-white shadow-sm hover:bg-red-700 transition"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
         </div>
@@ -2274,6 +2350,6 @@ export default function StaffDashboard() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

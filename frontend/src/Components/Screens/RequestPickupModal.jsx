@@ -142,10 +142,10 @@ export default function RequestPickupModal({
       onClick={onClose}
     >
       <div
-        className="relative flex w-full max-w-2xl flex-col max-h-[90vh] overflow-hidden rounded-4xl border border-gray-200 bg-[#f4f9f4] shadow-2xl"
+        className="relative flex w-full max-w-2xl flex-col max-h-[90vh] overflow-hidden rounded-3xl border border-gray-200 bg-[#f4f9f4] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-linear-to-r from-[#06a63e] to-[#047a2e] px-7 py-5 text-white">
+        <div className="bg-gradient-to-r from-[#06a63e] to-[#047a2e] px-7 py-5 text-white">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/70">Pickup Form</p>

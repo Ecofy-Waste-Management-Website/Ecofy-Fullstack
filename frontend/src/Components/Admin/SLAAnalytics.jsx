@@ -84,48 +84,48 @@ export default function SLAAnalytics() {
 
       {/* ── Charts Row ───────────────────────────────── */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20 lg:col-span-2">
+        <article className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200 lg:col-span-2">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-[#244c21]">Pickup Completion vs Target</h3>
-            <span className="px-3 py-1 bg-[#D6E9CA]/50 text-[#397239] text-[10px] font-bold uppercase tracking-widest rounded-full border border-[#397234]/10">SLA Trends</span>
+            <h3 className="text-lg font-bold text-gray-900">Pickup Completion vs Target</h3>
+            <span className="px-3 py-1 bg-[#06a63e]/10 text-[#06a63e] text-xs font-bold uppercase tracking-widest rounded-full">SLA Trends</span>
           </div>
-          <div className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[280px] min-w-0">
+            <ResponsiveContainer width="100%" height={260} minWidth={0} minHeight={200}>
               <LineChart data={dailyCompletion}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }} />
-                <Line type="monotone" dataKey="completed" stroke="#66c45e" strokeWidth={4} dot={{ r: 4, fill: "#66c45e" }} />
-                <Line type="monotone" dataKey="target" stroke="rgba(255,255,255,0.2)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "12px" }} />
+                <Line type="monotone" dataKey="completed" stroke="#06a63e" strokeWidth={3} dot={{ r: 4, fill: "#06a63e" }} />
+                <Line type="monotone" dataKey="target" stroke="#9ca3af" strokeWidth={2} strokeDasharray="5 5" dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </article>
 
-        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
-          <h3 className="text-lg font-bold text-[#244c21] mb-6">Status Distribution</h3>
-          <div className="h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
+        <article className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
+          <h3 className="text-lg font-bold text-gray-900 mb-6">Status Distribution</h3>
+          <div className="h-[240px] min-w-0">
+            <ResponsiveContainer width="100%" height={220} minWidth={0} minHeight={200}>
               <PieChart>
                 <Pie data={statusDistribution} innerRadius={60} outerRadius={85} dataKey="value" labelLine={false} label={renderCustomLabel} stroke="none">
                   {statusDistribution.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }} />
+                <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "12px" }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </article>
 
-        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
-          <h3 className="text-lg font-bold text-[#244c21] mb-6">Waste Categories</h3>
-          <div className="h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
+        <article className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
+          <h3 className="text-lg font-bold text-gray-900 mb-6">Waste Categories</h3>
+          <div className="h-[240px] min-w-0">
+            <ResponsiveContainer width="100%" height={220} minWidth={0} minHeight={200}>
               <PieChart>
                 <Pie data={wasteCategories} innerRadius={60} outerRadius={85} dataKey="value" labelLine={false} label={renderCustomLabel} stroke="none">
                   {wasteCategories.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }} />
+                <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "12px" }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -134,21 +134,21 @@ export default function SLAAnalytics() {
 
       {/* ── Bottom Row ───────────────────────────────── */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
-          <h3 className="text-lg font-bold text-[#244c21] mb-6">Location Performance</h3>
-          <div className="overflow-x-auto rounded-2xl bg-[#D6E9CA]/50 border border-[#397234]/10">
-            <table className="w-full text-left text-xs text-[#244c21]">
-              <thead className="bg-[#112A0F]/5 uppercase tracking-widest text-[9px] font-bold text-[#397239]">
+        <article className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
+          <h3 className="text-lg font-bold text-gray-900 mb-6">Location Performance</h3>
+          <div className="overflow-x-auto rounded-2xl bg-gray-50 border border-gray-200">
+            <table className="w-full text-left text-xs text-gray-800">
+              <thead className="bg-gray-100 uppercase tracking-widest text-[10px] font-bold text-gray-400">
                 <tr><th className="p-4">Location</th><th className="p-4">Total</th><th className="p-4">Done</th><th className="p-4">SLA</th></tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-gray-200">
                 {locationPerformance.map((loc, i) => (
-                  <tr key={i} className="hover:bg-white/5 transition-colors">
-                    <td className="p-4 font-bold text-white">{loc.location}</td>
+                  <tr key={i} className="hover:bg-gray-100 transition-colors">
+                    <td className="p-4 font-bold text-gray-900">{loc.location}</td>
                     <td className="p-4">{loc.total}</td>
-                    <td className="p-4 text-green-400">{loc.completed}</td>
+                    <td className="p-4 text-[#06a63e] font-bold">{loc.completed}</td>
                     <td className="p-4">
-                      <span className="px-2 py-0.5 rounded-full bg-green-400/20 text-green-400 font-bold">{loc.completionRate}%</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-green-100 text-[#06a63e] font-bold">{loc.completionRate}%</span>
                     </td>
                   </tr>
                 ))}
@@ -157,16 +157,16 @@ export default function SLAAnalytics() {
           </div>
         </article>
 
-        <article className="bg-[#D6E9CA]/50 backdrop-blur-[40px] p-6 rounded-3xl shadow-sm border border-[#397234]/20">
-          <h3 className="text-lg font-bold text-[#244c21] mb-6">Service Analysis</h3>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
+        <article className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
+          <h3 className="text-lg font-bold text-gray-900 mb-6">Service Analysis</h3>
+          <div className="h-[300px] min-w-0">
+            <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={200}>
               <BarChart data={serviceTypeAnalysis}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 9, fill: "rgba(255,255,255,0.4)" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }} axisLine={false} tickLine={false} />
-                <Bar dataKey="total" fill="rgba(255,255,255,0.1)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="completed" fill="#66c45e" radius={[4, 4, 0, 0]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#6b7280" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} axisLine={false} tickLine={false} />
+                <Bar dataKey="total" fill="#e5e7eb" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="completed" fill="#06a63e" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="delayed" fill="#ef4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

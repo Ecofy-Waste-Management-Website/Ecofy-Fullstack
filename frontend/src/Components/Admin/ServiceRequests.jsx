@@ -30,12 +30,21 @@ function typeColor(type) {
 }
 
 function resolveStaffDisplayName(staff) {
-  return [staff.firstName, staff.lastName].filter(Boolean).join(" ").trim() || staff.username || staff.email || staff.clerkId || staff._id || "Staff Member";
+  const name = [staff.firstName, staff.lastName].filter(Boolean).join(" ").trim() || staff.firstName || staff.username || staff.email;
+  if (name && !name.startsWith("user_")) return name;
+  return "Staff Member";
 }
 
 function formatAssignedStaff(value, lookup) {
   if (!value) return null;
-  return lookup.get(value) || value;
+  const resolved = lookup.get(value);
+  if (resolved && typeof resolved === "string" && !resolved.startsWith("user_")) {
+    return resolved;
+  }
+  if (typeof value === "string" && value.startsWith("user_")) {
+    return "Staff Member";
+  }
+  return value || "Staff Member";
 }
 
 function getAssignedStaffSelectValue(request, staffOptions, staffLookup) {
@@ -51,21 +60,21 @@ function getAssignedStaffSelectValue(request, staffOptions, staffLookup) {
 
 function KPIGrid({ stats }) {
   const cards = [
-    { label: "Total Requests", value: stats.total, colorText: "text-blue-400", icon: <FileText size={20} />, sub: "All requests" },
-    { label: "Pending", value: stats.pending, colorText: "text-amber-400", icon: <Clock size={20} />, sub: "Awaiting" },
-    { label: "In Progress", value: stats.inProgress, colorText: "text-purple-400", icon: <Zap size={20} />, sub: "Active" },
-    { label: "Completed", value: stats.completed, colorText: "text-[#66c45e]", icon: <CheckCircle size={20} />, sub: "Closed" },
-    { label: "Delayed", value: stats.delayed, colorText: "text-red-400", icon: <AlertTriangle size={20} />, sub: "Critical" },
+    { label: "Total Requests", value: stats.total, colorText: "text-blue-600", icon: <FileText size={20} />, sub: "All requests" },
+    { label: "Pending", value: stats.pending, colorText: "text-amber-600", icon: <Clock size={20} />, sub: "Awaiting" },
+    { label: "In Progress", value: stats.inProgress, colorText: "text-purple-600", icon: <Zap size={20} />, sub: "Active" },
+    { label: "Completed", value: stats.completed, colorText: "text-[#06a63e]", icon: <CheckCircle size={20} />, sub: "Closed" },
+    { label: "Delayed", value: stats.delayed, colorText: "text-red-600", icon: <AlertTriangle size={20} />, sub: "Critical" },
   ];
 
   return (
     <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
       {cards.map((card) => (
-        <article key={card.label} className="rounded-2xl border border-[#06a63e]/15 bg-[#eaf9ee]/80 p-5 shadow-sm backdrop-blur-2xl">
-          <div className={`mb-3 w-max rounded-lg bg-[#06a63e]/10 p-2 ${card.colorText.replace("text-blue-400", "text-blue-600").replace("text-amber-400", "text-amber-600").replace("text-[#66c45e]", "text-[#06a63e]").replace("text-red-400", "text-red-600")}`}>{card.icon}</div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#03652a]/60">{card.label}</p>
-          <p className={`mt-1 text-3xl font-extrabold ${card.colorText.replace("text-blue-400", "text-blue-600").replace("text-amber-400", "text-amber-600").replace("text-[#66c45e]", "text-[#06a63e]").replace("text-red-400", "text-red-600")}`}>{card.value ?? "-"}</p>
-          <p className="mt-1 text-[9px] font-bold uppercase text-[#03652a]/40">{card.sub}</p>
+        <article key={card.label} className="rounded-3xl border border-[#06a63e]/15 bg-white p-5 shadow-sm">
+          <div className={`mb-2 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-gray-50 ${card.colorText}`}>{card.icon}</div>
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-400">{card.label}</p>
+          <p className={`mt-1 text-2xl font-black ${card.colorText}`}>{card.value ?? "-"}</p>
+          <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">{card.sub}</p>
         </article>
       ))}
     </section>
@@ -99,51 +108,51 @@ function RequestModal({ request, staffOptions, staffLookup, onClose, onStatusCha
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-4xl overflow-hidden rounded-3xl border border-[#06a63e]/20 bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between border-b border-[#06a63e]/10 bg-[#eaf9ee]/70 px-6 py-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-4xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/70 px-6 py-4">
           <div className="flex items-center gap-3">
-            <span className="text-lg font-black tracking-tight text-[#03652a]">{request.requestId}</span>
+            <span className="text-lg font-black tracking-tight text-gray-900">{request.requestId}</span>
             <Badge variant="primary">{request.status}</Badge>
           </div>
-          <button className="text-[#06a63e]/40 hover:text-[#06a63e]" onClick={onClose}>
+          <button className="text-gray-400 hover:text-gray-700" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
         <div className="grid grid-cols-1 gap-8 p-8 md:grid-cols-2">
           <div className="flex flex-col gap-6">
-            <div className="rounded-2xl border border-[#06a63e]/10 bg-[#eaf9ee]/70 p-5">
-              <h4 className="mb-4 border-b border-[#06a63e]/10 pb-2 text-xs font-bold uppercase tracking-widest text-[#06a63e]/65">Customer Details</h4>
-              <div className="space-y-2 text-sm text-[#03652a]">
-                <p><strong className="font-bold text-[#06a63e]">Name:</strong> {request.customer}</p>
-                <p><strong className="font-bold text-[#06a63e]">Email:</strong> {request.email}</p>
-                <p><strong className="font-bold text-[#06a63e]">Location:</strong> {request.location}</p>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
+              <h4 className="mb-3 border-b border-gray-200 pb-2 text-xs font-bold uppercase tracking-widest text-gray-400">Customer Details</h4>
+              <div className="space-y-2 text-sm text-gray-800">
+                <p><strong className="font-bold text-gray-900">Name:</strong> {request.customer}</p>
+                <p><strong className="font-bold text-gray-900">Email:</strong> {request.email}</p>
+                <p><strong className="font-bold text-gray-900">Location:</strong> {request.location}</p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#06a63e]/10 bg-[#eaf9ee]/60 p-5">
-              <h4 className="mb-4 border-b border-[#06a63e]/10 pb-2 text-xs font-bold uppercase tracking-widest text-[#06a63e]/65">Request Info</h4>
-              <div className="space-y-3 text-sm text-[#03652a]">
+            <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
+              <h4 className="mb-3 border-b border-gray-200 pb-2 text-xs font-bold uppercase tracking-widest text-gray-400">Request Info</h4>
+              <div className="space-y-3 text-sm text-gray-800">
                 <p className="flex items-center">
-                  <strong className="mr-2 font-bold text-[#06a63e]">Service Type:</strong>
+                  <strong className="mr-2 font-bold text-gray-900">Service Type:</strong>
                   <span className="rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest" style={{ background: `${typeColor(request.type)}20`, color: typeColor(request.type), border: `1px solid ${typeColor(request.type)}30` }}>
                     {request.type}
                   </span>
                 </p>
-                <p><strong className="font-bold text-[#06a63e]">Waste Category:</strong> {request.wasteCategory}</p>
-                <p><strong className="font-bold text-[#06a63e]">Scheduled:</strong> {new Date(request.scheduledDate).toLocaleDateString()}</p>
-                <p><strong className="font-bold text-[#06a63e]">Submitted:</strong> {new Date(request.submittedAt).toLocaleString()}</p>
-                {request.notes && <p><strong className="font-bold text-[#06a63e]">Notes:</strong> {request.notes}</p>}
+                <p><strong className="font-bold text-gray-900">Waste Category:</strong> {request.wasteCategory}</p>
+                <p><strong className="font-bold text-gray-900">Scheduled:</strong> {new Date(request.scheduledDate).toLocaleDateString()}</p>
+                <p><strong className="font-bold text-gray-900">Submitted:</strong> {new Date(request.submittedAt).toLocaleString()}</p>
+                {request.notes && <p><strong className="font-bold text-gray-900">Notes:</strong> {request.notes}</p>}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#06a63e]/10 bg-[#eaf9ee]/70 p-6 shadow-inner">
-              <h4 className="mb-4 text-sm font-black uppercase tracking-widest text-[#03652a]">Update Management</h4>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
+              <h4 className="mb-4 text-sm font-black uppercase tracking-widest text-gray-900">Update Management</h4>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/70">Assign Staff</label>
-                  <select className="w-full rounded-xl border border-[#06a63e]/10 bg-white px-4 py-2.5 text-sm text-[#03652a] outline-none transition-all focus:border-[#06a63e]" value={selectedStaff} onChange={(e) => setSelectedStaff(e.target.value)}>
+                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-gray-400">Assign Staff</label>
+                  <select className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={selectedStaff} onChange={(e) => setSelectedStaff(e.target.value)}>
                     <option value="" className="bg-white">- Unassigned -</option>
                     {staffOptions.length === 0 ? (
                       <option value="" className="bg-white">No staff accounts available</option>
@@ -158,8 +167,8 @@ function RequestModal({ request, staffOptions, staffLookup, onClose, onStatusCha
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-[#06a63e]/70">Status</label>
-                  <select className="w-full rounded-xl border border-[#06a63e]/10 bg-white px-4 py-2.5 text-sm text-[#03652a] outline-none transition-all focus:border-[#06a63e]" value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-gray-400">Status</label>
+                  <select className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
                     {STATUS_OPTIONS.slice(1).map((status) => (
                       <option key={status} value={status} className="bg-white">
                         {status}
@@ -175,19 +184,19 @@ function RequestModal({ request, staffOptions, staffLookup, onClose, onStatusCha
             </div>
           </div>
 
-          <div className="flex flex-col rounded-2xl border border-[#06a63e]/10 bg-[#eaf9ee]/70 p-6">
-            <h4 className="mb-6 border-b border-[#06a63e]/10 pb-2 text-xs font-bold uppercase tracking-widest text-[#06a63e]/60">Status Timeline</h4>
-            <div className="relative ml-2 flex-1 border-l border-[#06a63e]/10 pl-6">
+          <div className="flex flex-col rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
+            <h4 className="mb-6 border-b border-gray-200 pb-2 text-xs font-bold uppercase tracking-widest text-gray-400">Status Timeline</h4>
+            <div className="relative ml-2 flex-1 border-l border-gray-200 pl-6">
               {(request.timeline || []).length === 0 ? (
-                <p className="text-sm italic text-[#06a63e]/30">No timeline events yet.</p>
+                <p className="text-sm italic text-gray-400">No timeline events yet.</p>
               ) : (
                 (request.timeline || []).map((event, index) => {
                   const isLast = index === request.timeline.length - 1;
                   return (
                     <div key={index} className="relative mb-8">
-                      <div className={`absolute -left-7 top-1.5 h-4 w-4 rounded-full border-2 border-white ${isLast ? "bg-[#06a63e] shadow-[0_0_12px_rgba(6,166,62,0.4)]" : "bg-[#06a63e]/20"}`} />
-                      <p className="text-sm font-black text-[#03652a]">{event.event}</p>
-                      <p className="mt-1 text-[10px] font-bold uppercase tracking-tighter text-[#06a63e]/60">
+                      <div className={`absolute -left-7 top-1.5 h-4 w-4 rounded-full border-2 border-white ${isLast ? "bg-[#06a63e] shadow-[0_0_12px_rgba(6,166,62,0.4)]" : "bg-gray-300"}`} />
+                      <p className="text-sm font-bold text-gray-900">{event.event}</p>
+                      <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
                         {timeAgo(event.time)} - {new Date(event.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>
@@ -205,6 +214,7 @@ function RequestModal({ request, staffOptions, staffLookup, onClose, onStatusCha
 export default function ServiceRequests() {
   const { getToken } = useAuth();
   const [requests, setRequests] = useState([]);
+  const [staffRoster, setStaffRoster] = useState([]);
   const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, completed: 0, delayed: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -324,11 +334,14 @@ export default function ServiceRequests() {
 
       const response = await fetch(`${API_BASE}?${params}`);
       const json = await response.json();
-      if (!json.success) throw new Error(json.message);
-      setRequests(json.data);
+      if (!response.ok || !json.success) {
+        throw new Error(json.message || `Server error (${response.status})`);
+      }
+      setRequests(Array.isArray(json.data) ? json.data : []);
       setError(null);
-    } catch {
-      setError("Failed to load requests. Is the server running?");
+    } catch (err) {
+      console.error("Failed to load requests:", err);
+      setError(err.message || "Failed to load requests. Is the server running?");
     } finally {
       setLoading(false);
     }
@@ -350,28 +363,52 @@ export default function ServiceRequests() {
   }, [fetchRequests, fetchStats]);
 
   useEffect(() => {
-    const ws = new WebSocket(WS_URL);
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        if (message.type === "REQUEST_UPDATED") {
-          setRequests((previous) => previous.map((request) => (request.id === message.data.id ? message.data : request)));
-          fetchStats();
+    let isMounted = true;
+    let ws = null;
+
+    try {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        if (!isMounted && ws && ws.readyState === WebSocket.OPEN) {
+          ws.close();
         }
-        if (message.type === "REQUEST_CREATED") {
-          setRequests((previous) => [message.data, ...previous]);
-          fetchStats();
+      };
+
+      ws.onmessage = (event) => {
+        if (!isMounted) return;
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type === "REQUEST_UPDATED") {
+            setRequests((previous) => previous.map((request) => (request.id === message.data.id ? message.data : request)));
+            fetchStats();
+          }
+          if (message.type === "REQUEST_CREATED") {
+            setRequests((previous) => [message.data, ...previous]);
+            fetchStats();
+          }
+          if (message.type === "REQUEST_DELETED") {
+            setRequests((previous) => previous.filter((request) => request.id !== message.requestId));
+            fetchStats();
+          }
+        } catch {
+          /* ignore malformed websocket messages */
         }
-        if (message.type === "REQUEST_DELETED") {
-          setRequests((previous) => previous.filter((request) => request.id !== message.requestId));
-          fetchStats();
-        }
-      } catch {
-        /* ignore malformed websocket messages */
+      };
+
+      ws.onerror = () => {
+        /* failover gracefully if socket is unavailable */
+      };
+    } catch {
+      /* socket init error */
+    }
+
+    return () => {
+      isMounted = false;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
       }
     };
-    ws.onerror = () => console.warn("WebSocket unavailable - live updates off");
-    return () => ws.close();
   }, [fetchStats]);
 
   async function handleStatusChange(id, newStatus) {
@@ -395,11 +432,11 @@ export default function ServiceRequests() {
   return (
     <div className="w-full">
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <p className="m-0 text-sm font-bold text-[#397239]/80">Monitor, filter and manage all active waste pickup requests</p>
-        <div className="flex items-center gap-2 rounded-full border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#397239] backdrop-blur-md">
+        <p className="m-0 text-sm text-gray-500">Monitor, filter and manage all active waste pickup requests</p>
+        <div className="flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-xs font-bold text-[#06a63e]">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#397239] opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#397239]" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#06a63e] opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#06a63e]" />
           </span>
           Live Updates Active
         </div>
@@ -407,14 +444,14 @@ export default function ServiceRequests() {
 
       <KPIGrid stats={stats} />
 
-      <div className="mb-6 rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 p-5 shadow-sm backdrop-blur-2xl">
+      <div className="mb-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center gap-4">
           <div className="relative min-w-60 flex-1">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#397239]/60">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
               <Search size={16} />
             </span>
             <input
-              className="w-full rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 pl-11 pr-4 py-2.5 text-sm text-[#244c21] outline-none transition-all placeholder:text-[#397239]/60 focus:border-[#397239] focus:bg-white"
+              className="w-full rounded-xl border border-gray-300 bg-white pl-11 pr-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
               placeholder="Search customer, location..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -422,86 +459,86 @@ export default function ServiceRequests() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <select className="cursor-pointer rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm font-bold text-[#244c21] outline-none transition-all focus:border-[#397239]" value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}>
+            <select className="cursor-pointer rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}>
               {STATUS_OPTIONS.map((option) => (
-                <option key={option} value={option} className="bg-white">{option}</option>
+                <option key={option} value={option}>{option}</option>
               ))}
             </select>
-            <select className="rounded-xl border border-[#397234]/10 bg-[#D6E9CA]/50 px-4 py-2.5 text-sm text-[#244c21] outline-none focus:border-[#397239] transition-all cursor-pointer font-bold" value={filters.type} onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}>
-              {typeOptions.map(o => <option key={o} value={o} className="bg-white">{o}</option>)}
+            <select className="cursor-pointer rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={filters.type} onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}>
+              {typeOptions.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
-            <select className="cursor-pointer rounded-xl border border-[#397234]/10 bg-white/40 px-4 py-2.5 text-sm font-bold text-[#244c21] outline-none transition-all focus:border-[#397239]" value={filters.location} onChange={(event) => setFilters((current) => ({ ...current, location: event.target.value }))}>
+            <select className="cursor-pointer rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={filters.location} onChange={(event) => setFilters((current) => ({ ...current, location: event.target.value }))}>
               {LOCATION_OPTIONS.map((option) => (
-                <option key={option} value={option} className="bg-white">{option}</option>
+                <option key={option} value={option}>{option}</option>
               ))}
             </select>
           </div>
 
-          <span className="ml-auto whitespace-nowrap rounded-lg border border-[#397234]/10 bg-[#397234]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#397239]">
+          <span className="ml-auto whitespace-nowrap rounded-full bg-[#06a63e]/10 px-3 py-1 text-xs font-bold text-[#06a63e]">
             {requests.length} results
           </span>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/50 shadow-sm backdrop-blur-2xl">
-        <div className="flex items-center justify-between border-b border-[#397234]/10 bg-[#D6E9CA]/50 px-8 py-5">
-          <h3 className="m-0 text-lg font-black text-[#244c21]">Active Service Requests</h3>
+      <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/70 px-6 py-4">
+          <h3 className="m-0 text-lg font-black text-gray-900">Active Service Requests</h3>
         </div>
 
-        {loading && <p className="p-12 text-center text-xs font-bold uppercase tracking-widest text-white/40 animate-pulse">Loading requests...</p>}
-        {error && <p className="p-12 text-center font-bold text-red-400">{error}</p>}
+        {loading && <p className="p-12 text-center text-sm font-semibold text-gray-400 animate-pulse">Loading requests...</p>}
+        {error && <p className="p-12 text-center font-bold text-red-500">{error}</p>}
 
         {!loading && !error && (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-[#244c21]">
-              <thead className="border-b border-[#397234]/10 bg-[#397234]/10 text-[10px] font-bold uppercase tracking-widest text-[#397239]">
+            <table className="w-full text-left text-sm text-gray-800">
+              <thead className="border-b border-gray-200 bg-gray-50 text-xs font-bold uppercase tracking-widest text-gray-400">
                 <tr>
-                  <th className="px-4 py-4">Request ID</th>
-                  <th className="px-4 py-4">Customer</th>
-                  <th className="px-4 py-4">Location</th>
-                  <th className="px-4 py-4">Type</th>
-                  <th className="px-4 py-4 pl-10">Status</th>
-                  <th className="px-4 py-4 pl-10">Staff</th>
-                  <th className="px-4 py-4">Submitted</th>
-                  <th className="px-4 py-4 pl-10">Action</th>
+                  <th className="px-6 py-4">Request ID</th>
+                  <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Location</th>
+                  <th className="px-6 py-4">Type</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Staff</th>
+                  <th className="px-6 py-4">Submitted</th>
+                  <th className="px-6 py-4 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-gray-100">
                 {requests.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center font-medium italic text-white/30">No requests match your current filters.</td>
+                    <td colSpan={8} className="py-16 text-center font-semibold text-gray-400">No requests match your current filters.</td>
                   </tr>
                 )}
                 {requests.map((request) => (
-                  <tr key={request.id} className="transition-colors hover:bg-[#112A0F]/5">
-                    <td className="px-4 py-5 font-black text-[#244c21]">{request.requestId}</td>
-                    <td className="px-4 py-5 font-bold text-[#244c21]">{request.customer}</td>
-                    <td className="px-4 py-5 font-medium text-[#397239]/80">{request.location}</td>
-                    <td className="px-4 py-5">
+                  <tr key={request.id} className="transition-colors hover:bg-gray-50">
+                    <td className="px-6 py-4 font-bold text-gray-900">{request.requestId}</td>
+                    <td className="px-6 py-4 font-semibold text-gray-800">{request.customer}</td>
+                    <td className="px-6 py-4 text-gray-600">{request.location}</td>
+                    <td className="px-6 py-4">
                       <span className="rounded-md px-2 py-1 text-[10px] font-extrabold uppercase tracking-widest" style={{ background: `${typeColor(request.type)}20`, color: typeColor(request.type), border: `1px solid ${typeColor(request.type)}40` }}>
                         {request.type}
                       </span>
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-6 py-4">
                       <Badge variant="primary">{request.status}</Badge>
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-6 py-4">
                       {request.assignedStaff ? (
-                        <span className="font-bold text-[#397239]">{request.assignedStaffLabel || formatAssignedStaff(request.assignedStaff, staffLookup)}</span>
+                        <span className="font-bold text-[#06a63e]">{request.assignedStaffLabel || formatAssignedStaff(request.assignedStaff, staffLookup)}</span>
                       ) : (
-                        <span className="font-medium italic text-[#397239]/20">Unassigned</span>
+                        <span className="font-medium text-gray-400 italic">Unassigned</span>
                       )}
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-[#244c21]">
+                        <span className="text-xs font-bold text-gray-800">
                           {new Date(request.submittedAt).toLocaleDateString("en-GB", {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
                           })}
                         </span>
-                        <span className="text-[10px] font-medium text-[#397239]/50">
+                        <span className="text-[10px] text-gray-400">
                           {new Date(request.submittedAt).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -509,7 +546,7 @@ export default function ServiceRequests() {
                         </span>
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-right">
+                    <td className="px-6 py-4 text-right">
                       <Button variant="primary" size="sm" onClick={() => setSelected(request.id)}>
                         Details
                       </Button>
