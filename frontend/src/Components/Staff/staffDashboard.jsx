@@ -725,8 +725,6 @@ export default function StaffDashboard() {
   const [inquiries, setInquiries] = useState([]);
   const [inquiriesLoading, setInquiriesLoading] = useState(false);
   const [expandedInquiryId, setExpandedInquiryId] = useState(null);
-  const [inquiryForm, setInquiryForm] = useState({ subject: '', message: '' });
-  const [sendingInquiry, setSendingInquiry] = useState(false);
   const [replyTexts, setReplyTexts] = useState({});
   const [sendingReply, setSendingReply] = useState(null);
   const [settingsForm, setSettingsForm] = useState({
@@ -749,7 +747,6 @@ export default function StaffDashboard() {
   const [isAccountBanned, setIsAccountBanned] = useState(null);
 
   const staffName = displayName;
-  const staffEmail = user?.primaryEmailAddress?.emailAddress || '';
   const staffInitials = staffName.split(" ").map(n => n[0] || "").join("").toUpperCase();
   const openPendingOrderDetails = (order) => {
     setSelectedPendingOrder(order);
@@ -892,20 +889,11 @@ export default function StaffDashboard() {
       const res = await fetch(`${API_BASE_URL}/inquiries`);
       if (res.ok) {
         const data = await res.json();
-        const staffEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase() || "";
-        const staffClerkId = user?.id || "";
-
-        const filtered = (data.inquiries || []).filter((inq) => {
-          const inquiryClerkId = String(inq.clerkId || "").trim();
-          const inquiryEmail = String(inq.userEmail || "").trim().toLowerCase();
-
-          return (
-            (staffClerkId && inquiryClerkId === staffClerkId) ||
-            (staffEmail && inquiryEmail === staffEmail)
-          );
-        });
-
-        setInquiries(filtered);
+        // Filter to only show inquiries whose clerkId matches this staff member
+        const filtered = (data.inquiries || []).filter(
+          (inq) => inq.clerkId && inq.clerkId === user.id
+        );
+        setInquiries(data.inquiries || []);
       }
     } catch (err) {
       console.error('Failed to fetch inquiries:', err);
@@ -945,64 +933,6 @@ export default function StaffDashboard() {
       showNotification('Failed to send reply. Please try again.', 'error');
     } finally {
       setSendingReply(null);
-    }
-  };
-
-  const handleInquiryFormChange = (field, value) => {
-    setInquiryForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSendInquiry = async (event) => {
-    event.preventDefault();
-
-    const subject = inquiryForm.subject.trim();
-    const message = inquiryForm.message.trim();
-
-    if (!message || sendingInquiry) {
-      return;
-    }
-
-    if (!staffEmail || !user?.id) {
-      showNotification('Your staff profile is not ready yet. Please reload and try again.', 'error');
-      return;
-    }
-
-    setSendingInquiry(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/inquiries`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userName: staffName || 'Staff Member',
-          userEmail: staffEmail,
-          clerkId: user.id,
-          subject: subject || 'General Inquiry',
-          message,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to submit inquiry');
-      }
-
-      setInquiryForm({ subject: '', message: '' });
-      showNotification('Inquiry sent to admin successfully!');
-
-      if (activeTab === 'inquiries') {
-        await fetchInquiries();
-      }
-    } catch (error) {
-      console.error('Failed to send inquiry:', error);
-      showNotification(error.message || 'Failed to send inquiry. Please try again.', 'error');
-    } finally {
-      setSendingInquiry(false);
     }
   };
 
@@ -1336,7 +1266,7 @@ export default function StaffDashboard() {
   const menuItems = [
     { label: 'Pending Tasks', key: 'pending', icon: <Icons.PendingTasks />, count: pendingTasks.length },
     { label: 'Active Tasks', key: 'active', icon: <Icons.ActiveTasks />, count: ongoingTasks.length },
-    { label: 'Completed Today', key: 'completed', icon: <Icons.CompletedTasks />, count: completedTasks.length },
+    { label: 'Completed', key: 'completed', icon: <Icons.CompletedTasks />, count: completedTasks.length },
     { label: 'Inquiries', key: 'inquiries', icon: <Icons.Inquiry />, count: pendingInquiriesCount },
     { label: 'Settings', key: 'settings', icon: <Icons.Bell />, count: 0 },
   ];

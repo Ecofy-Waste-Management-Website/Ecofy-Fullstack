@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router();
+const router  = express.Router();
 const ServiceRequest = require("../Model/ServiceRequestModel");
 const Notification = require("../Model/NotificationModel");
 const User = require("../Model/User");
@@ -90,31 +90,28 @@ function toFrontend(doc, staffDirectory = new Map()) {
 // Query params: status, type, location, search
 router.get("/", async (req, res) => {
   try {
-    const staffDirectory = await buildStaffDirectory();
     const { status, type, location, search } = req.query;
     const filter = {};
 
-    if (status && status !== "All") filter.status = status;
-    if (type && type !== "All") filter.service_type = type;
-    if (location && location !== "All") filter.location = location;
+    if (status   && status   !== "All") filter.status       = status;
+    if (type     && type     !== "All") filter.service_type = type;
+    if (location && location !== "All") filter.location     = location;
 
     // Search across customer name, email, and location
     // Uses $and so search doesn't override status/type/location filters
     if (search) {
       const regex = new RegExp(search, "i");
       filter.$and = [
-        {
-          $or: [
-            { customer_name: regex },
-            { customer_email: regex },
-            { location: regex },
-          ]
-        },
+        { $or: [
+          { customer_name:  regex },
+          { customer_email: regex },
+          { location:       regex },
+        ]},
       ];
     }
 
     const docs = await ServiceRequest.find(filter).sort({ createdAt: -1 });
-    res.json({ success: true, data: docs.map((doc) => toFrontend(doc, staffDirectory)) });
+    res.json({ success: true, data: docs.map(toFrontend) });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -147,10 +144,9 @@ router.get("/stats", async (req, res) => {
 // Single request — opened when the modal loads.
 router.get("/:id", async (req, res) => {
   try {
-    const staffDirectory = await buildStaffDirectory();
     const doc = await ServiceRequest.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: "Not found" });
-    res.json({ success: true, data: toFrontend(doc, staffDirectory) });
+    res.json({ success: true, data: toFrontend(doc) });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -192,22 +188,15 @@ router.patch("/:id/status", async (req, res) => {
 router.patch("/:id/assign", async (req, res) => {
   try {
     const { assignedStaff } = req.body; // pass null to unassign
-    const staffDirectory = await buildStaffDirectory();
 
     const doc = await ServiceRequest.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: "Not found" });
-    const resolvedStaff = assignedStaff ? resolveAssignedStaff(staffDirectory, assignedStaff) : null;
-
-    if (assignedStaff && !resolvedStaff) {
-      return res.status(400).json({ success: false, message: "Assigned staff must match a real staff account" });
-    }
-
-    const nextAssignedStaff = resolvedStaff ? resolvedStaff.value : null;
-
-    if (doc.assignedStaff !== nextAssignedStaff) {
-      doc.assignedStaff = nextAssignedStaff;
+    // Allow Clerk IDs (they may start with "user_") as well as plain staff names.
+    // No special-format rejection here — any string (or null) is accepted.
+    if (doc.assignedStaff !== assignedStaff) {
+      doc.assignedStaff = assignedStaff || null;
       const event = assignedStaff
-        ? `Assigned to ${resolvedStaff.label}`
+        ? `Assigned to ${assignedStaff}`
         : "Staff unassigned";
       doc.timeline.push({ event, time: new Date() });
 
@@ -225,7 +214,7 @@ router.patch("/:id/assign", async (req, res) => {
       await doc.save();
     }
 
-    const payload = toFrontend(doc, staffDirectory);
+    const payload = toFrontend(doc);
     broadcast(req, { type: "REQUEST_UPDATED", data: payload });
     res.json({ success: true, data: payload });
   } catch (err) {
@@ -238,7 +227,6 @@ router.patch("/:id/assign", async (req, res) => {
 router.patch("/:id/cancel", rejectBannedStaff, async (req, res) => {
   try {
     const { clerkId } = req.body;
-    const staffDirectory = await buildStaffDirectory();
 
     const doc = await ServiceRequest.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: "Not found" });
@@ -263,7 +251,7 @@ router.patch("/:id/cancel", rejectBannedStaff, async (req, res) => {
       });
     }
 
-    const payload = toFrontend(doc, staffDirectory);
+    const payload = toFrontend(doc);
     broadcast(req, { type: "REQUEST_UPDATED", data: payload });
     res.json({ success: true, data: payload });
   } catch (err) {

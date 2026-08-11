@@ -1,32 +1,40 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
-import { FileText, Clock, Zap, CheckCircle, AlertTriangle, Search, X } from "lucide-react";
-import { Button, Badge } from "./UIComponents";
+import React, { useState, useEffect, useCallback } from "react";
+import { FileText, Clock, Zap, CheckCircle, AlertTriangle, Search, X } from 'lucide-react';
+import { Button, Badge } from './UIComponents';
 
+// ── Icons ──────────────────────────────────────────────────────────────────
+
+// ── Config ─────────────────────────────────────────────────────────────────────
 const API_ORIGIN = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const API_BASE = `${API_ORIGIN}/service-monitoring`;
 const WS_URL = API_ORIGIN.replace(/^http/, "ws");
 
-const STATUS_OPTIONS = ["All", "Pending", "Assigned", "In Progress", "Completed", "Delayed"];
-const TYPE_OPTIONS = ["All", "Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
+const STAFF_LIST = [
+  "Banuka J.", "Priyantha S.", "Amara K.", "Nimal R.",
+  "Dilshan P.", "Sachini M.", "Roshan T.", "Chamara W.",
+];
+
+const STATUS_OPTIONS   = ["All", "Pending", "Assigned", "In Progress", "Completed", "Delayed"];
+const TYPE_OPTIONS     = ["All", "Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
 const LOCATION_OPTIONS = ["All", "Colombo 03", "Colombo 05", "Colombo 07", "Kandy", "Nugegoda", "Dehiwala", "Rajagiriya", "Moratuwa"];
 
+// ── Helpers ────────────────────────────────────────────────────────────────────
 function timeAgo(date) {
   const diff = Math.floor((Date.now() - new Date(date)) / 1000);
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 60)    return `${diff}s ago`;
+  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-function typeColor(type) {
+function statusTailwind(s) {
   return {
-    Household: "#0b6ca8",
-    Commercial: "#5b35b5",
-    Bulk: "#856800",
-    Garden: "#1a7c4b",
-    "Drain Cleaning": "#c9320f",
-  }[type] || "#444";
+    Pending:      "bg-yellow-100 text-yellow-800",
+    Assigned:     "bg-blue-100 text-blue-800",
+    "In Progress":"bg-purple-100 text-purple-800",
+    Completed:    "bg-green-100 text-[#06a63e]",
+    Delayed:      "bg-red-100 text-red-800",
+  }[s] || "bg-gray-100 text-gray-800";
 }
 
 function resolveStaffDisplayName(staff) {
@@ -35,7 +43,7 @@ function resolveStaffDisplayName(staff) {
   return "Staff Member";
 }
 
-function formatAssignedStaff(value, lookup) {
+function formatAssignedStaff(value) {
   if (!value) return null;
   const resolved = lookup.get(value);
   if (resolved && typeof resolved === "string" && !resolved.startsWith("user_")) {
@@ -58,6 +66,8 @@ function getAssignedStaffSelectValue(request, staffOptions, staffLookup) {
   return match?.value || "";
 }
 
+// ── KPI Cards ──────────────────────────────────────────────────────────────────
+// ── KPI Cards ──────────────────────────────────────────────────────────────────
 function KPIGrid({ stats }) {
   const cards = [
     { label: "Total Requests", value: stats.total, colorText: "text-blue-600", icon: <FileText size={20} />, sub: "All requests" },
@@ -81,26 +91,23 @@ function KPIGrid({ stats }) {
   );
 }
 
-function RequestModal({ request, staffOptions, staffLookup, onClose, onStatusChange, onAssign }) {
-  const [selectedStaff, setSelectedStaff] = useState(getAssignedStaffSelectValue(request, staffOptions, staffLookup));
-  const [selectedStatus, setSelectedStatus] = useState(request.status || "Pending");
-  const [saving, setSaving] = useState(false);
+// ── Detail Modal ───────────────────────────────────────────────────────────────
+function RequestModal({ req, onClose, onStatusChange, onAssign }) {
+  const [selStaff,  setSelStaff]  = useState(req.assignedStaff || "");
+  const [selStatus, setSelStatus] = useState(req.status);
+  const [saving,    setSaving]    = useState(false);
   const [, setTick] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => setTick((value) => value + 1), 30000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setTick(n => n + 1), 30000);
+    return () => clearInterval(t);
   }, []);
 
   async function handleSave() {
     setSaving(true);
     try {
-      if (selectedStaff !== (request.assignedStaff || "")) {
-        await onAssign(request.id, selectedStaff || null);
-      }
-      if (selectedStatus !== request.status) {
-        await onStatusChange(request.id, selectedStatus);
-      }
+      if (selStaff  !== (req.assignedStaff || "")) await onAssign(req.id, selStaff || null);
+      if (selStatus !== req.status)                await onStatusChange(req.id, selStatus);
       onClose();
     } finally {
       setSaving(false);
@@ -120,7 +127,8 @@ function RequestModal({ request, staffOptions, staffLookup, onClose, onStatusCha
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 p-8 md:grid-cols-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
+          {/* Left column */}
           <div className="flex flex-col gap-6">
             <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
               <h4 className="mb-3 border-b border-gray-200 pb-2 text-xs font-bold uppercase tracking-widest text-gray-400">Customer Details</h4>
@@ -177,8 +185,13 @@ function RequestModal({ request, staffOptions, staffLookup, onClose, onStatusCha
                   </select>
                 </div>
 
-                <Button variant="primary" fullWidth onClick={handleSave} disabled={saving}>
-                  {saving ? "Saving..." : "Confirm Changes"}
+                <Button
+                  variant="primary"
+                  fullWidth
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? "Saving…" : "Confirm Changes"}
                 </Button>
               </div>
             </div>
@@ -203,6 +216,18 @@ function RequestModal({ request, staffOptions, staffLookup, onClose, onStatusCha
                   );
                 })
               )}
+              {(req.timeline || []).map((ev, i) => {
+                const isLast = i === req.timeline.length - 1;
+                return (
+                  <div key={i} className="mb-8 relative">
+                    <div className={`absolute -left-[30px] top-1.5 h-4 w-4 rounded-full border-2 border-white ${isLast ? "bg-[#06a63e] shadow-[0_0_12px_rgba(6,166,62,0.4)]" : "bg-[#06a63e]/20"}`} />
+                    <p className="text-sm font-black text-[#03652a]">{ev.event}</p>
+                    <p className="text-[10px] font-bold text-[#06a63e]/60 mt-1 uppercase tracking-tighter">
+                      {timeAgo(ev.time)} · {new Date(ev.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -211,8 +236,8 @@ function RequestModal({ request, staffOptions, staffLookup, onClose, onStatusCha
   );
 }
 
+// ── Main Component ─────────────────────────────────────────────────────────────
 export default function ServiceRequests() {
-  const { getToken } = useAuth();
   const [requests, setRequests] = useState([]);
   const [staffRoster, setStaffRoster] = useState([]);
   const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, completed: 0, delayed: 0 });
@@ -239,98 +264,17 @@ export default function ServiceRequests() {
 
   // Refresh relative timestamps every 30s
   useEffect(() => {
-    const timer = setInterval(() => setTick((value) => value + 1), 30000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setTick(n => n + 1), 30000);
+    return () => clearInterval(t);
   }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchStaffRoster = async () => {
-      try {
-        const token = await getToken();
-        const response = await fetch(`${API_ORIGIN}/admin/staff`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch staff roster");
-        }
-
-        const data = await response.json();
-        if (mounted) {
-          setStaffRoster(Array.isArray(data.staff) ? data.staff : []);
-        }
-      } catch {
-        if (mounted) {
-          setStaffRoster([]);
-        }
-      }
-    };
-
-    fetchStaffRoster();
-
-    return () => {
-      mounted = false;
-    };
-  }, [getToken]);
-
-  const staffLookup = useMemo(() => {
-    const lookup = new Map();
-
-    for (const staff of staffRoster) {
-      const displayName = resolveStaffDisplayName(staff);
-      [staff.clerkId, staff._id, staff.email, staff.username, displayName]
-        .filter(Boolean)
-        .forEach((key) => {
-          if (!lookup.has(key)) {
-            lookup.set(key, displayName);
-          }
-        });
-    }
-
-    for (const request of requests) {
-      if (request.assignedStaff && !lookup.has(request.assignedStaff)) {
-        lookup.set(request.assignedStaff, request.assignedStaff);
-      }
-    }
-
-    return lookup;
-  }, [requests, staffRoster]);
-
-  const staffOptions = useMemo(() => {
-    const options = new Map();
-
-    for (const staff of staffRoster) {
-      const value = staff.clerkId || staff._id || staff.email;
-      if (!value || options.has(value)) continue;
-
-      options.set(value, {
-        value,
-        label: resolveStaffDisplayName(staff),
-      });
-    }
-
-    for (const request of requests) {
-      const assignedStaff = request.assignedStaff;
-      if (!assignedStaff || options.has(assignedStaff)) continue;
-
-      options.set(assignedStaff, {
-        value: assignedStaff,
-        label: formatAssignedStaff(assignedStaff, staffLookup),
-      });
-    }
-
-    return Array.from(options.values());
-  }, [requests, staffLookup, staffRoster]);
 
   const fetchRequests = useCallback(async () => {
     try {
       const params = new URLSearchParams();
-      if (filters.status !== "All") params.set("status", filters.status);
-      if (filters.type !== "All") params.set("type", filters.type);
+      if (filters.status   !== "All") params.set("status",   filters.status);
+      if (filters.type     !== "All") params.set("type",     filters.type);
       if (filters.location !== "All") params.set("location", filters.location);
-      if (search) params.set("search", search);
+      if (search)                     params.set("search",   search);
 
       const response = await fetch(`${API_BASE}?${params}`);
       const json = await response.json();
@@ -349,12 +293,10 @@ export default function ServiceRequests() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE}/stats`);
-      const json = await response.json();
+      const res  = await fetch(`${API_BASE}/stats`);
+      const json = await res.json();
       if (json.success) setStats(json.data);
-    } catch {
-      /* stats are non-critical */
-    }
+    } catch { /* stats are non-critical */ }
   }, []);
 
   useEffect(() => {
@@ -413,24 +355,26 @@ export default function ServiceRequests() {
 
   async function handleStatusChange(id, newStatus) {
     await fetch(`${API_BASE}/${id}/status`, {
-      method: "PATCH",
+      method:  "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
+      body:    JSON.stringify({ status: newStatus }),
     });
   }
 
   async function handleAssign(id, staff) {
     await fetch(`${API_BASE}/${id}/assign`, {
-      method: "PATCH",
+      method:  "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ assignedStaff: staff }),
+      body:    JSON.stringify({ assignedStaff: staff }),
     });
   }
 
-  const selectedRequest = selected ? requests.find((request) => request.id === selected) : null;
+  const selReq = selected ? requests.find(r => r.id === selected) : null;
 
   return (
     <div className="w-full">
+
+      {/* Page header */}
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <p className="m-0 text-sm text-gray-500">Monitor, filter and manage all active waste pickup requests</p>
         <div className="flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-xs font-bold text-[#06a63e]">
@@ -442,6 +386,7 @@ export default function ServiceRequests() {
         </div>
       </div>
 
+      {/* KPI cards */}
       <KPIGrid stats={stats} />
 
       <div className="mb-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -454,7 +399,7 @@ export default function ServiceRequests() {
               className="w-full rounded-xl border border-gray-300 bg-white pl-11 pr-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
               placeholder="Search customer, location..."
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={e => setSearch(e.target.value)}
             />
           </div>
 
@@ -559,11 +504,10 @@ export default function ServiceRequests() {
         )}
       </div>
 
-      {selectedRequest && (
+      {/* Detail modal */}
+      {selReq && (
         <RequestModal
-          request={selectedRequest}
-          staffOptions={staffOptions}
-          staffLookup={staffLookup}
+          req={selReq}
           onClose={() => setSelected(null)}
           onStatusChange={handleStatusChange}
           onAssign={handleAssign}

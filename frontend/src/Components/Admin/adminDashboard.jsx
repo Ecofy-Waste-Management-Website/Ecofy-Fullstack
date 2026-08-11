@@ -605,7 +605,7 @@ export default function AdminDashboard() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/", { replace: true });
+    navigate("/");
   };
 
   useEffect(() => {
