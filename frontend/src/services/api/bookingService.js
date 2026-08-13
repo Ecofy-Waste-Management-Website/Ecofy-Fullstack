@@ -54,3 +54,22 @@ export const getUserPayments = async (email) => {
 
   return Array.isArray(data) ? data : [];
 };
+
+/**
+ * Fetches active services managed by Admin.
+ * @returns {Promise<Array>}
+ */
+export const fetchActiveServices = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/services`);
+    if (!response.ok) return [];
+    const data = await response.json();
+    if (data.success && Array.isArray(data.data)) {
+      return data.data.filter((s) => s.status === "Active" || !s.status);
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching active services:", error);
+    return [];
+  }
+};

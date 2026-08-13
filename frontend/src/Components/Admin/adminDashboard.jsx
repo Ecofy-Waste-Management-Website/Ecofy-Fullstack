@@ -11,8 +11,7 @@ import ChatbotManagement from "./ChatbotManagement";
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
 import ServiceManagement from "./ServiceManagement";
 
-const rawApiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || window.location.origin;
-const API_BASE_URL = rawApiBaseUrl.replace(/\/$/, "");
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const formatHistoryDate = (value) => {
   if (!value) return "Unknown date";
@@ -276,37 +275,27 @@ const UserManagement = () => {
   const metrics = historyData?.totals || { payments: 0, services: 0, bookings: 0, items: 0 };
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-5">
-      <div className="flex flex-col gap-3 rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h3 className="text-xl font-black text-[#244c21]">User Management</h3>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#397239]/50">Browse every user and inspect their order timeline.</p>
-        </div>
-        <div className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-[#397239]">
-          {users.length} users loaded
-        </div>
-      </div>
-
-      <div className="grid min-h-0 flex-1 gap-5 lg:grid-cols-[380px_minmax(0,1fr)]">
-        <section className="flex min-h-0 flex-col rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/35 p-4 shadow-sm">
-          <div className="mb-4 flex items-center gap-3 rounded-2xl border border-[#397234]/15 bg-white/80 px-4 py-3">
-            <span className="text-[#397239]/40"><Icons.Search /></span>
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1.4fr] min-h-[580px]">
+        <section className="flex min-h-0 flex-col rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3 transition focus-within:border-[#06a63e] focus-within:ring-2 focus-within:ring-[#06a63e]/20">
+            <span className="text-gray-400"><Icons.Search /></span>
             <input
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search users by name, email, or role"
-              className="w-full bg-transparent text-sm text-[#244c21] outline-none placeholder:text-[#397239]/40"
+              className="w-full bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
             />
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
             {loadingUsers ? (
-              <div className="flex h-full items-center justify-center text-sm text-[#397239]/50">Loading users...</div>
+              <div className="flex h-full items-center justify-center text-sm text-gray-400">Loading users...</div>
             ) : usersError ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{usersError}</div>
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">{usersError}</div>
             ) : filteredUsers.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-[#397234]/20 bg-white/60 p-6 text-center text-sm text-[#397239]/50">
+              <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-400">
                 No users matched your search.
               </div>
             ) : (
@@ -328,25 +317,25 @@ const UserManagement = () => {
                       onClick={() => setSelectedUser(user)}
                       className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-all ${
                         isSelected
-                          ? "border-[#397239]/30 bg-[#D6E9CA]/50 shadow-sm"
-                          : "border-[#397234]/15 bg-white/70 hover:border-[#397234]/30 hover:bg-white"
+                          ? "border-[#06a63e] bg-[#06a63e]/5 shadow-sm"
+                          : "border-gray-100 bg-gray-50/70 hover:border-gray-200 hover:bg-white"
                       }`}
                     >
-                      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#397239] text-sm font-black text-white shadow-sm">
+                      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#06a63e] text-sm font-black text-white shadow-sm">
                         {initials}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="truncate text-sm font-black text-[#244c21]">
+                          <p className="truncate text-sm font-bold text-gray-900">
                             {user.firstName} {user.lastName || ""}
                           </p>
-                          <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${getStatusTone(user.status)}`}>
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${getStatusTone(user.status)}`}>
                             {user.status || "Unknown"}
                           </span>
                         </div>
-                        <p className="truncate text-xs text-[#397239]/50">{user.email}</p>
-                        <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-                          <span className="rounded-full bg-[#D6E9CA]/60 text-[#397239] px-2 py-1">{user.role || "Customer"}</span>
+                        <p className="truncate text-xs text-gray-400 mt-0.5">{user.email}</p>
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                          <span className="rounded-full bg-[#06a63e]/10 text-[#06a63e] px-2.5 py-0.5 font-bold">{user.role || "Customer"}</span>
                         </div>
                       </div>
                     </button>
@@ -357,24 +346,24 @@ const UserManagement = () => {
           </div>
         </section>
 
-        <section className="flex min-h-0 flex-col rounded-3xl border border-[#397234]/20 bg-[#D6E9CA]/20 p-5 shadow-sm">
+        <section className="flex min-h-0 flex-col rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
           {!selectedUser ? (
-            <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-[#397234]/20 bg-white/60 p-8 text-center text-sm text-[#397239]/50">
+            <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-sm text-gray-400">
               Select a user to view their order history.
             </div>
           ) : (
             <>
-              <div className="flex flex-col gap-4 border-b border-[#397234]/10 pb-5 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/50">Selected User</p>
-                  <h3 className="mt-2 text-2xl font-black text-[#244c21]">
+                  <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Selected User</p>
+                  <h3 className="mt-1 text-2xl font-black text-gray-900">
                     {selectedUser.firstName} {selectedUser.lastName || ""}
                   </h3>
-                  <p className="mt-1 text-sm text-[#397239]/50">{selectedUser.email}</p>
+                  <p className="mt-0.5 text-sm text-gray-500">{selectedUser.email}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full bg-white/80 px-3 py-1.5 text-xs font-black text-[#397239]">Role: {selectedUser.role || "Customer"}</span>
-                  <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${getStatusTone(selectedUser.status)}`}>{selectedUser.status || "Unknown"}</span>
+                  <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-xs font-bold text-[#06a63e]">Role: {selectedUser.role || "Customer"}</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${getStatusTone(selectedUser.status)}`}>{selectedUser.status || "Unknown"}</span>
                 </div>
               </div>
 
@@ -385,50 +374,50 @@ const UserManagement = () => {
                   { label: "Bookings", value: metrics.bookings },
                   { label: "Timeline Items", value: metrics.items },
                 ].map((card) => (
-                  <div key={card.label} className="rounded-2xl border border-[#397234]/10 bg-white/60 p-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-[#397239]/40">{card.label}</p>
-                    <p className="mt-2 text-2xl font-black text-[#244c21]">{card.value}</p>
+                  <div key={card.label} className="rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{card.label}</p>
+                    <p className="mt-1 text-2xl font-black text-gray-900">{card.value}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-5 min-h-0 flex-1 overflow-hidden rounded-3xl border border-[#397234]/10 bg-white/60">
-                <div className="border-b border-[#397234]/10 px-5 py-4">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#397239]/50">Order History</h4>
+              <div className="mt-5 min-h-0 flex-1 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50/50">
+                <div className="border-b border-gray-200 px-5 py-4 bg-gray-50">
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500">Order History</h4>
                 </div>
 
                 <div className="max-h-[calc(100vh-360px)] overflow-y-auto p-4">
                   {historyLoading ? (
-                    <div className="py-10 text-center text-sm text-[#397239]/50">Loading order history...</div>
+                    <div className="py-10 text-center text-sm text-gray-400">Loading order history...</div>
                   ) : historyError ? (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{historyError}</div>
+                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">{historyError}</div>
                   ) : historyItems.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-[#397234]/20 bg-white/70 p-8 text-center text-sm text-[#397239]/50">
+                    <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400">
                       No order history found for this user.
                     </div>
                   ) : (
                     <div className="flex flex-col gap-3">
                       {historyItems.map((item) => (
-                        <article key={`${item.type}-${item.id}`} className="rounded-2xl border border-[#397234]/10 bg-white/80 p-4">
+                        <article key={`${item.type}-${item.id}`} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="rounded-full bg-[#D6E9CA]/60 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-[#397239]">
+                                <span className="rounded-full bg-[#06a63e]/10 px-2.5 py-0.5 text-xs font-bold text-[#06a63e]">
                                   {item.type}
                                 </span>
-                                <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${getStatusTone(item.status)}`}>
+                                <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${getStatusTone(item.status)}`}>
                                   {item.status || "Unknown"}
                                 </span>
                               </div>
-                              <h5 className="mt-3 text-sm font-black text-[#244c21]">{item.title}</h5>
-                              <p className="mt-1 text-xs text-[#397239]/50">{item.subtitle || "No additional details"}</p>
+                              <h5 className="mt-2 text-sm font-bold text-gray-900">{item.title}</h5>
+                              <p className="mt-0.5 text-xs text-gray-500">{item.subtitle || "No additional details"}</p>
                             </div>
 
-                            <div className="text-right text-xs text-[#397239]/50">
-                              <p className="font-black text-[#244c21]">{formatHistoryDate(item.date)}</p>
+                            <div className="text-right text-xs text-gray-500">
+                              <p className="font-bold text-gray-900">{formatHistoryDate(item.date)}</p>
                               <p>{formatHistoryTime(item.date)}</p>
                               {item.amount !== null && item.amount !== undefined && item.amount !== "" && (
-                                <p className="mt-2 font-black text-[#244c21]">
+                                <p className="mt-2 font-bold text-[#06a63e]">
                                   {typeof item.amount === "number" ? `LKR ${item.amount.toLocaleString()}` : item.amount}
                                 </p>
                               )}
@@ -538,14 +527,14 @@ function DashboardHome() {
         {statCards.map((stat) => (
           <article
             key={stat.key}
-            className="flex items-start gap-4 rounded-3xl bg-[#eaf9ee]/80 backdrop-blur-xl border border-[#06a63e]/15 p-6 shadow-sm transition-all duration-200 hover:bg-[#eaf9ee] hover:shadow-md"
+            className="flex items-center gap-4 rounded-3xl bg-white border border-[#06a63e]/15 p-5 shadow-sm transition-all duration-200 hover:shadow-md hover:border-[#06a63e]/30"
           >
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#06a63e]/10 text-[#06a63e] border border-[#06a63e]/10">
+            <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#06a63e]/10 text-[#06a63e]">
               {stat.icon}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="m-0 text-xs font-black text-[#03652a]/55 uppercase tracking-wider mb-2">{stat.label}</p>
-              <h3 className="m-0 text-3xl font-black text-[#03652a]">{dashboardMetrics[stat.key] ?? 0}</h3>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">{stat.label}</p>
+              <h3 className="text-2xl font-black text-gray-900">{dashboardMetrics[stat.key] ?? 0}</h3>
             </div>
           </article>
         ))}
@@ -554,10 +543,10 @@ function DashboardHome() {
       {/* Main Content Grid */}
       <section className="grid grid-cols-1 gap-6 flex-1 min-h-0 lg:grid-cols-2">
         {/* Left: Waste Types Pie Chart */}
-        <div className="rounded-3xl border border-[#06a63e]/15 bg-[#eaf9ee]/60 p-6 shadow-sm min-h-[420px]">
-          <h3 className="text-lg font-black mb-4 text-[#03652a]">Waste Types</h3>
-          <div className="w-full h-[380px]">
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm min-h-[420px]">
+          <h3 className="text-lg font-black mb-4 text-gray-900">Waste Types Distribution</h3>
+          <div className="w-full h-[380px] min-w-0">
+            <ResponsiveContainer width="100%" height={340} minWidth={0} minHeight={250}>
               <PieChart>
                 <Pie data={wasteData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label>
                   {wasteData.map((entry, index) => (
@@ -572,15 +561,15 @@ function DashboardHome() {
         </div>
 
         {/* Right: Average Daily Sales */}
-        <div className="rounded-3xl border border-[#06a63e]/15 bg-[#eaf9ee]/60 p-6 shadow-sm min-h-[420px]">
-          <h3 className="text-lg font-black mb-4 text-[#03652a]">Average Daily Sales</h3>
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm min-h-[420px]">
+          <h3 className="text-lg font-black mb-4 text-gray-900">Average Daily Sales</h3>
           {salesLoading ? (
-            <div className="flex h-[330px] items-center justify-center text-sm text-[#06a63e]/60">Loading sales data...</div>
+            <div className="flex h-[330px] items-center justify-center text-sm text-gray-400">Loading sales data...</div>
           ) : salesError ? (
             <div className="flex h-[330px] items-center justify-center text-sm text-red-500">{salesError}</div>
           ) : (
-            <div className="w-full h-[330px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="w-full h-[330px] min-w-0">
+              <ResponsiveContainer width="100%" height={320} minWidth={0} minHeight={250}>
                 <BarChart data={salesData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" tick={{ fontSize: 12 }} />
@@ -670,26 +659,60 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="h-screen w-screen font-sans text-[#03652a] bg-white p-4 lg:p-3 overflow-hidden">
-      <div className="flex h-full w-full gap-3">
+    <>
+      {/* Fixed Top-Right Actions */}
+      <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
+        <NotificationBell target="admin" />
+        <span className="rounded-full bg-white border border-gray-200 px-3.5 py-1.5 text-xs font-bold text-[#06a63e] shadow-sm">
+          Admin Portal
+        </span>
+        {!roleLoading && role === "Admin" && (
+          <button
+            type="button"
+            onClick={handleSwitchDashboard}
+            className="rounded-full bg-[#06a63e] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#058b33] transition"
+          >
+            Switch to Staff
+          </button>
+        )}
+      </div>
 
-        {/* Sidebar - Desktop Only */}
-        <aside className="hidden lg:flex flex-col gap-4 bg-[#03652a]/90 backdrop-blur-3xl border border-[#06a63e]/20 p-5 text-white/85 w-[240px] shrink-0 rounded-3xl shadow-2xl overflow-hidden h-full relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+      <div className="relative z-10 flex min-h-screen bg-green-50">
+        {/* Mobile Overlay */}
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
 
-          <div className="flex items-center gap-3 pb-2">
-            <h1 className="m-0 text-2xl font-black tracking-tighter text-white">Ecofy</h1>
+        {/* ── Sidebar ── */}
+        <aside className={`
+          fixed left-0 z-40 flex flex-col bg-white border-r border-gray-200 shadow-xl
+          transition-transform duration-300 ease-in-out
+          lg:sticky lg:translate-x-0 lg:shadow-sm
+          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
+          w-64 top-0 h-screen shrink-0
+        `}>
+          {/* Logo Section */}
+          <div className="flex h-[88px] items-center gap-3 border-b border-gray-100 px-5">
+            <img src="/ecofy-logo.png" alt="Ecofy Logo" className="h-9 w-9 object-cover rounded-xl shadow-sm" />
+            <div>
+              <p className="text-base font-black text-gray-900">Ecofy</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#06a63e]">Admin Portal</p>
+            </div>
           </div>
 
-          <nav className="flex flex-col gap-1.5 overflow-y-auto no-scrollbar flex-1">
+          {/* Navigation Items */}
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
             {menuItems.map((item) => (
               <div key={item.key} className="flex flex-col">
                 <button
                   type="button"
-                  className={`flex justify-between items-center text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                     activeTab === item.key && !item.hasSubmenu
-                      ? "bg-[#06a63e] text-white shadow-lg shadow-black/20"
-                      : "text-white/60 hover:bg-white/5 hover:text-white"
+                      ? "bg-[#06a63e] text-white"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                   }`}
                   onClick={(event) => {
                     event.preventDefault();
@@ -706,22 +729,22 @@ export default function AdminDashboard() {
                 >
                   <span className="truncate">{item.label}</span>
                   {item.hasSubmenu && (
-                    <span className="text-white/40">
+                    <span className="opacity-60">
                       {openMenus[item.key] ? <Icons.ChevronDown /> : <Icons.ChevronRight />}
                     </span>
                   )}
                 </button>
 
                 {item.hasSubmenu && openMenus[item.key] && (
-                  <div className="mt-1 flex flex-col gap-1 pl-3 pr-2">
+                  <div className="mt-1 flex flex-col gap-1 pl-4 pr-1">
                     {item.subItems.map((sub) => (
                       <button
                         key={sub.key}
                         type="button"
-                        className={`text-left text-xs px-4 py-2 rounded-lg transition-colors font-bold ${
+                        className={`text-left text-xs px-3 py-2 rounded-lg transition-colors font-semibold ${
                           activeTab === sub.key
-                            ? "bg-[#06a63e]/85 text-white"
-                            : "text-white/50 hover:text-white hover:bg-white/5"
+                            ? "bg-[#06a63e]/10 text-[#06a63e] font-bold"
+                            : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
                         }`}
                         onClick={(event) => {
                           event.preventDefault();
@@ -737,147 +760,79 @@ export default function AdminDashboard() {
             ))}
           </nav>
 
-          <div className="mt-auto flex items-center gap-3 rounded-2xl bg-white/8 p-3 text-white border border-white/10 backdrop-blur-sm shrink-0">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#06a63e] text-xs font-bold text-white shadow-inner">{adminInitials}</div>
-            <div className="min-w-0">
-              <p className="m-0 text-[0.65rem] font-black uppercase tracking-wider text-white/60">Admin Portal</p>
-              <p className="m-0 text-xs font-bold truncate">{adminName}</p>
-              <button
-                type="button"
-                className="mt-0.5 cursor-pointer border-none bg-transparent p-0 text-[0.65rem] font-bold text-white/40 hover:text-white hover:underline transition-all"
-                onClick={() => setShowLogoutModal(true)}
-              >
-                Logout
-              </button>
+          {/* Admin Profile Footer */}
+          <div className="border-t border-gray-100 px-5 py-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#06a63e]/10 text-xs font-bold text-[#06a63e]">
+                {adminInitials}
+              </div>
+              <p className="text-xs font-bold text-gray-800 truncate">{adminName}</p>
             </div>
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(true)}
+              className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 shrink-0"
+            >
+              Log Out
+            </button>
           </div>
         </aside>
 
-        {/* Main Area */}
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-          {/* Header - Desktop */}
-          <header className="mb-3 hidden lg:flex flex-row items-center justify-between py-1 px-2 shrink-0">
-            <h2 className="m-0 text-2xl font-black tracking-tight text-[#03652a] truncate">
-              {getPageTitle()}
-            </h2>
-            <div className="flex items-center gap-3">
-              <NotificationBell target="admin" />
-              <div className="rounded-xl border border-[#06a63e]/10 bg-[#eaf9ee]/70 px-3 py-1.5 text-xs font-black text-[#06a63e] backdrop-blur-sm">Admin</div>
-              {!roleLoading && role === "Admin" && (
-                <button
-                  type="button"
-                  onClick={handleSwitchDashboard}
-                  className="rounded-xl bg-[#06a63e] px-4 py-2 text-xs font-black text-white transition-all hover:bg-[#03652a] shadow-md"
-                >
-                  Switch to Staff
-                </button>
-              )}
-            </div>
-          </header>
-
-          {/* Scrollable Content Area */}
-          <main className="flex-1 overflow-y-auto no-scrollbar lg:pr-1">
-            <div className="h-full">
-              {renderMainContent()}
-              <footer className="mt-8 text-xs text-[#06a63e]/45 pb-4 text-center">&copy; 2026 Ecofy Waste Management</footer>
-            </div>
-          </main>
-        </div>
-
-      </div>
-
-      {/* Mobile Header */}
-      <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-[#03652a] px-4 py-2.5 text-white backdrop-blur-xl lg:hidden">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="truncate text-base font-bold leading-tight">{getPageTitle()}</h2>
-          </div>
-          <button
-            type="button"
-            onClick={handleToggleMobileMenu}
-            className="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-white/10 text-white"
-          >
-            <Icons.Menu />
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <button type="button" className="absolute inset-0 bg-green-950/40 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="absolute left-4 top-4 bottom-4 flex w-[86%] max-w-[300px] flex-col gap-4 overflow-y-auto bg-[#03652a]/92 backdrop-blur-3xl p-5 text-white shadow-2xl border border-white/10 rounded-3xl">
-            <div className="flex items-center justify-between gap-2 pb-2">
-              <h1 className="m-0 text-lg font-black">Ecofy</h1>
-              <button type="button" onClick={() => setIsMobileMenuOpen(false)} className="text-white/60 text-xs font-bold">✕</button>
-            </div>
-            <nav className="flex flex-col gap-1">
-              {menuItems.map((item) =>
-                item.hasSubmenu ? (
-                  item.subItems.map((sub) => (
-                    <button
-                      type="button"
-                      key={sub.key}
-                      onClick={(event) => { event.preventDefault(); handleSelectTab(sub.key); }}
-                      className={`text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${
-                        activeTab === sub.key
-                          ? "bg-[#06a63e] text-white shadow-lg"
-                          : "text-white/70 hover:bg-white/10 hover:text-white"
-                      }`}
-                    >
-                      {sub.label}
-                    </button>
-                  ))
-                ) : (
-                  <button
-                    type="button"
-                    key={item.key}
-                    onClick={(event) => { event.preventDefault(); handleSelectTab(item.key); }}
-                    className={`text-left text-sm font-bold px-4 py-3 rounded-xl transition-all ${
-                      activeTab === item.key
-                        ? "bg-[#06a63e] text-white shadow-lg"
-                        : "text-white/70 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                )
-              )}
-            </nav>
+        {/* ── Main Area ── */}
+        <div className="flex-1 min-w-0 min-h-screen">
+          {/* Mobile Top Bar */}
+          <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 lg:hidden sticky top-0 z-20 shadow-sm">
             <button
               type="button"
-              onClick={handleSwitchDashboard}
-              className="mt-auto w-full rounded-xl bg-white py-2.5 text-xs font-bold text-[#03652a]"
+              onClick={handleToggleMobileMenu}
+              className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-100 outline-none"
+              aria-label="Open menu"
             >
-              Switch to Staff
+              <Icons.Menu />
             </button>
-          </aside>
+            <p className="text-sm font-bold text-gray-800">
+              {getPageTitle()}
+            </p>
+            <div className="w-9" />
+          </div>
+
+          <main className="p-6 pt-24 lg:p-8 lg:pt-24 space-y-6">
+            <div>
+              <h2 className="text-xl font-black text-gray-900">{getPageTitle()}</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Manage system operations, staff roles, service requests, and analytics.
+              </p>
+            </div>
+
+            {renderMainContent()}
+            <footer className="mt-8 text-xs text-gray-400 pb-4 text-center">&copy; 2026 Ecofy Waste Management</footer>
+          </main>
         </div>
-      )}
+      </div>
 
       {/* Logout Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-[360px] rounded-[2rem] border border-white/20 bg-[#03652a] p-8 text-center shadow-2xl backdrop-blur-[50px] animate-in zoom-in-95 duration-200">
-            <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-red-400/10 text-red-400">
-              <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 text-center shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-red-50 text-red-500">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </div>
-            <h3 className="mb-2 text-2xl font-extrabold text-white">Sign Out?</h3>
-            <p className="mb-8 text-xs font-bold text-white/40 uppercase tracking-widest">Are you sure you want to exit the portal?</p>
-            <div className="flex gap-4">
+            <h3 className="mb-1 text-xl font-black text-gray-900">Sign Out?</h3>
+            <p className="mb-6 text-xs text-gray-500 font-medium">Are you sure you want to exit the admin portal?</p>
+            <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowLogoutModal(false)}
-                className="flex-1 rounded-2xl border border-white/10 bg-white/5 py-4 text-[10px] font-extrabold text-white uppercase tracking-widest transition-all hover:bg-white/10"
+                className="flex-1 rounded-xl border border-gray-300 bg-white py-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition"
               >
                 Stay Here
               </button>
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="flex-1 rounded-2xl bg-red-500 py-4 text-[10px] font-extrabold text-white shadow-lg shadow-red-500/20 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
+                className="flex-1 rounded-xl bg-red-600 py-3 text-xs font-bold text-white shadow-sm hover:bg-red-700 transition"
               >
                 Sign Out
               </button>
@@ -885,6 +840,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -24,7 +24,7 @@ const HeroPanel = () => {
           <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-md mb-8 shadow-2xl hover:bg-white/[0.06] transition-colors duration-300 cursor-default group">
             <span className="w-2 h-2 rounded-full bg-[#66c45e] shadow-[0_0_10px_#66c45e] animate-pulse"></span>
             <span className="text-sm font-semibold tracking-wide text-gray-300 group-hover:text-white transition-colors">
-              Smart Waste Management Platform
+              Waste Management Platform
             </span>
           </div>
 
