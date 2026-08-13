@@ -1,33 +1,50 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from "@clerk/clerk-react";
 
-const fontLink = document.createElement('link');
-fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap';
-fontLink.rel = 'stylesheet';
-document.head.appendChild(fontLink);
-
 const STATUS_STYLES = {
-  Paid:     { bg: '#E8F5E9', color: '#2E7D32', dot: '#2E7D32', label: 'Paid' },
-  Pending:  { bg: '#FFF8E1', color: '#F57C00', dot: '#F57C00', label: 'Pending' },
-  Failed:   { bg: '#FFEBEE', color: '#C62828', dot: '#C62828', label: 'Failed' },
-  Refunded: { bg: '#E3F2FD', color: '#1565C0', dot: '#1565C0', label: 'Refunded' },
+  Paid:     { badge: "bg-green-100 text-green-700",  dot: "bg-green-600" },
+  Pending:  { badge: "bg-amber-100 text-amber-700",  dot: "bg-amber-500" },
+  Failed:   { badge: "bg-red-100 text-red-700",      dot: "bg-red-600" },
+  Refunded: { badge: "bg-blue-100 text-blue-700",    dot: "bg-blue-600" },
 };
 
-function PaymentHistory() {
+const Icon = ({ name, className = "h-5 w-5" }) => {
+  const icons = {
+    close: <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />,
+    creditCard: <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />,
+    receipt: <path strokeLinecap="round" strokeLinejoin="round" d="M9 14.25l6-6m-5.25-.75h.008v.008H9.75V7.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.5 4.5h.008v.008h-.008V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />,
+    clock: <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />,
+    inbox: <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l3.75-6.375A1.5 1.5 0 017.298 4.5h9.404a1.5 1.5 0 011.298 1.125L21.75 12M2.25 12v6a1.5 1.5 0 001.5 1.5h16.5a1.5 1.5 0 001.5-1.5v-6M2.25 12h5.11a1.5 1.5 0 011.334.813l.532 1.041a1.5 1.5 0 001.334.813h3.878a1.5 1.5 0 001.334-.813l.532-1.041a1.5 1.5 0 011.334-.813h5.11" />,
+    alert: <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />,
+    calendar: <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />,
+    tag: <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />,
+  };
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      {icons[name]}
+    </svg>
+  );
+};
+
+/**
+ * PaymentHistory — pops up over the dashboard instead of navigating away.
+ * Usage: <PaymentHistory isOpen={showPaymentHistory} onClose={() => setShowPaymentHistory(false)} />
+ */
+function PaymentHistory({ isOpen, onClose }) {
   const { user, isLoaded } = useUser();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [hoveredId, setHoveredId] = useState(null);
 
   useEffect(() => {
-    if (!isLoaded || !user) return;
+    if (!isOpen || !isLoaded || !user) return;
 
     const fetchPayments = async () => {
       try {
         setLoading(true);
+        setError(null);
         const res = await fetch(
-           `${import.meta.env.VITE_API_URL}/payment-history/${user.id}`
+          `${import.meta.env.VITE_API_URL}/payment-history/${user.id}`
         );
         if (!res.ok) throw new Error('Failed to fetch payment history');
         const data = await res.json();
@@ -40,387 +57,124 @@ function PaymentHistory() {
     };
 
     fetchPayments();
-  }, [isLoaded, user]);
+  }, [isOpen, isLoaded, user]);
+
+  if (!isOpen) return null;
 
   const totalSpent = payments
-    .filter(p => p.status === 'Paid')
+    .filter((p) => p.status === 'Paid')
     .reduce((sum, p) => sum + p.amount, 0);
 
   return (
-    <div style={{
-      background: 'linear-gradient(135deg, #F8FAFC 0%, #EEF2F6 100%)',
-      minHeight: '100vh',
-      padding: '100px 20px 40px',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
-    }}>
-      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-       <button
-  onClick={() => window.history.back()}
-  style={{
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    background: 'white',
-    border: '1.5px solid #1B4D3D',
-    color: '#1B4D3D',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    padding: '10px 20px',
-    borderRadius: '12px',
-    marginBottom: '24px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-    transition: 'all 0.2s ease',
-  }}
-  onMouseEnter={e => {
-    e.currentTarget.style.background = '#1B4D3D';
-    e.currentTarget.style.color = 'white';
-  }}
-  onMouseLeave={e => {
-    e.currentTarget.style.background = 'white';
-    e.currentTarget.style.color = '#1B4D3D';
-  }}
->
-  ← Back
-</button>
-        {/* Header Section */}
-        <div style={{
-          marginBottom: '40px',
-          textAlign: 'center',
-          position: 'relative'
-        }}>
-          <span style={{
-            display: 'inline-block',
-            background: 'linear-gradient(135deg, #1B4D3D 0%, #0F3529 100%)',
-            width: '60px',
-            height: '4px',
-            borderRadius: '4px',
-            marginBottom: '20px'
-          }} />
-          <h1 style={{
-            fontSize: 'clamp(28px, 5vw, 42px)',
-            fontWeight: '700',
-            background: 'linear-gradient(135deg, #1B4D3D 0%, #2D6A4F 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            letterSpacing: '-0.02em',
-            marginBottom: '12px'
-          }}>
-            Payment History
-          </h1>
-          <p style={{
-            color: '#5A6E6A',
-            fontSize: '16px',
-            fontWeight: '400',
-            maxWidth: '400px',
-            margin: '0 auto'
-          }}>
-            Track and manage all your transactions in one place
-          </p>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex w-full max-w-2xl max-h-[88vh] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
+      >
+        {/* Header */}
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#06a63e]/10">
+              <Icon name="creditCard" className="h-5 w-5 text-[#06a63e]" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-gray-900">Payment History</h3>
+              <p className="text-sm text-gray-500">Your transactions in one place</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-gray-200 bg-gray-50 p-2 text-gray-600 hover:bg-gray-100"
+            aria-label="Close payment history"
+          >
+            <Icon name="close" className="h-4 w-4" />
+          </button>
         </div>
 
-        {/* Stats Card */}
-        {!loading && !error && payments.length > 0 && (
-          <div style={{
-            background: 'white',
-            borderRadius: '24px',
-            padding: '20px 28px',
-            marginBottom: '32px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.03)',
-            border: '1px solid rgba(0,0,0,0.04)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '16px'
-          }}>
-            <div>
-              <p style={{
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#8A9B97',
-                letterSpacing: '0.03em',
-                textTransform: 'uppercase',
-                marginBottom: '6px'
-              }}>
-                Total Spent
-              </p>
-              <p style={{
-                fontSize: '32px',
-                fontWeight: '700',
-                color: '#1B4D3D',
-                letterSpacing: '-0.02em'
-              }}>
-                LKR {totalSpent.toLocaleString()}
-              </p>
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          {!loading && !error && payments.length > 0 && (
+            <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {[
+                { icon: "creditCard", label: "Total Spent", value: `LKR ${totalSpent.toLocaleString()}`, bg: "bg-blue-50", color: "text-blue-600" },
+                { icon: "receipt", label: "Transactions", value: payments.length, bg: "bg-purple-50", color: "text-purple-600" },
+                { icon: "clock", label: "Completed", value: payments.filter((p) => p.status === 'Paid').length, bg: "bg-green-50", color: "text-green-600" },
+              ].map(({ icon, label, value, bg, color }) => (
+                <div key={label} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                  <div className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${bg}`}>
+                    <Icon name={icon} className={`h-4 w-4 ${color}`} />
+                  </div>
+                  <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</p>
+                  <p className="mt-0.5 text-lg font-black text-gray-900">{value}</p>
+                </div>
+              ))}
             </div>
-            <div>
-              <p style={{
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#8A9B97',
-                letterSpacing: '0.03em',
-                textTransform: 'uppercase',
-                marginBottom: '6px'
-              }}>
-                Total Transactions
-              </p>
-              <p style={{
-                fontSize: '32px',
-                fontWeight: '700',
-                color: '#1B4D3D',
-                letterSpacing: '-0.02em'
-              }}>
-                {payments.length}
-              </p>
+          )}
+
+          {loading && (
+            <div className="py-16 text-center">
+              <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-4 border-gray-200 border-t-[#06a63e]" />
+              <p className="text-sm font-medium text-gray-500">Loading your payment history…</p>
             </div>
-            <div>
-              <p style={{
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#8A9B97',
-                letterSpacing: '0.03em',
-                textTransform: 'uppercase',
-                marginBottom: '6px'
-              }}>
-                Completed Payments
-              </p>
-              <p style={{
-                fontSize: '32px',
-                fontWeight: '700',
-                color: '#2E7D32',
-                letterSpacing: '-0.02em'
-              }}>
-                {payments.filter(p => p.status === 'Paid').length}
-              </p>
+          )}
+
+          {!loading && error && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
+              <Icon name="alert" className="mx-auto mb-2 h-7 w-7 text-red-600" />
+              <p className="text-sm font-semibold text-red-700">{error}</p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Loading State */}
-        {loading && (
-          <div style={{
-            background: 'white',
-            borderRadius: '28px',
-            padding: '60px 24px',
-            textAlign: 'center',
-            border: '1px solid rgba(0,0,0,0.04)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
-          }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              border: '3px solid #E2E8F0',
-              borderTopColor: '#1B4D3D',
-              margin: '0 auto 20px',
-              animation: 'spin 0.8s linear infinite'
-            }} />
-            <p style={{ color: '#5A6E6A', fontSize: '15px', fontWeight: '500' }}>
-              Loading your payment history...
-            </p>
-            <style>{`
-              @keyframes spin {
-                to { transform: rotate(360deg); }
-              }
-            `}</style>
-          </div>
-        )}
-
-        {/* Error State */}
-        {!loading && error && (
-          <div style={{
-            background: 'white',
-            borderRadius: '28px',
-            padding: '48px 24px',
-            textAlign: 'center',
-            border: '1px solid rgba(229, 62, 62, 0.2)'
-          }}>
-            <span style={{
-              fontSize: '48px',
-              display: 'block',
-              marginBottom: '16px'
-            }}>⚠️</span>
-            <p style={{ color: '#C62828', fontSize: '15px', fontWeight: '500' }}>
-              {error}
-            </p>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && !error && payments.length === 0 && (
-          <div style={{
-            background: 'white',
-            borderRadius: '28px',
-            padding: '60px 24px',
-            textAlign: 'center',
-            border: '1px solid rgba(0,0,0,0.04)'
-          }}>
-            <div style={{
-              width: '80px',
-              height: '80px',
-              background: '#F1F5F9',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 20px'
-            }}>
-              <span style={{ fontSize: '36px' }}>📭</span>
+          {!loading && !error && payments.length === 0 && (
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-12 text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white">
+                <Icon name="inbox" className="h-6 w-6 text-gray-400" />
+              </div>
+              <p className="text-sm font-bold text-gray-800">No payment records found</p>
+              <p className="mt-1 text-xs text-gray-500">Your transaction history will appear here once you make a payment.</p>
             </div>
-            <p style={{ color: '#1B4D3D', fontSize: '20px', fontWeight: '600', marginBottom: '8px' }}>
-              No payment records found
-            </p>
-            <p style={{ color: '#8A9B97', fontSize: '14px' }}>
-              Your transaction history will appear here once you make a payment
-            </p>
-          </div>
-        )}
+          )}
 
-        {/* Payment List */}
-        {!loading && !error && payments.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {payments.map((item, idx) => {
-              const statusStyle = STATUS_STYLES[item.status] || STATUS_STYLES.Pending;
-              const isHovered = hoveredId === item._id;
-
-              return (
-                <div
-                  key={item._id}
-                  onMouseEnter={() => setHoveredId(item._id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                  style={{
-                    background: 'white',
-                    borderRadius: '24px',
-                    padding: '20px 24px',
-                    transition: 'all 0.25s ease',
-                    transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-                    boxShadow: isHovered
-                      ? '0 12px 30px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.02)'
-                      : '0 2px 8px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.04)',
-                    border: '1px solid rgba(0,0,0,0.05)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    flexWrap: 'wrap',
-                    gap: '16px'
-                  }}>
-                    {/* Left Section */}
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        marginBottom: '12px',
-                        flexWrap: 'wrap'
-                      }}>
-                        <span style={{
-                          fontSize: '24px',
-                          fontWeight: '700',
-                          color: '#1B4D3D',
-                          letterSpacing: '-0.02em'
-                        }}>
-                          LKR {item.amount.toLocaleString()}
-                        </span>
-                        <span style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          background: statusStyle.bg,
-                          padding: '4px 12px',
-                          borderRadius: '40px',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          color: statusStyle.color
-                        }}>
-                          <span style={{
-                            width: '6px',
-                            height: '6px',
-                            background: statusStyle.dot,
-                            borderRadius: '50%',
-                            display: 'inline-block'
-                          }} />
-                          {statusStyle.label}
-                        </span>
-                      </div>
-
-                      <div style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: '16px',
-                        rowGap: '8px'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A9B97" strokeWidth="1.8">
-                            <circle cx="12" cy="12" r="10" />
-                            <polyline points="12 6 12 12 16 14" />
-                          </svg>
-                          <span style={{ fontSize: '13px', color: '#5A6E6A' }}>
-                            {new Date(item.createdAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A9B97" strokeWidth="1.8">
-                            <rect x="2" y="6" width="20" height="14" rx="2" />
-                            <line x1="2" y1="10" x2="22" y2="10" />
-                          </svg>
-                          <span style={{ fontSize: '13px', color: '#5A6E6A' }}>
-                            {item.paymentMethod}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A9B97" strokeWidth="1.8">
-                            <path d="M4 4v16h16V8l-6-4H4z" />
-                            <line x1="14" y1="4" x2="14" y2="8" x3="20" y3="8" />
-                          </svg>
-                          <span style={{ fontSize: '13px', color: '#5A6E6A' }}>
-                            {item.referenceId ? `Ref: ${item.referenceId.slice(0, 12)}...` : (item.description || 'No reference')}
-                          </span>
-                        </div>
-                      </div>
+          {!loading && !error && payments.length > 0 && (
+            <div className="space-y-2.5">
+              {payments.map((item) => {
+                const style = STATUS_STYLES[item.status] || STATUS_STYLES.Pending;
+                return (
+                  <div
+                    key={item._id}
+                    className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3"
+                  >
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="text-base font-black text-gray-900">LKR {item.amount.toLocaleString()}</span>
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.badge}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+                        {item.status}
+                      </span>
                     </div>
-
-                    {/* Right Section - Chevron */}
-                    <div style={{
-                      color: '#C5D0CC',
-                      transition: 'transform 0.2s ease, color 0.2s ease',
-                      transform: isHovered ? 'translateX(4px)' : 'translateX(0)'
-                    }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="9 18 15 12 9 6" />
-                      </svg>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                      <span className="flex items-center gap-1.5">
+                        <Icon name="calendar" className="h-3.5 w-3.5" />
+                        {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Icon name="creditCard" className="h-3.5 w-3.5" />
+                        {item.paymentMethod}
+                      </span>
+                      <span className="flex items-center gap-1.5 truncate">
+                        <Icon name="tag" className="h-3.5 w-3.5 shrink-0" />
+                        {item.referenceId ? `Ref: ${item.referenceId.slice(0, 12)}…` : (item.description || 'No reference')}
+                      </span>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Footer Note */}
-        {!loading && !error && payments.length > 0 && (
-          <p style={{
-            textAlign: 'center',
-            fontSize: '12px',
-            color: '#8A9B97',
-            marginTop: '32px',
-            borderTop: '1px solid rgba(0,0,0,0.06)',
-            paddingTop: '24px'
-          }}>
-            This is a record of your payment transactions.
-            <br />
-            For any questions, please contact support.
-          </p>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
