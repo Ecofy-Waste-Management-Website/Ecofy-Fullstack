@@ -37,8 +37,9 @@ const ImpactPanel = () => {
            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-gradient-to-br from-[#397239]/20 to-transparent rounded-full blur-3xl"></div>
            
            {/* Centered Ecofy Logo */}
-           <div className="relative z-10 flex flex-col items-center animate-pulse">
-             <h1 className="m-0 text-6xl md:text-7xl font-black tracking-tighter text-[#244c21] select-none">Ecofy</h1>
+           <div className="relative z-10 flex flex-col items-center animate-pulse gap-3">
+             <img src="/ecofy-logo.png" alt="Ecofy Logo" className="w-24 h-24 object-cover rounded-3xl shadow-xl border-2 border-white/20" />
+             <h1 className="m-0 text-5xl md:text-6xl font-black tracking-tighter text-[#244c21] select-none">Ecofy</h1>
            </div>
 
            <Leaf className="absolute -top-6 left-6 w-12 h-12 text-[#397239] opacity-40 animate-bounce" />

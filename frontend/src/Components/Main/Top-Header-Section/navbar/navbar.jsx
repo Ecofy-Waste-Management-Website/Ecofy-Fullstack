@@ -29,11 +29,12 @@ export default function Navbar() {
       <nav className="mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 rounded-full border border-gray-200 bg-white shadow-lg">
           
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
-            <span 
-              className={`text-xl font-bold items-center tracking-tight cursor-pointer transition-colors duration-500 ease-in-out ${textPrimary}`} 
-              onClick={() => window.location.href = landingPath}
-            >
+          <div 
+            className="flex-shrink-0 flex items-center gap-2.5 cursor-pointer group"
+            onClick={() => window.location.href = landingPath}
+          >
+            <img src="/ecofy-logo.png" alt="Ecofy Logo" className="h-9 w-9 object-cover rounded-lg shadow-sm group-hover:scale-105 transition-transform" />
+            <span className={`text-xl font-extrabold tracking-tight transition-colors duration-500 ease-in-out ${textPrimary}`}>
               Ecofy
             </span>
           </div>
