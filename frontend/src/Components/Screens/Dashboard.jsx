@@ -7,6 +7,10 @@ import RequestPickupModal from "./RequestPickupModal";
 import PaymentModal from "./PaymentModal";
 import ProfileSettings from "./ProfileSettings";
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
+// NOTE: adjust these two import paths to wherever ServiceHistory.jsx and
+// PaymentHistory.jsx actually live in your project (e.g. "../../pages/ServiceHistory").
+import ServiceHistory from "./ServiceHistory";
+import PaymentHistory from "./PaymentHistory";
 
 // ===== LEAFLET IMPORTS =====
 import L from 'leaflet';
@@ -374,6 +378,10 @@ export default function Dashboard() {
   const [cancellingBookingId, setCancellingBookingId] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
+  // History modals (replace the old /service-history and /payment-history routes)
+  const [showServiceHistory, setShowServiceHistory] = useState(false);
+  const [showPaymentHistory, setShowPaymentHistory] = useState(false);
+
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [payments, setPayments] = useState([]);
@@ -408,6 +416,9 @@ export default function Dashboard() {
 
   const closeBookingModal = () => setSelectedBooking(null);
   const navigate2Tab = (id) => { setActiveTab(id); setSidebarOpen(false); };
+
+  const openServiceHistory = () => { setShowHistoryModal(false); setShowServiceHistory(true); };
+  const openPaymentHistory = () => { setShowHistoryModal(false); setShowPaymentHistory(true); };
 
   const handleCancelBooking = async () => {
     if (!selectedBooking || cancellingBookingId === selectedBooking._id) return;
@@ -536,11 +547,11 @@ export default function Dashboard() {
           <h2 className="text-lg font-black text-gray-900">View History</h2>
           <p className="mt-1 text-sm text-gray-500">Which history would you like to see?</p>
           <div className="mt-5 flex flex-col gap-3">
-            <button type="button" onClick={() => { setShowHistoryModal(false); navigate("/service-history"); }}
+            <button type="button" onClick={openServiceHistory}
               className="w-full rounded-2xl bg-[#06a63e] px-5 py-3 text-sm font-bold text-white hover:bg-[#058b33] transition active:scale-95">
               Order History
             </button>
-            <button type="button" onClick={() => { setShowHistoryModal(false); navigate("/payment-history"); }}
+            <button type="button" onClick={openPaymentHistory}
               className="w-full rounded-2xl border border-[#06a63e] px-5 py-3 text-sm font-bold text-[#06a63e] hover:bg-[#06a63e]/5 transition active:scale-95">
               Payment History
             </button>
@@ -767,8 +778,8 @@ export default function Dashboard() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {[
-          { icon: "clock", label: "Order History", sub: "View all your past pickup and service requests.", action: () => navigate("/service-history"), link: "View orders →" },
-          { icon: "creditCard", label: "Payment History", sub: "Review your billing records and transaction details.", action: () => navigate("/payment-history"), link: "View payments →" },
+          { icon: "clock", label: "Order History", sub: "View all your past pickup and service requests.", action: openServiceHistory, link: "View orders →" },
+          { icon: "creditCard", label: "Payment History", sub: "Review your billing records and transaction details.", action: openPaymentHistory, link: "View payments →" },
         ].map(({ icon, label, sub, action, link }) => (
           <button key={label} type="button" onClick={action}
             className="rounded-3xl border border-gray-200 bg-white p-6 text-left shadow-sm hover:border-[#06a63e]/40 hover:bg-[#06a63e]/5 transition group">
@@ -822,7 +833,7 @@ export default function Dashboard() {
       <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-bold text-gray-800">Recent Transactions</h3>
-          <button type="button" onClick={() => navigate("/payment-history")} className="text-xs font-bold text-[#06a63e] hover:underline">View all →</button>
+          <button type="button" onClick={openPaymentHistory} className="text-xs font-bold text-[#06a63e] hover:underline">View all →</button>
         </div>
         {payments.length === 0 ? <p className="text-sm text-gray-400">No transactions yet.</p>
           : payments.slice(0, 6).map((p, i) => (
@@ -900,7 +911,7 @@ export default function Dashboard() {
       <div className="grid gap-4 sm:grid-cols-3">
         {[
           { label: "Start a pickup request", sub: "Open the booking flow.", action: () => setShowPickupModal(true) },
-          { label: "View payments", sub: "Review billing activity.", action: () => navigate("/payment-history") },
+          { label: "View payments", sub: "Review billing activity.", action: openPaymentHistory },
           { label: "Notifications", sub: "Check recent alerts.", action: () => navigate("/notifications") },
         ].map(({ label, sub, action }) => (
           <button key={label} type="button" onClick={action}
@@ -1004,6 +1015,19 @@ export default function Dashboard() {
 
       <BookingDetailsModal />
       <HistoryChooserModal />
+
+      {/* Order & payment history now open as modals instead of navigating away */}
+      <ServiceHistory
+        isOpen={showServiceHistory}
+        onClose={() => setShowServiceHistory(false)}
+        bookings={bookings}
+        payments={payments}
+      />
+      <PaymentHistory
+        isOpen={showPaymentHistory}
+        onClose={() => setShowPaymentHistory(false)}
+        payments={payments}
+      />
 
       <RequestPickupModal
         isOpen={showPickupModal}
