@@ -9,8 +9,8 @@ const Footer = () => {
 
         {/* Brand Column */}
         <div className="sm:col-span-2 md:col-span-1">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xl">🌿</span>
+          <div className="flex items-center gap-2.5 mb-3">
+            <img src="/ecofy-logo.png" alt="Ecofy Logo" className="h-8 w-8 object-cover rounded-lg shadow-sm" />
             <span className="text-xl font-bold text-black">Ecofy</span>
           </div>
           <p className="text-sm text-gray-600 leading-relaxed max-w-50">

@@ -1,64 +1,50 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useUser } from '@clerk/clerk-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
+// ===== STYLES (matched to Dashboard.jsx) =====
 const STATUS_STYLES = {
-  Completed: { backgroundColor: '#D1FAE5', color: '#065F46' },
-  Pending: { backgroundColor: '#FEF3C7', color: '#92400E' },
-  'In Progress': { backgroundColor: '#E0E7FF', color: '#3730A3' },
-  Cancelled: { backgroundColor: '#FEE2E2', color: '#991B1B' },
-  Paid: { backgroundColor: '#D1FAE5', color: '#065F46' },
-  Failed: { backgroundColor: '#FEE2E2', color: '#991B1B' },
-  Refunded: { backgroundColor: '#DBEAFE', color: '#1D4ED8' },
+  Pending: "bg-amber-100 text-amber-700",
+  Assigned: "bg-blue-100 text-blue-700",
+  "In Progress": "bg-indigo-100 text-indigo-700",
+  "En Route": "bg-cyan-100 text-cyan-700",
+  Completed: "bg-green-100 text-green-700",
+  Delayed: "bg-red-100 text-red-700",
+  Cancelled: "bg-gray-100 text-gray-600",
+  Paid: "bg-green-100 text-green-700",
+  Failed: "bg-red-100 text-red-700",
+  Refunded: "bg-blue-100 text-blue-700",
 };
 
 const TYPE_STYLES = {
-  Payment: { backgroundColor: '#ECFDF5', color: '#047857' },
-  Service: { backgroundColor: '#EFF6FF', color: '#1D4ED8' },
-  Booking: { backgroundColor: '#FFF7ED', color: '#C2410C' },
+  Booking: "bg-orange-50 text-orange-600",
+  Payment: "bg-emerald-50 text-emerald-600",
 };
 
 const fieldLabelMap = {
-  serviceName: 'Service name',
-  serviceType: 'Service type',
-  scheduledDate: 'Scheduled date',
-  completedDate: 'Completed date',
-  technicianName: 'Technician',
-  notes: 'Notes',
-  cost: 'Cost',
-  paymentMethod: 'Payment method',
-  currency: 'Currency',
-  description: 'Description',
-  paidAt: 'Paid at',
-  amount: 'Amount',
-  title: 'Title',
-  subtitle: 'Subtitle',
-  status: 'Status',
-  location: 'Location',
   service_type: 'Service type',
   waste_category: 'Waste category',
+  location: 'Location',
+  scheduled_date: 'Scheduled date',
+  status: 'Status',
   customer_name: 'Customer name',
   customer_email: 'Customer email',
   customer_phone: 'Customer phone',
   assignedStaff: 'Assigned staff',
   pickupPin: 'Pickup PIN',
-  scheduled_date: 'Scheduled date',
+  notes: 'Notes',
   completedAt: 'Completed at',
   createdAt: 'Created at',
+  payment_method: 'Payment method',
+  payment_date: 'Payment date',
+  amount: 'Amount',
+  reference: 'Reference',
+  description: 'Description',
 };
 
 const formatDateTime = (value) => {
   if (!value) return 'N/A';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 'N/A';
-  return date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return date.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
 const formatCurrency = (value) => {
@@ -69,272 +55,208 @@ const formatCurrency = (value) => {
 
 const formatValue = (key, value) => {
   if (value === null || value === undefined || value === '') return 'N/A';
-  if (key === 'scheduledDate' || key === 'completedDate' || key === 'paidAt' || key === 'createdAt' || key === 'completedAt' || key === 'scheduled_date') {
-    return formatDateTime(value);
-  }
-  if (key === 'amount' || key === 'cost') {
-    return formatCurrency(value);
-  }
+  if (['scheduled_date', 'completedAt', 'createdAt', 'payment_date'].includes(key)) return formatDateTime(value);
+  if (key === 'amount') return formatCurrency(value);
+  if (key === 'assignedStaff' && typeof value === 'string' && value.startsWith('user_')) return 'Assigned Staff Member';
   if (typeof value === 'object') {
+    if (Array.isArray(value)) return `${value.length} update${value.length === 1 ? '' : 's'}`;
     return JSON.stringify(value, null, 2);
   }
   return String(value);
 };
 
-function ServiceHistory() {
-  const { user, isLoaded } = useUser();
-  const [history, setHistory] = useState([]);
-  const [totals, setTotals] = useState({ payments: 0, services: 0, bookings: 0, items: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+// preferred key order for the detail panel, per record type
+const PREFERRED_KEYS = {
+  Booking: ['status', 'service_type', 'waste_category', 'location', 'scheduled_date', 'assignedStaff', 'pickupPin', 'notes', 'completedAt', 'createdAt'],
+  Payment: ['status', 'amount', 'payment_method', 'payment_date', 'reference', 'description', 'createdAt'],
+};
+
+/**
+ * ServiceHistory renders as a modal (matching the styling of Dashboard's other
+ * modals) rather than fetching its own data from a separate endpoint. It is
+ * fed the bookings/payments Dashboard has already loaded, which avoids the
+ * broken `/users/admin/:id/history` request that was causing "failed to
+ * fetch" errors here.
+ */
+export default function ServiceHistory({ isOpen, onClose, bookings = [], payments = [] }) {
   const [selectedItem, setSelectedItem] = useState(null);
 
+  const history = useMemo(() => {
+    const bookingItems = bookings.map((b) => ({
+      id: b._id,
+      type: 'Booking',
+      title: `${b.service_type || 'Service'}${b.waste_category ? ` — ${b.waste_category}` : ''}`,
+      subtitle: b.location || 'No location provided',
+      date: b.scheduled_date || b.createdAt,
+      status: b.status || 'Pending',
+      amount: null,
+      raw: b,
+    }));
+    const paymentItems = payments.map((p) => ({
+      id: p._id,
+      type: 'Payment',
+      title: p.payment_method || 'Online Payment',
+      subtitle: p.description || (p.reference ? `Ref: ${p.reference}` : 'Payment transaction'),
+      date: p.payment_date || p.createdAt,
+      status: p.status || 'Paid',
+      amount: p.amount,
+      raw: p,
+    }));
+    return [...bookingItems, ...paymentItems]
+      .filter((item) => item.id)
+      .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  }, [bookings, payments]);
+
   useEffect(() => {
-    if (!isLoaded || !user) return;
-
-    const fetchHistory = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const res = await fetch(`${API_BASE_URL}/users/admin/${user.id}/history`);
-        if (!res.ok) throw new Error('Failed to fetch order history');
-
-        const data = await res.json();
-        setHistory(data.timeline || []);
-        setTotals(data.totals || { payments: 0, services: 0, bookings: 0, items: 0 });
-        setSelectedItem((current) => {
-          if (!current) return data.timeline?.[0] || null;
-          return data.timeline?.find((item) => item.id === current.id && item.type === current.type) || data.timeline?.[0] || null;
-        });
-      } catch (fetchError) {
-        setError(fetchError.message);
-      } finally {
-        setLoading(false);
+    if (!isOpen) { setSelectedItem(null); return; }
+    setSelectedItem((current) => {
+      if (current) {
+        const stillThere = history.find((h) => h.id === current.id && h.type === current.type);
+        if (stillThere) return stillThere;
       }
-    };
-
-    fetchHistory();
-  }, [isLoaded, user]);
+      return history[0] || null;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, history]);
 
   const selectedRaw = selectedItem?.raw || null;
 
   const detailRows = useMemo(() => {
-    if (!selectedRaw) return [];
-
-    const preferredKeys = selectedItem?.type === 'Payment'
-      ? ['status', 'amount', 'currency', 'paymentMethod', 'description', 'paidAt', 'createdAt', 'clerkId', 'email']
-      : selectedItem?.type === 'Service'
-        ? ['status', 'serviceName', 'serviceType', 'scheduledDate', 'completedDate', 'technicianName', 'notes', 'cost', 'clerkId', 'email']
-        : ['status', 'service_type', 'waste_category', 'customer_name', 'customer_email', 'customer_phone', 'location', 'scheduled_date', 'completedAt', 'assignedStaff', 'pickupPin', 'createdAt'];
-
-    const entries = preferredKeys
-      .filter((key) => selectedRaw[key] !== undefined)
-      .map((key) => ({ key, value: selectedRaw[key] }));
-
-    const seenKeys = new Set(entries.map((entry) => entry.key));
+    if (!selectedRaw || !selectedItem) return [];
+    const preferredKeys = PREFERRED_KEYS[selectedItem.type] || [];
+    const entries = preferredKeys.filter((key) => selectedRaw[key] !== undefined).map((key) => ({ key, value: selectedRaw[key] }));
+    const seenKeys = new Set(entries.map((e) => e.key));
     Object.entries(selectedRaw).forEach(([key, value]) => {
-      if (seenKeys.has(key) || key === '__v' || key === '_id') return;
+      if (seenKeys.has(key) || key === '__v' || key === '_id' || key === 'timeline') return;
       entries.push({ key, value });
     });
-
     return entries;
   }, [selectedItem, selectedRaw]);
 
-  return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #F5FBF6 0%, #EDF7EE 100%)', padding: '120px 20px 48px', fontFamily: "'Red Hat Display', sans-serif" }}>
-      <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '24px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '16px', alignItems: 'end' }}>
-          <div>
-            <p style={{ margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.18em', fontSize: '11px', fontWeight: 700, color: '#4B7A55' }}>History</p>
-            <h2 style={{ margin: 0, fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#194D25' }}>Order history</h2>
-            <p style={{ margin: '8px 0 0', color: '#5E7E64', fontSize: '15px' }}>Review every completed booking, service, and payment in one place.</p>
-          </div>
+  const timeline = Array.isArray(selectedRaw?.timeline) ? selectedRaw.timeline : [];
 
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {[
-              { label: 'Payments', value: totals.payments },
-              { label: 'Services', value: totals.services },
-              { label: 'Bookings', value: totals.bookings },
-              { label: 'Total items', value: totals.items },
-            ].map((item) => (
-              <div key={item.label} style={{ minWidth: '120px', borderRadius: '20px', background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(25,77,37,0.08)', padding: '14px 16px', boxShadow: '0 10px 30px rgba(25,77,37,0.06)' }}>
-                <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.16em', color: '#6B8C71' }}>{item.label}</p>
-                <p style={{ margin: '6px 0 0', fontSize: '24px', fontWeight: 700, color: '#194D25' }}>{item.value}</p>
-              </div>
-            ))}
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-[#06a63e]">History</p>
+            <h2 className="mt-1 text-xl font-black text-gray-900">Order &amp; Payment History</h2>
+            <p className="mt-1 text-sm text-gray-500">Every booking and payment on your account, in one place.</p>
           </div>
+          <button type="button" onClick={onClose} className="rounded-full border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100">
+            Close
+          </button>
         </div>
 
-        {loading && (
-          <div style={{ borderRadius: '28px', padding: '72px 24px', textAlign: 'center', background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(25,77,37,0.08)', boxShadow: '0 16px 40px rgba(25,77,37,0.08)' }}>
-            <div style={{ width: '44px', height: '44px', margin: '0 auto 16px', borderRadius: '50%', border: '4px solid #D6E9CA', borderTopColor: '#2D7D46', animation: 'spin 0.9s linear infinite' }} />
-            <p style={{ margin: 0, color: '#4B7A55', fontWeight: 600 }}>Loading order history...</p>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
-
-        {!loading && error && (
-          <div style={{ borderRadius: '24px', padding: '28px', background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B', fontWeight: 600 }}>
-            {error}
-          </div>
-        )}
-
-        {!loading && !error && history.length === 0 && (
-          <div style={{ borderRadius: '28px', padding: '72px 24px', textAlign: 'center', background: 'rgba(255,255,255,0.8)', border: '1px dashed rgba(25,77,37,0.18)', color: '#5E7E64' }}>
-            No order history found.
-          </div>
-        )}
-
-        {!loading && !error && history.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(320px, 0.65fr)', gap: '20px', alignItems: 'start' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {history.map((item) => {
-                const isSelected = selectedItem?.id === item.id && selectedItem?.type === item.type;
-                const typeStyle = TYPE_STYLES[item.type] || { backgroundColor: '#F3F4F6', color: '#374151' };
-                const statusStyle = STATUS_STYLES[item.status] || { backgroundColor: '#F3F4F6', color: '#374151' };
-
-                return (
-                  <button
-                    key={`${item.type}-${item.id}`}
-                    type="button"
-                    onClick={() => setSelectedItem(item)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      borderRadius: '24px',
-                      border: isSelected ? '1px solid #2D7D46' : '1px solid rgba(25,77,37,0.08)',
-                      background: isSelected ? 'linear-gradient(135deg, rgba(230,248,233,0.95), rgba(255,255,255,0.95))' : 'rgba(255,255,255,0.9)',
-                      boxShadow: isSelected ? '0 18px 38px rgba(45,125,70,0.16)' : '0 12px 28px rgba(25,77,37,0.06)',
-                      padding: '18px 20px',
-                      cursor: 'pointer',
-                      transition: 'all 180ms ease',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start' }}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
-                          <span style={{ ...typeStyle, borderRadius: '999px', padding: '6px 12px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em' }}>{item.type}</span>
-                          <span style={{ ...statusStyle, borderRadius: '999px', padding: '6px 12px', fontSize: '11px', fontWeight: 700, textTransform: 'capitalize' }}>{item.status || 'Unknown'}</span>
-                        </div>
-                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#194D25' }}>{item.title}</h3>
-                        <p style={{ margin: '6px 0 0', color: '#5E7E64', fontSize: '14px' }}>{item.subtitle || 'No additional details available'}</p>
-                      </div>
-
-                      <div style={{ flexShrink: 0, textAlign: 'right', color: '#5E7E64', fontSize: '13px' }}>
-                        <p style={{ margin: 0, fontWeight: 700, color: '#194D25' }}>{formatDateTime(item.date)}</p>
-                        {item.amount !== null && item.amount !== undefined && item.amount !== '' && (
-                          <p style={{ margin: '8px 0 0', fontWeight: 700, color: '#194D25' }}>{formatCurrency(item.amount)}</p>
-                        )}
-                        <p style={{ margin: '10px 0 0', fontSize: '12px', fontWeight: 700, color: '#2D7D46' }}>Click to view details</p>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3 px-6 pt-5">
+          {[
+            { label: 'Bookings', value: bookings.length },
+            { label: 'Payments', value: payments.length },
+            { label: 'Total items', value: history.length },
+          ].map((s) => (
+            <div key={s.label} className="rounded-2xl border border-[#06a63e]/15 bg-[#06a63e]/5 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{s.label}</p>
+              <p className="mt-1 text-xl font-black text-gray-900">{s.value}</p>
             </div>
+          ))}
+        </div>
 
-            <aside style={{ position: 'sticky', top: '20px' }}>
-              <div style={{ borderRadius: '28px', background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(25,77,37,0.08)', boxShadow: '0 16px 40px rgba(25,77,37,0.08)', overflow: 'hidden' }}>
-                <div style={{ padding: '22px 22px 18px', borderBottom: '1px solid rgba(25,77,37,0.08)' }}>
-                  <p style={{ margin: 0, textTransform: 'uppercase', letterSpacing: '0.18em', fontSize: '11px', fontWeight: 700, color: '#6B8C71' }}>Selected order</p>
-                  <h3 style={{ margin: '10px 0 0', fontSize: '22px', fontWeight: 700, color: '#194D25' }}>{selectedItem?.title || 'Choose an order'}</h3>
-                  <p style={{ margin: '8px 0 0', color: '#5E7E64', fontSize: '14px' }}>{selectedItem?.subtitle || 'Select any history item to inspect the full record.'}</p>
-                </div>
+        {/* Body */}
+        <div className="flex-1 overflow-hidden px-6 py-5">
+          {history.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-50">
+                <span className="text-2xl">📭</span>
+              </div>
+              <p className="text-sm font-medium text-gray-500">No order or payment history yet.</p>
+            </div>
+          ) : (
+            <div className="grid h-full grid-cols-1 gap-5 overflow-hidden lg:grid-cols-[1.4fr_1fr]">
+              {/* List */}
+              <div className="space-y-2 overflow-y-auto pr-1">
+                {history.map((item) => {
+                  const isSelected = selectedItem?.id === item.id && selectedItem?.type === item.type;
+                  return (
+                    <button
+                      key={`${item.type}-${item.id}`}
+                      type="button"
+                      onClick={() => setSelectedItem(item)}
+                      className={`flex w-full items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition ${
+                        isSelected ? "border-[#06a63e]/40 bg-[#06a63e]/5" : "border-gray-100 bg-gray-50 hover:border-[#06a63e]/30 hover:bg-[#06a63e]/5"
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+                          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${TYPE_STYLES[item.type]}`}>{item.type}</span>
+                          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${STATUS_STYLES[item.status] || "bg-gray-100 text-gray-600"}`}>{item.status}</span>
+                        </div>
+                        <p className="truncate text-sm font-semibold text-gray-800">{item.title}</p>
+                        <p className="truncate text-xs text-gray-400">{item.subtitle}</p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-xs font-semibold text-gray-500">{formatDateTime(item.date)}</p>
+                        {item.amount !== null && item.amount !== undefined && (
+                          <p className="mt-1 text-xs font-black text-gray-900">{formatCurrency(item.amount)}</p>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
 
+              {/* Detail panel */}
+              <div className="overflow-y-auto rounded-2xl border border-gray-100 bg-gray-50 p-4">
                 {selectedItem ? (
-                  <div style={{ padding: '20px 22px 24px' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '18px' }}>
-                      <span style={{ ...(TYPE_STYLES[selectedItem.type] || { backgroundColor: '#F3F4F6', color: '#374151' }), borderRadius: '999px', padding: '6px 12px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em' }}>{selectedItem.type}</span>
-                      <span style={{ ...(STATUS_STYLES[selectedItem.status] || { backgroundColor: '#F3F4F6', color: '#374151' }), borderRadius: '999px', padding: '6px 12px', fontSize: '11px', fontWeight: 700, textTransform: 'capitalize' }}>{selectedItem.status || 'Unknown'}</span>
+                  <>
+                    <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${TYPE_STYLES[selectedItem.type]}`}>{selectedItem.type}</span>
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${STATUS_STYLES[selectedItem.status] || "bg-gray-100 text-gray-600"}`}>{selectedItem.status}</span>
                     </div>
+                    <h3 className="text-base font-black text-gray-900">{selectedItem.title}</h3>
+                    <p className="mt-1 text-xs text-gray-500">{selectedItem.subtitle}</p>
 
-                    <div style={{ display: 'grid', gap: '12px' }}>
+                    <div className="mt-4 space-y-2">
                       {detailRows.map((row) => (
-                        <div key={row.key} style={{ borderRadius: '18px', background: '#F8FBF8', border: '1px solid rgba(25,77,37,0.08)', padding: '14px 16px' }}>
-                          <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#6B8C71' }}>{fieldLabelMap[row.key] || row.key.replace(/_/g, ' ')}</p>
-                          <p style={{ margin: '8px 0 0', fontSize: '14px', fontWeight: 600, color: '#194D25', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{formatValue(row.key, row.value)}</p>
+                        <div key={row.key} className="rounded-xl border border-gray-100 bg-white p-3">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{fieldLabelMap[row.key] || row.key.replace(/_/g, ' ')}</p>
+                          <p className="mt-1 whitespace-pre-wrap break-words text-sm font-medium text-gray-800">{formatValue(row.key, row.value)}</p>
                         </div>
                       ))}
                     </div>
 
-                    {selectedRaw?.notes && (
-                      <div style={{ marginTop: '12px', borderRadius: '18px', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '14px 16px' }}>
-                        <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#047857' }}>Notes</p>
-                        <p style={{ margin: '8px 0 0', color: '#065F46', fontSize: '14px', fontWeight: 600, whiteSpace: 'pre-wrap' }}>{String(selectedRaw.notes)}</p>
+                    {timeline.length > 0 && (
+                      <div className="mt-4">
+                        <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">Timeline ({timeline.length})</p>
+                        <div className="max-h-40 space-y-2 overflow-y-auto">
+                          {timeline.map((e, i) => (
+                            <div key={i} className="flex gap-3 rounded-xl border border-gray-100 bg-white p-3">
+                              <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#06a63e]" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-800">{e.event || 'Update'}</p>
+                                <p className="text-xs text-gray-400">{e.time ? formatDateTime(e.time) : '—'}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
-                  </div>
+                  </>
                 ) : (
-                  <div style={{ padding: '24px 22px 28px', color: '#5E7E64', fontSize: '14px' }}>
-                    Pick an item from the history list to see every available detail.
-                  </div>
+                  <p className="text-sm text-gray-400">Select an item from the list to see its details.</p>
                 )}
               </div>
-            </aside>
-          </div>
-        )}
-      </div>
-
-      {selectedItem && !loading && !error && history.length > 0 && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Order details"
-          onClick={() => setSelectedItem(null)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(10, 30, 14, 0.55)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', padding: '18px', zIndex: 50 }}
-        >
-          <div
-            onClick={(event) => event.stopPropagation()}
-            style={{ width: 'min(920px, 100%)', maxHeight: 'min(88vh, 900px)', overflow: 'auto', borderRadius: '30px', background: '#FFFFFF', boxShadow: '0 30px 80px rgba(0,0,0,0.28)' }}
-          >
-            <div style={{ padding: '22px 24px', borderBottom: '1px solid rgba(25,77,37,0.08)', display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'start' }}>
-              <div>
-                <p style={{ margin: 0, textTransform: 'uppercase', letterSpacing: '0.18em', fontSize: '11px', fontWeight: 700, color: '#6B8C71' }}>Complete details</p>
-                <h3 style={{ margin: '10px 0 0', fontSize: '24px', fontWeight: 700, color: '#194D25' }}>{selectedItem.title}</h3>
-                <p style={{ margin: '8px 0 0', color: '#5E7E64', fontSize: '14px' }}>{selectedItem.subtitle || 'All available fields for this order are shown below.'}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedItem(null)}
-                style={{ border: 'none', background: '#F3F4F6', color: '#194D25', borderRadius: '999px', width: '40px', height: '40px', fontSize: '18px', fontWeight: 700, cursor: 'pointer' }}
-                aria-label="Close order details"
-              >
-                ×
-              </button>
             </div>
-
-            <div style={{ padding: '22px 24px 28px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(260px, 320px)', gap: '20px' }}>
-              <div style={{ display: 'grid', gap: '12px' }}>
-                {detailRows.map((row) => (
-                  <div key={`modal-${row.key}`} style={{ borderRadius: '20px', background: '#F8FBF8', border: '1px solid rgba(25,77,37,0.08)', padding: '15px 16px' }}>
-                    <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#6B8C71' }}>{fieldLabelMap[row.key] || row.key.replace(/_/g, ' ')}</p>
-                    <p style={{ margin: '8px 0 0', fontSize: '14px', fontWeight: 600, color: '#194D25', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{formatValue(row.key, row.value)}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: 'grid', gap: '14px', alignSelf: 'start' }}>
-                <div style={{ borderRadius: '22px', padding: '18px', background: 'linear-gradient(135deg, #EAF7EC, #FFFFFF)', border: '1px solid rgba(45,125,70,0.12)' }}>
-                  <p style={{ margin: 0, textTransform: 'uppercase', letterSpacing: '0.18em', fontSize: '11px', fontWeight: 700, color: '#4B7A55' }}>Record summary</p>
-                  <p style={{ margin: '10px 0 0', color: '#194D25', fontWeight: 700, fontSize: '16px' }}>{selectedItem.type} • {selectedItem.status || 'Unknown'}</p>
-                  <p style={{ margin: '8px 0 0', color: '#5E7E64', fontSize: '14px' }}>{formatDateTime(selectedItem.date)}</p>
-                  {selectedItem.amount !== null && selectedItem.amount !== undefined && selectedItem.amount !== '' && (
-                    <p style={{ margin: '12px 0 0', color: '#194D25', fontWeight: 700, fontSize: '18px' }}>{formatCurrency(selectedItem.amount)}</p>
-                  )}
-                </div>
-
-                <div style={{ borderRadius: '22px', padding: '18px', background: '#F8FBF8', border: '1px solid rgba(25,77,37,0.08)' }}>
-                  <p style={{ margin: 0, textTransform: 'uppercase', letterSpacing: '0.18em', fontSize: '11px', fontWeight: 700, color: '#6B8C71' }}>Raw id</p>
-                  <p style={{ margin: '8px 0 0', color: '#194D25', fontSize: '13px', fontWeight: 600, wordBreak: 'break-word' }}>{selectedItem.id}</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
-
-export default ServiceHistory;

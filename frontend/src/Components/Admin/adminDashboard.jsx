@@ -696,9 +696,7 @@ export default function AdminDashboard() {
         `}>
           {/* Logo Section */}
           <div className="flex h-[88px] items-center gap-3 border-b border-gray-100 px-5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#06a63e]">
-              <Zap className="h-5 w-5 text-white" />
-            </div>
+            <img src="/ecofy-logo.png" alt="Ecofy Logo" className="h-9 w-9 object-cover rounded-xl shadow-sm" />
             <div>
               <p className="text-base font-black text-gray-900">Ecofy</p>
               <p className="text-[10px] font-bold uppercase tracking-wider text-[#06a63e]">Admin Portal</p>
