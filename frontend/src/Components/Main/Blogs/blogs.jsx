@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Navbar from '../Top-Header-Section/navbar/navbar';
 import { fetchPublishedBlogPosts } from '../../../services/api/blogService';
 import { Link } from 'react-router-dom';
+import Footer from '../Footer/footer';
 
 const iconByThumbnail = {
   bottle: '🧴',
@@ -143,13 +144,7 @@ export default function Blogs() {
 
         </div>
       </section>
-
-      <footer className="w-full border-t border-slate-200 bg-white py-8 text-center mt-auto">
-        <p className="text-sm font-medium text-slate-500">
-          © 2026 Ecofy. Made with 💚 for a cleaner Sri Lanka.
-        </p>
-      </footer>
-
+      <Footer/>
     </div>
   );
 }

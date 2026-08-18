@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Navbar from '../Top-Header-Section/navbar/navbar';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Footer from '../Footer/footer';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -409,16 +410,7 @@ export default function About() {
         
         </div>
       </section>
-       <footer className="w-full border-t border-slate-200 bg-white py-8 text-center mt-auto">
-        <p className="text-sm font-medium text-slate-500">
-          © 2026 Ecofy. Made with 💚 for a cleaner Sri Lanka.
-        </p>
-      </footer>
-
-     
-
+      <Footer/>
     </div>
-
-    
   );
 }

@@ -190,8 +190,6 @@ export default function BlogDetail() {
         </div>
 
       </article>
-
-      
     </main>
   );
 }
