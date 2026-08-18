@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Footer from '../Footer/footer';
 
 const FaqCard = ({ question, answer }) => (
   <div className="rounded-2xl border border-[#397234]/10 bg-white/60 p-6">
@@ -257,11 +258,7 @@ export default function Contact() {
           </div>
         </div>
       </div>
-       <footer className="w-full border-t border-slate-200 bg-white py-8 text-center mt-auto">
-        <p className="text-sm font-medium text-slate-500">
-          © 2026 Ecofy. Made with 💚 for a cleaner Sri Lanka.
-        </p>
-      </footer>
+      <Footer/>
     </div>
   );
 }

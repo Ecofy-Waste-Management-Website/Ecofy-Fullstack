@@ -28,6 +28,9 @@ import ProtectedStaffRoute from './Components/Auth/ProtectedStaffRoute';
 // Chatbot
 import ChatbotWidget from './Components/Chatbot/ChatbotWidget';
 
+// Shared UI context (booking modal / chatbot open state)
+import { AppUIProvider } from './context/AppUIContext';
+
 
 const PrivateRoute = ({ children }) => (
   <>
@@ -40,10 +43,21 @@ const PrivateRoute = ({ children }) => (
 
 export default function App() {
   const [chatbotBookingOpen, setChatbotBookingOpen] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [bookingContext, setBookingContext] = useState(null);
+
   const location = useLocation();
   const pathname = location?.pathname || '';
   // Hide chatbot on admin and staff dashboards
   const hideChatbot = pathname.startsWith('/admin') || pathname.startsWith('/admin-dashboard') || pathname.startsWith('/staff-dashboard');
+
+  const openBooking = (serviceInfo = null) => {
+    setBookingContext(serviceInfo);
+    setChatbotBookingOpen(true);
+  };
+  const closeBooking = () => setChatbotBookingOpen(false);
+
+  const openChatbot = () => setChatbotOpen(true);
 
   const publicLandingPage = (
     <>
@@ -54,8 +68,8 @@ export default function App() {
   );
 
   return (
-    <>
-      <Routes>
+    <AppUIProvider value={{ openBooking, openChatbot, bookingContext }}>
+    <Routes>
 
         {/* Home */}
         <Route path="/" element={publicLandingPage} />
@@ -151,14 +165,20 @@ export default function App() {
 
       </Routes>
 
-      {/* Global AI Chatbot Widget (hidden on admin/staff dashboards) */}
-      {!hideChatbot && <ChatbotWidget onOpenBooking={() => setChatbotBookingOpen(true)} />}
-
-      <RequestPickupModal
-        isOpen={chatbotBookingOpen}
-        onClose={() => setChatbotBookingOpen(false)}
-        onSuccess={() => setChatbotBookingOpen(false)}
+    {/* Global AI Chatbot Widget (hidden on admin/staff dashboards) */}
+    {!hideChatbot && (
+      <ChatbotWidget
+        onOpenBooking={openBooking}
+        isOpen={chatbotOpen}
+        setIsOpen={setChatbotOpen}
       />
-    </>
+    )}
+
+    <RequestPickupModal
+      isOpen={chatbotBookingOpen}
+      onClose={closeBooking}
+      onSuccess={closeBooking}
+    />
+    </AppUIProvider>
   );
 }
