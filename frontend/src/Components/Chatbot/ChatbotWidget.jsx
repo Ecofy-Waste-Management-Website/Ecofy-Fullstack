@@ -47,7 +47,7 @@ function ChatBubble({ role, text }) {
             width: 28,
             height: 28,
             borderRadius: "50%",
-            background: "linear-gradient(135deg, #06a63e, #218845)",
+            background: "#e8f5e9",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -57,7 +57,7 @@ function ChatBubble({ role, text }) {
             marginTop: 2,
           }}
         >
-          🌿
+          🤖
         </div>
       )}
       <div
@@ -328,14 +328,14 @@ export default function ChatbotWidget({ onOpenBooking, isOpen, setIsOpen }) {
                 width: 38,
                 height: 38,
                 borderRadius: "50%",
-                background: "rgba(255,255,255,0.2)",
+                background: "#ffffff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 20,
               }}
             >
-              🌿
+              🤖
             </div>
             <div style={{ flex: 1 }}>
               <div
