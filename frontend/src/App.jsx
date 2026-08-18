@@ -8,7 +8,7 @@ import Footer from './Components/Main/Footer/footer';
 import Hero from './Components/Main/Hero-Section/Hero';
 import Blogs from './Components/Main/Blogs/blogs';
 import BlogDetail from './Components/Main/Blogs/BlogDetail';
-import DashboardRouter from './Components/Screens/DashboardRouter'; 
+import DashboardRouter from './Components/Screens/DashboardRouter';
 import AdminDashboard from './Components/Admin/adminDashboard';
 import ServiceHistory from './Components/Screens/ServiceHistory';
 import PaymentHistory from './Components/Screens/PaymentHistory';
@@ -63,7 +63,7 @@ export default function App() {
     <>
       <Navbar />
       <Hero />
-      
+
     </>
   );
 
@@ -71,99 +71,99 @@ export default function App() {
     <AppUIProvider value={{ openBooking, openChatbot, bookingContext }}>
     <Routes>
 
-      {/* Home */}
-      <Route path="/" element={publicLandingPage} />
+        {/* Home */}
+        <Route path="/" element={publicLandingPage} />
 
-      {/* Public Landing Page */}
-      <Route path="/landing" element={publicLandingPage} />
+        {/* Public Landing Page */}
+        <Route path="/landing" element={publicLandingPage} />
 
 
-      {/* Redirect after login */}
-      <Route path="/redirect" element={
-        <PrivateRoute>
-          <RoleRedirect />
-        </PrivateRoute>
-      } />
+        {/* Redirect after login */}
+        <Route path="/redirect" element={
+          <PrivateRoute>
+            <RoleRedirect />
+          </PrivateRoute>
+        } />
 
-      {/* Blogs */}
-      <Route path="/blogs" element={
-        <>
-          <Navbar />
-          <Blogs />
-          
-        </>
-      } />
-<Route path="/blogs/:id" element={
-        <>
-          <Navbar />
-          <BlogDetail />
-          <Footer />
-        </>
-      } />
-      {/* User Dashboard */}
-      <Route path="/dashboard" element={
-        <PrivateRoute>
-          <DashboardRouter />
-        </PrivateRoute>
-      } />
+        {/* Blogs */}
+        <Route path="/blogs" element={
+          <>
+            <Navbar />
+            <Blogs />
 
-      {/* Admin Dashboard */}
-      <Route path="/admin-dashboard" element={
-        <PrivateRoute>
-          <ProtectedRoute allowedRoles={["Admin"]}>
-            <AdminDashboard />
-          </ProtectedRoute>
-        </PrivateRoute>
-      } />
+          </>
+        } />
+        <Route path="/blogs/:id" element={
+          <>
+            <Navbar />
+            <BlogDetail />
+            <Footer />
+          </>
+        } />
+        {/* User Dashboard */}
+        <Route path="/dashboard" element={
+          <PrivateRoute>
+            <DashboardRouter />
+          </PrivateRoute>
+        } />
 
-      {/* Staff Dashboard */}
-      <Route path="/staff-dashboard" element={
-        <PrivateRoute>
-          <ProtectedStaffRoute>
-            <StaffDashboard />
-          </ProtectedStaffRoute>
-        </PrivateRoute>
-      } />
+        {/* Admin Dashboard */}
+        <Route path="/admin-dashboard" element={
+          <PrivateRoute>
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          </PrivateRoute>
+        } />
 
-      {/* Service History */}
-      <Route path="/service-history" element={
-        <PrivateRoute>
-          <Navbar />
-          <ServiceHistory />
-          <Footer />
-        </PrivateRoute>
-      } />
+        {/* Staff Dashboard */}
+        <Route path="/staff-dashboard" element={
+          <PrivateRoute>
+            <ProtectedStaffRoute>
+              <StaffDashboard />
+            </ProtectedStaffRoute>
+          </PrivateRoute>
+        } />
 
-      {/* Payment History */}
-      <Route path="/payment-history" element={
-        <PrivateRoute>
-          <Navbar />
-          <PaymentHistory />
-          <Footer />
-        </PrivateRoute>
-      } />
+        {/* Service History */}
+        <Route path="/service-history" element={
+          <PrivateRoute>
+            <Navbar />
+            <ServiceHistory />
+            <Footer />
+          </PrivateRoute>
+        } />
 
-      {/* Notifications */}
-      <Route path="/notifications" element={
-        <PrivateRoute>
-          <Navbar />
-          <Notifications />
-          <Footer />
-        </PrivateRoute>
-      } />
+        {/* Payment History */}
+        <Route path="/payment-history" element={
+          <PrivateRoute>
+            <Navbar />
+            <PaymentHistory />
+            <Footer />
+          </PrivateRoute>
+        } />
 
-      {/* Profile Settings */}
-      <Route path="/profile-settings" element={<ProfileSettings />} />
+        {/* Notifications */}
+        <Route path="/notifications" element={
+          <PrivateRoute>
+            <Navbar />
+            <Notifications />
+            <Footer />
+          </PrivateRoute>
+        } />
 
-      {/* Contact */}
-      <Route path="/contact" element={<><Navbar /><ContactUs /></>} />
+        {/* Profile Settings */}
+        <Route path="/profile-settings" element={<ProfileSettings />} />
 
-      {/* About */}
-      <Route path="/about" element={ <><Navbar /> <About /> </>} />
+        {/* Contact */}
+        <Route path="/contact" element={<><Navbar /><ContactUs /></>} />
 
-      <Route path="/services" element={ <><Navbar /> <Services /> </> } />
+        {/* About */}
+        <Route path="/about" element={<><Navbar /> <About /> </>} />
 
-    </Routes>
+        <Route path="/services" element={<><Navbar /> <Services /> </>} />
+
+      </Routes>
 
     {/* Global AI Chatbot Widget (hidden on admin/staff dashboards) */}
     {!hideChatbot && (

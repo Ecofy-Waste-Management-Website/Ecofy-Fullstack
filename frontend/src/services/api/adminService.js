@@ -84,3 +84,32 @@ export const submitInquiry = async (inquiryData) => {
 
   return data.inquiry;
 };
+
+/**
+ * Fetches the logged-in user's own inquiry history (their past inquiries +
+ * any admin replies), so the user dashboard can show that history alongside
+ * the "Send an Inquiry" form.
+ * @param {Object} params
+ * @param {String} [params.clerkId] - The logged-in user's Clerk ID.
+ * @param {String} [params.email] - Fallback lookup if clerkId isn't available.
+ * @returns {Promise<Array>} List of the user's inquiries, most recent first.
+ */
+export const getMyInquiries = async ({ clerkId, email } = {}) => {
+  const query = new URLSearchParams();
+  if (clerkId) query.set("clerkId", clerkId);
+  else if (email) query.set("email", email);
+
+  if (!query.toString()) {
+    // Nothing to look up yet (e.g. user not loaded) — return empty quietly.
+    return [];
+  }
+
+  const response = await fetch(`${API_BASE_URL}/inquiries/mine?${query.toString()}`);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch your inquiries.");
+  }
+
+  return data.inquiries || [];
+};
