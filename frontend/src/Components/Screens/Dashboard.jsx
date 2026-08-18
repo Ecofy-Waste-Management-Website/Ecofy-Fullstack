@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import { submitInquiry } from "../../services/api/adminService";
+import { submitInquiry, getMyInquiries } from "../../services/api/adminService";
 import { getUserBookings, getUserPayments } from "../../services/api/bookingService";
 import RequestPickupModal from "./RequestPickupModal";
 import PaymentModal from "./PaymentModal";
@@ -355,6 +355,12 @@ const NAV_ITEMS = [
   { id: "inquiry",          icon: "chat",       label: "Inquiry" },
   { id: "profile",          icon: "user",       label: "Profile" },
 ];
+
+// Format a date/time value for display in the inquiry history list.
+function formatInquiryDate(value) {
+  if (!value) return "-";
+  return new Date(value).toLocaleString();
+}
 
 // ===== Dashboard Component =====
 export default function Dashboard() {
@@ -853,6 +859,30 @@ export default function Dashboard() {
     const [inquiry, setInquiry] = useState({ subject: "", message: "" });
     const [sending, setSending] = useState(false);
     const [status, setStatus] = useState({ type: "", text: "" });
+
+    // ── Inquiry history (previous inquiries + admin replies) ──
+    const [history, setHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(true);
+    const [historyError, setHistoryError] = useState("");
+
+    const loadHistory = useCallback(async () => {
+      try {
+        setLoadingHistory(true);
+        const data = await getMyInquiries({
+          clerkId: user?.id || "",
+          email: user?.primaryEmailAddress?.emailAddress || "",
+        });
+        setHistory(data);
+        setHistoryError("");
+      } catch (err) {
+        setHistoryError(err.message || "Failed to load your inquiry history.");
+      } finally {
+        setLoadingHistory(false);
+      }
+    }, [user]);
+
+    useEffect(() => { loadHistory(); }, [loadHistory]);
+
     const handleSubmit = async (e) => {
       e.preventDefault();
       if (!inquiry.message.trim()) { setStatus({ type: "error", text: "Please enter a message." }); return; }
@@ -861,9 +891,12 @@ export default function Dashboard() {
         await submitInquiry({ clerkId: user?.id || "", userName: `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || user?.username || "Ecofy User", userEmail: user?.primaryEmailAddress?.emailAddress || "", subject: inquiry.subject || "General Inquiry", message: inquiry.message });
         setInquiry({ subject: "", message: "" });
         setStatus({ type: "success", text: "Inquiry sent! Admin will respond soon." });
+        // Refresh history so the newly submitted inquiry shows up immediately.
+        loadHistory();
       } catch (err) { setStatus({ type: "error", text: err.message || "Failed to send." }); }
       finally { setSending(false); }
     };
+
     return (
       <div className="space-y-6">
         <div>
@@ -891,6 +924,69 @@ export default function Dashboard() {
               {sending ? "Sending..." : "Send Inquiry"}
             </button>
           </form>
+        </div>
+
+        {/* ── Inquiry History ── */}
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h3 className="text-base font-bold text-gray-800">Your Inquiries</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Previous inquiries and admin replies, most recent first.</p>
+            </div>
+            <button
+              type="button"
+              onClick={loadHistory}
+              className="text-xs font-bold text-[#06a63e] hover:underline"
+            >
+              Refresh
+            </button>
+          </div>
+
+          {loadingHistory ? (
+            <div className="flex items-center gap-3 py-6">
+              <div className="h-4 w-4 rounded-full border-2 border-[#06a63e] border-t-transparent animate-spin" />
+              <p className="text-sm text-gray-400">Loading your inquiries…</p>
+            </div>
+          ) : historyError ? (
+            <p className="text-sm font-medium text-red-600">{historyError}</p>
+          ) : history.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-10 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-50">
+                <Icon name="chat" className="h-7 w-7 text-[#06a63e]" />
+              </div>
+              <p className="text-sm font-medium text-gray-500">You haven't sent any inquiries yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {history.map((item) => (
+                <div key={item._id} className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h4 className="m-0 text-sm font-black text-gray-800">{item.subject || "General Inquiry"}</h4>
+                    <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+                      item.status === "Replied" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                    }`}>
+                      {item.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] font-medium text-gray-400 italic">Submitted {formatInquiryDate(item.createdAt)}</p>
+
+                  <div className="mt-3 rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-700">
+                    {item.message}
+                  </div>
+
+                  {item.adminReply && (
+                    <div className="mt-3 rounded-xl border border-[#06a63e]/20 bg-[#06a63e]/5 p-4">
+                      <p className="m-0 text-[10px] font-black uppercase tracking-widest text-[#06a63e] mb-1.5">Admin Reply</p>
+                      <p className="m-0 text-sm text-[#03652a] font-medium leading-relaxed">{item.adminReply}</p>
+                      <p className="mt-2 text-[11px] font-medium text-gray-400">
+                        {item.repliedBy || "Admin"} · {formatInquiryDate(item.repliedAt)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
