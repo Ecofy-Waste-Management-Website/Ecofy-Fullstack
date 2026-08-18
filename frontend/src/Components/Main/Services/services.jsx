@@ -3,6 +3,11 @@ import Navbar from '../Top-Header-Section/navbar/navbar';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
+import householdImg from '../../../assets/Household waste.jpg';
+import commercialImg from '../../../assets/Commercial Waste.jpg';
+import bulkImg from '../../../assets/Bulk Collection.jpg';
+import drainImg from '../../../assets/Drain Cleaning.jpg';
+
 gsap.registerPlugin(ScrollTrigger);
 
 /* ─────────────────────────────────────────
@@ -15,7 +20,7 @@ const services = [
     icon: '🏠',
     description: 'Regular waste pickup for residential properties. Perfect for daily management.',
     features: ['Weekly pickup', 'Standard bins'],
-    image: 'https://illustrations.popsy.co/green/home-maintenance.svg',
+    image: householdImg,
     gradient: 'from-[#397234] to-[#244c21]'
   },
   {
@@ -24,7 +29,7 @@ const services = [
     icon: '🏢',
     description: 'For businesses and offices. Customizable schedules for your specific needs.',
     features: ['Custom schedule', 'Priority support'],
-    image: 'https://illustrations.popsy.co/green/digital-marketing.svg',
+    image: commercialImg,
     gradient: 'from-[#1e3a5f] to-[#244c21]'
   },
   {
@@ -33,7 +38,7 @@ const services = [
     icon: '📦',
     description: 'Large items or high-volume waste like furniture and construction debris.',
     features: ['Heavy items', 'Same-day available'],
-    image: 'https://illustrations.popsy.co/green/moving-house.svg',
+    image: bulkImg,
     gradient: 'from-[#8B4513] to-[#244c21]'
   },
   {
@@ -42,7 +47,7 @@ const services = [
     icon: '🚰',
     description: 'Professional drain cleaning and unblocking services for all properties.',
     features: ['24/7 emergency', 'Hydro jetting'],
-    image: 'https://illustrations.popsy.co/green/repairman.svg',
+    image: drainImg,
     gradient: 'from-[#4a154b] to-[#244c21]'
   }
 ];
@@ -105,7 +110,7 @@ function ServiceCard({ service, index }) {
     <div ref={cardRef} className="relative w-full group">
       <div className="bg-white/70 backdrop-blur-md rounded-[2.5rem] shadow-xl overflow-hidden border border-[#397234]/10 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
         <div className={`h-40 bg-gradient-to-br ${service.gradient} relative overflow-hidden opacity-90 group-hover:opacity-100 transition-opacity`}>
-           <img src={service.image} alt={service.name} className="w-full h-full object-contain p-6 transform group-hover:scale-110 transition-transform duration-700" />
+           <img src={service.image} alt={service.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
         </div>
         <div className="p-8">
           <div className="flex items-center gap-3 mb-4">
