@@ -435,11 +435,16 @@ export default function Services() {
           </button>
         </div>
       </section>
-       <footer className="w-full border-t border-slate-200 bg-white py-8 text-center mt-auto">
-        <p className="text-sm font-medium text-slate-500">
-          © 2026 Ecofy. Made with 💚 for a cleaner Sri Lanka.
-        </p>
-      </footer>
+
+      <Footer/>
+
+      {selectedService && (
+        <ServiceModal
+          service={selectedService}
+          onClose={() => setSelectedService(null)}
+          onBookNow={openBooking}
+        />
+      )}
     </div>
   );
 }
