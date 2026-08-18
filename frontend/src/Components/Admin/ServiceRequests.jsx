@@ -1,51 +1,41 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FileText, Clock, Zap, CheckCircle, AlertTriangle, Search, X } from 'lucide-react';
 import { Button, Badge } from './UIComponents';
-
-// ── Icons ──────────────────────────────────────────────────────────────────
 
 // ── Config ─────────────────────────────────────────────────────────────────────
 const API_ORIGIN = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const API_BASE = `${API_ORIGIN}/service-monitoring`;
 const WS_URL = API_ORIGIN.replace(/^http/, "ws");
 
-const STAFF_LIST = [
-  "Banuka J.", "Priyantha S.", "Amara K.", "Nimal R.",
-  "Dilshan P.", "Sachini M.", "Roshan T.", "Chamara W.",
-];
-
 const STATUS_OPTIONS   = ["All", "Pending", "Assigned", "In Progress", "Completed", "Delayed"];
 const TYPE_OPTIONS     = ["All", "Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
 const LOCATION_OPTIONS = ["All", "Colombo 03", "Colombo 05", "Colombo 07", "Kandy", "Nugegoda", "Dehiwala", "Rajagiriya", "Moratuwa"];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
+function typeColor(t) {
+  switch (t) {
+    case "Household": return "#397234";
+    case "Commercial": return "#1e3a5f";
+    case "Bulk": return "#8B4513";
+    case "Garden": return "#2e7d32";
+    case "Drain Cleaning": return "#4a154b";
+    default: return "#06a63e";
+  }
+}
+
 function timeAgo(date) {
+  if (!date) return "";
   const diff = Math.floor((Date.now() - new Date(date)) / 1000);
+  if (isNaN(diff)) return "";
   if (diff < 60)    return `${diff}s ago`;
   if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-function statusTailwind(s) {
-  return {
-    Pending:      "bg-yellow-100 text-yellow-800",
-    Assigned:     "bg-blue-100 text-blue-800",
-    "In Progress":"bg-purple-100 text-purple-800",
-    Completed:    "bg-green-100 text-[#06a63e]",
-    Delayed:      "bg-red-100 text-red-800",
-  }[s] || "bg-gray-100 text-gray-800";
-}
-
-function resolveStaffDisplayName(staff) {
-  const name = [staff.firstName, staff.lastName].filter(Boolean).join(" ").trim() || staff.firstName || staff.username || staff.email;
-  if (name && !name.startsWith("user_")) return name;
-  return "Staff Member";
-}
-
-function formatAssignedStaff(value) {
+function formatAssignedStaff(value, lookup = new Map()) {
   if (!value) return null;
-  const resolved = lookup.get(value);
+  const resolved = lookup && typeof lookup.get === 'function' ? lookup.get(value) : null;
   if (resolved && typeof resolved === "string" && !resolved.startsWith("user_")) {
     return resolved;
   }
@@ -55,26 +45,14 @@ function formatAssignedStaff(value) {
   return value || "Staff Member";
 }
 
-function getAssignedStaffSelectValue(request, staffOptions, staffLookup) {
-  const directValue = request.assignedStaffValue || request.assignedStaff || "";
-  if (staffOptions.some((staff) => staff.value === directValue)) {
-    return directValue;
-  }
-
-  const resolvedLabel = request.assignedStaffLabel || formatAssignedStaff(request.assignedStaff, staffLookup);
-  const match = staffOptions.find((staff) => staff.label === resolvedLabel || staff.value === request.assignedStaff);
-  return match?.value || "";
-}
-
-// ── KPI Cards ──────────────────────────────────────────────────────────────────
 // ── KPI Cards ──────────────────────────────────────────────────────────────────
 function KPIGrid({ stats }) {
   const cards = [
-    { label: "Total Requests", value: stats.total, colorText: "text-blue-600", icon: <FileText size={20} />, sub: "All requests" },
-    { label: "Pending", value: stats.pending, colorText: "text-amber-600", icon: <Clock size={20} />, sub: "Awaiting" },
-    { label: "In Progress", value: stats.inProgress, colorText: "text-purple-600", icon: <Zap size={20} />, sub: "Active" },
-    { label: "Completed", value: stats.completed, colorText: "text-[#06a63e]", icon: <CheckCircle size={20} />, sub: "Closed" },
-    { label: "Delayed", value: stats.delayed, colorText: "text-red-600", icon: <AlertTriangle size={20} />, sub: "Critical" },
+    { label: "Total Requests", value: stats?.total ?? 0, colorText: "text-blue-600", icon: <FileText size={20} />, sub: "All requests" },
+    { label: "Pending", value: stats?.pending ?? 0, colorText: "text-amber-600", icon: <Clock size={20} />, sub: "Awaiting" },
+    { label: "In Progress", value: stats?.inProgress ?? 0, colorText: "text-purple-600", icon: <Zap size={20} />, sub: "Active" },
+    { label: "Completed", value: stats?.completed ?? 0, colorText: "text-[#06a63e]", icon: <CheckCircle size={20} />, sub: "Closed" },
+    { label: "Delayed", value: stats?.delayed ?? 0, colorText: "text-red-600", icon: <AlertTriangle size={20} />, sub: "Critical" },
   ];
 
   return (
@@ -83,7 +61,7 @@ function KPIGrid({ stats }) {
         <article key={card.label} className="rounded-3xl border border-[#06a63e]/15 bg-white p-5 shadow-sm">
           <div className={`mb-2 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-gray-50 ${card.colorText}`}>{card.icon}</div>
           <p className="text-xs font-bold uppercase tracking-widest text-gray-400">{card.label}</p>
-          <p className={`mt-1 text-2xl font-black ${card.colorText}`}>{card.value ?? "-"}</p>
+          <p className={`mt-1 text-2xl font-black ${card.colorText}`}>{card.value}</p>
           <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">{card.sub}</p>
         </article>
       ))}
@@ -92,16 +70,10 @@ function KPIGrid({ stats }) {
 }
 
 // ── Detail Modal ───────────────────────────────────────────────────────────────
-function RequestModal({ req, onClose, onStatusChange, onAssign }) {
+function RequestModal({ req, onClose, onStatusChange, onAssign, staffOptions = [] }) {
   const [selStaff,  setSelStaff]  = useState(req.assignedStaff || "");
-  const [selStatus, setSelStatus] = useState(req.status);
+  const [selStatus, setSelStatus] = useState(req.status || "Pending");
   const [saving,    setSaving]    = useState(false);
-  const [, setTick] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setTick(n => n + 1), 30000);
-    return () => clearInterval(t);
-  }, []);
 
   async function handleSave() {
     setSaving(true);
@@ -109,6 +81,8 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
       if (selStaff  !== (req.assignedStaff || "")) await onAssign(req.id, selStaff || null);
       if (selStatus !== req.status)                await onStatusChange(req.id, selStatus);
       onClose();
+    } catch (err) {
+      console.error("Failed to update request:", err);
     } finally {
       setSaving(false);
     }
@@ -116,11 +90,11 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-4xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/70 px-6 py-4">
           <div className="flex items-center gap-3">
-            <span className="text-lg font-black tracking-tight text-gray-900">{request.requestId}</span>
-            <Badge variant="primary">{request.status}</Badge>
+            <span className="text-lg font-black tracking-tight text-gray-900">{req.requestId}</span>
+            <Badge variant="primary">{req.status}</Badge>
           </div>
           <button className="text-gray-400 hover:text-gray-700" onClick={onClose}>
             <X size={18} />
@@ -133,9 +107,10 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
             <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
               <h4 className="mb-3 border-b border-gray-200 pb-2 text-xs font-bold uppercase tracking-widest text-gray-400">Customer Details</h4>
               <div className="space-y-2 text-sm text-gray-800">
-                <p><strong className="font-bold text-gray-900">Name:</strong> {request.customer}</p>
-                <p><strong className="font-bold text-gray-900">Email:</strong> {request.email}</p>
-                <p><strong className="font-bold text-gray-900">Location:</strong> {request.location}</p>
+                <p><strong className="font-bold text-gray-900">Name:</strong> {req.customer}</p>
+                <p><strong className="font-bold text-gray-900">Email:</strong> {req.email || "N/A"}</p>
+                <p><strong className="font-bold text-gray-900">Location:</strong> {req.location}</p>
+                {req.customer_phone && <p><strong className="font-bold text-gray-900">Phone:</strong> {req.customer_phone}</p>}
               </div>
             </div>
 
@@ -144,14 +119,14 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
               <div className="space-y-3 text-sm text-gray-800">
                 <p className="flex items-center">
                   <strong className="mr-2 font-bold text-gray-900">Service Type:</strong>
-                  <span className="rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest" style={{ background: `${typeColor(request.type)}20`, color: typeColor(request.type), border: `1px solid ${typeColor(request.type)}30` }}>
-                    {request.type}
+                  <span className="rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest" style={{ background: `${typeColor(req.type)}20`, color: typeColor(req.type), border: `1px solid ${typeColor(req.type)}30` }}>
+                    {req.type}
                   </span>
                 </p>
-                <p><strong className="font-bold text-gray-900">Waste Category:</strong> {request.wasteCategory}</p>
-                <p><strong className="font-bold text-gray-900">Scheduled:</strong> {new Date(request.scheduledDate).toLocaleDateString()}</p>
-                <p><strong className="font-bold text-gray-900">Submitted:</strong> {new Date(request.submittedAt).toLocaleString()}</p>
-                {request.notes && <p><strong className="font-bold text-gray-900">Notes:</strong> {request.notes}</p>}
+                <p><strong className="font-bold text-gray-900">Waste Category:</strong> {req.wasteCategory}</p>
+                <p><strong className="font-bold text-gray-900">Scheduled:</strong> {new Date(req.scheduledDate).toLocaleDateString()}</p>
+                <p><strong className="font-bold text-gray-900">Submitted:</strong> {new Date(req.submittedAt).toLocaleString()}</p>
+                {req.notes && <p><strong className="font-bold text-gray-900">Notes:</strong> {req.notes}</p>}
               </div>
             </div>
 
@@ -160,23 +135,19 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
               <div className="space-y-4">
                 <div>
                   <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-gray-400">Assign Staff</label>
-                  <select className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={selectedStaff} onChange={(e) => setSelectedStaff(e.target.value)}>
+                  <select className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={selStaff} onChange={(e) => setSelStaff(e.target.value)}>
                     <option value="" className="bg-white">- Unassigned -</option>
-                    {staffOptions.length === 0 ? (
-                      <option value="" className="bg-white">No staff accounts available</option>
-                    ) : (
-                      staffOptions.map((staff) => (
-                        <option key={staff.value} value={staff.value} className="bg-white">
-                          {staff.label}
-                        </option>
-                      ))
-                    )}
+                    {staffOptions.map((staff) => (
+                      <option key={staff.value} value={staff.value} className="bg-white">
+                        {staff.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
                   <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-gray-400">Status</label>
-                  <select className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+                  <select className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={selStatus} onChange={(e) => setSelStatus(e.target.value)}>
                     {STATUS_OPTIONS.slice(1).map((status) => (
                       <option key={status} value={status} className="bg-white">
                         {status}
@@ -200,34 +171,22 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
           <div className="flex flex-col rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
             <h4 className="mb-6 border-b border-gray-200 pb-2 text-xs font-bold uppercase tracking-widest text-gray-400">Status Timeline</h4>
             <div className="relative ml-2 flex-1 border-l border-gray-200 pl-6">
-              {(request.timeline || []).length === 0 ? (
+              {(req.timeline || []).length === 0 ? (
                 <p className="text-sm italic text-gray-400">No timeline events yet.</p>
               ) : (
-                (request.timeline || []).map((event, index) => {
-                  const isLast = index === request.timeline.length - 1;
+                (req.timeline || []).map((ev, i) => {
+                  const isLast = i === req.timeline.length - 1;
                   return (
-                    <div key={index} className="relative mb-8">
-                      <div className={`absolute -left-7 top-1.5 h-4 w-4 rounded-full border-2 border-white ${isLast ? "bg-[#06a63e] shadow-[0_0_12px_rgba(6,166,62,0.4)]" : "bg-gray-300"}`} />
-                      <p className="text-sm font-bold text-gray-900">{event.event}</p>
-                      <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                        {timeAgo(event.time)} - {new Date(event.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    <div key={i} className="mb-8 relative">
+                      <div className={`absolute -left-[31px] top-1.5 h-4 w-4 rounded-full border-2 border-white ${isLast ? "bg-[#06a63e] shadow-[0_0_12px_rgba(6,166,62,0.4)]" : "bg-gray-300"}`} />
+                      <p className="text-sm font-bold text-gray-900">{ev.event}</p>
+                      <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">
+                        {timeAgo(ev.time)} · {new Date(ev.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>
                   );
                 })
               )}
-              {(req.timeline || []).map((ev, i) => {
-                const isLast = i === req.timeline.length - 1;
-                return (
-                  <div key={i} className="mb-8 relative">
-                    <div className={`absolute -left-[30px] top-1.5 h-4 w-4 rounded-full border-2 border-white ${isLast ? "bg-[#06a63e] shadow-[0_0_12px_rgba(6,166,62,0.4)]" : "bg-[#06a63e]/20"}`} />
-                    <p className="text-sm font-black text-[#03652a]">{ev.event}</p>
-                    <p className="text-[10px] font-bold text-[#06a63e]/60 mt-1 uppercase tracking-tighter">
-                      {timeAgo(ev.time)} · {new Date(ev.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                  </div>
-                );
-              })}
             </div>
           </div>
         </div>
@@ -239,7 +198,7 @@ function RequestModal({ req, onClose, onStatusChange, onAssign }) {
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function ServiceRequests() {
   const [requests, setRequests] = useState([]);
-  const [staffRoster, setStaffRoster] = useState([]);
+  const [staffOptions, setStaffOptions] = useState([]);
   const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, completed: 0, delayed: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -247,8 +206,12 @@ export default function ServiceRequests() {
   const [filters, setFilters] = useState({ status: "All", type: "All", location: "All" });
   const [typeOptions, setTypeOptions] = useState(TYPE_OPTIONS);
   const [selected, setSelected] = useState(null);
-  const [, setTick] = useState(0);
 
+  const staffLookup = useMemo(() => {
+    return new Map(staffOptions.map((s) => [s.value, s.label]));
+  }, [staffOptions]);
+
+  // Load available services for filter
   useEffect(() => {
     fetch(`${API_ORIGIN}/services`)
       .then((res) => res.json())
@@ -262,10 +225,25 @@ export default function ServiceRequests() {
       .catch((err) => console.error("Error loading services filter options:", err));
   }, []);
 
-  // Refresh relative timestamps every 30s
+  // Fetch staff users for assignment dropdown
   useEffect(() => {
-    const t = setInterval(() => setTick(n => n + 1), 30000);
-    return () => clearInterval(t);
+    fetch(`${API_ORIGIN}/users/admin/all`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          const staffUsers = json.data
+            .filter((u) => u.role === "Staff")
+            .map((u) => {
+              const label = [u.firstName, u.lastName].filter(Boolean).join(" ").trim() || u.firstName || u.username || u.email;
+              return {
+                value: u.clerkId || u._id,
+                label: (label && !label.startsWith("user_")) ? label : "Staff Member",
+              };
+            });
+          setStaffOptions(staffUsers);
+        }
+      })
+      .catch((err) => console.error("Error loading staff options:", err));
   }, []);
 
   const fetchRequests = useCallback(async () => {
@@ -311,12 +289,6 @@ export default function ServiceRequests() {
     try {
       ws = new WebSocket(WS_URL);
 
-      ws.onopen = () => {
-        if (!isMounted && ws && ws.readyState === WebSocket.OPEN) {
-          ws.close();
-        }
-      };
-
       ws.onmessage = (event) => {
         if (!isMounted) return;
         try {
@@ -337,10 +309,6 @@ export default function ServiceRequests() {
           /* ignore malformed websocket messages */
         }
       };
-
-      ws.onerror = () => {
-        /* failover gracefully if socket is unavailable */
-      };
     } catch {
       /* socket init error */
     }
@@ -359,6 +327,8 @@ export default function ServiceRequests() {
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({ status: newStatus }),
     });
+    fetchRequests();
+    fetchStats();
   }
 
   async function handleAssign(id, staff) {
@@ -367,13 +337,14 @@ export default function ServiceRequests() {
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({ assignedStaff: staff }),
     });
+    fetchRequests();
+    fetchStats();
   }
 
   const selReq = selected ? requests.find(r => r.id === selected) : null;
 
   return (
     <div className="w-full">
-
       {/* Page header */}
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <p className="m-0 text-sm text-gray-500">Monitor, filter and manage all active waste pickup requests</p>
@@ -404,15 +375,15 @@ export default function ServiceRequests() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <select className="cursor-pointer rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}>
+            <select className="cursor-pointer rounded-xl border border-[#06a63e]/20 bg-white px-4 py-3 text-sm font-semibold text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}>
               {STATUS_OPTIONS.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
-            <select className="cursor-pointer rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={filters.type} onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}>
+            <select className="cursor-pointer rounded-xl border border-[#06a63e]/20 bg-white px-4 py-3 text-sm font-semibold text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={filters.type} onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}>
               {typeOptions.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
-            <select className="cursor-pointer rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={filters.location} onChange={(event) => setFilters((current) => ({ ...current, location: event.target.value }))}>
+            <select className="cursor-pointer rounded-xl border border-[#06a63e]/20 bg-white px-4 py-3 text-sm font-semibold text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20" value={filters.location} onChange={(event) => setFilters((current) => ({ ...current, location: event.target.value }))}>
               {LOCATION_OPTIONS.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
@@ -511,6 +482,7 @@ export default function ServiceRequests() {
           onClose={() => setSelected(null)}
           onStatusChange={handleStatusChange}
           onAssign={handleAssign}
+          staffOptions={staffOptions}
         />
       )}
     </div>

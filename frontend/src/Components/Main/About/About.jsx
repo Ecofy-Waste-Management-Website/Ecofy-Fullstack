@@ -43,13 +43,13 @@ const milestones = [
 ];
 
 const treeLabels = [
-  { label: '🌱 The Seed',   desc: "A real problem in Sri Lanka's cities",          cls: 'bottom-[2%] left-1/2 -translate-x-1/2' },
-  { label: '🌿 The Roots',  desc: 'Research, feasibility & team formation',         cls: 'bottom-[14%] left-[2%]' },
-  { label: '🪵 The Trunk',  desc: 'MERN stack architecture & core system design',   cls: 'bottom-[38%] left-[2%]' },
-  { label: '📦 Branch 1',   desc: 'Booking & tracking modules built',               cls: 'top-[38%] right-[2%]' },
-  { label: '💳 Branch 2',   desc: 'Payments & notifications integrated',            cls: 'top-[24%] left-[2%]' },
-  { label: '🤖 Branch 3',   desc: 'AI chatbot & SLA analytics deployed',            cls: 'top-[12%] right-[2%]' },
-  { label: '🌳 The Crown',  desc: 'Ecofy — live, scalable & growing',               cls: 'top-[2%] left-1/2 -translate-x-1/2' },
+  { label: '🌱 The Seed', desc: "A real problem in Sri Lanka's cities", cls: 'bottom-[2%] left-1/2 -translate-x-1/2' },
+  { label: '🌿 The Roots', desc: 'Research, feasibility & team formation', cls: 'bottom-[14%] left-[2%]' },
+  { label: '🪵 The Trunk', desc: 'MERN stack architecture & core system design', cls: 'bottom-[38%] left-[2%]' },
+  { label: '📦 Branch 1', desc: 'Booking & tracking modules built', cls: 'top-[38%] right-[2%]' },
+  { label: '💳 Branch 2', desc: 'Payments & notifications integrated', cls: 'top-[24%] left-[2%]' },
+  { label: '🤖 Branch 3', desc: 'AI chatbot & SLA analytics deployed', cls: 'top-[12%] right-[2%]' },
+  { label: '🌳 The Crown', desc: 'Ecofy — live, scalable & growing', cls: 'top-[2%] left-1/2 -translate-x-1/2' },
 ];
 
 /* ─────────────────────────────────────────
@@ -129,9 +129,9 @@ function TreeLabel({ label, desc, cls }) {
    MAIN COMPONENT
 ───────────────────────────────────────── */
 export default function About() {
-  const [vmRef, vmVis]         = useFadeIn();
+  const [vmRef, vmVis] = useFadeIn();
   const [journeyRef, journeyVis] = useFadeIn();
-  const [treeRef, treeVis]     = useFadeIn();
+  const [treeRef, treeVis] = useFadeIn();
   const journeyContainerRef = useRef(null);
 
   useEffect(() => {
@@ -354,71 +354,71 @@ export default function About() {
           <div className={`relative max-w-2xl mx-auto transition-all duration-1000
               ${treeVis ? 'opacity-100' : 'opacity-0'}`}>
 
-          {/* tree SVG — unchanged */}
-          <svg viewBox="0 0 800 700" className="w-full" xmlns="http://www.w3.org/2000/svg">
-            {/* roots */}
-            {[
-              "M400 660 Q340 680 300 700",
-              "M400 660 Q380 685 360 700",
-              "M400 660 Q420 685 440 700",
-              "M400 660 Q460 680 500 700",
-            ].map((d, i) => (
-              <path key={i} className="root-path" d={d}
-                fill="none" stroke="#86efac" strokeWidth="4" strokeLinecap="round" />
-            ))}
+            {/* tree SVG — unchanged */}
+            <svg viewBox="0 0 800 700" className="w-full" xmlns="http://www.w3.org/2000/svg">
+              {/* roots */}
+              {[
+                "M400 660 Q340 680 300 700",
+                "M400 660 Q380 685 360 700",
+                "M400 660 Q420 685 440 700",
+                "M400 660 Q460 680 500 700",
+              ].map((d, i) => (
+                <path key={i} className="root-path" d={d}
+                  fill="none" stroke="#86efac" strokeWidth="4" strokeLinecap="round" />
+              ))}
 
-            {/* trunk */}
-            <path className="trunk-path" fill="none" stroke="#16a34a" strokeWidth="10" strokeLinecap="round"
-              d="M400 660 C400 580 400 500 400 420 C400 360 400 280 400 200 C400 180 400 160 400 140" />
+              {/* trunk */}
+              <path className="trunk-path" fill="none" stroke="#16a34a" strokeWidth="10" strokeLinecap="round"
+                d="M400 660 C400 580 400 500 400 420 C400 360 400 280 400 200 C400 180 400 160 400 140" />
 
-            {/* branches */}
-            <path className="branch-path b1" fill="none" stroke="#16a34a" strokeWidth="5" strokeLinecap="round" d="M400 440 C370 420 330 410 280 400" />
-            <path className="branch-path b2" fill="none" stroke="#16a34a" strokeWidth="5" strokeLinecap="round" d="M400 370 C430 350 470 340 525 328" />
-            <path className="branch-path b3" fill="none" stroke="#16a34a" strokeWidth="5" strokeLinecap="round" d="M400 300 C365 280 320 268 268 252" />
-            <path className="branch-path b4" fill="none" stroke="#16a34a" strokeWidth="5" strokeLinecap="round" d="M400 245 C435 225 478 212 526 198" />
-            <path className="branch-path b5" fill="none" stroke="#16a34a" strokeWidth="4" strokeLinecap="round" d="M400 195 C368 172 332 156 292 138" />
-            <path className="branch-path b6" fill="none" stroke="#16a34a" strokeWidth="4" strokeLinecap="round" d="M400 175 C432 154 468 138 508 122" />
+              {/* branches */}
+              <path className="branch-path b1" fill="none" stroke="#16a34a" strokeWidth="5" strokeLinecap="round" d="M400 440 C370 420 330 410 280 400" />
+              <path className="branch-path b2" fill="none" stroke="#16a34a" strokeWidth="5" strokeLinecap="round" d="M400 370 C430 350 470 340 525 328" />
+              <path className="branch-path b3" fill="none" stroke="#16a34a" strokeWidth="5" strokeLinecap="round" d="M400 300 C365 280 320 268 268 252" />
+              <path className="branch-path b4" fill="none" stroke="#16a34a" strokeWidth="5" strokeLinecap="round" d="M400 245 C435 225 478 212 526 198" />
+              <path className="branch-path b5" fill="none" stroke="#16a34a" strokeWidth="4" strokeLinecap="round" d="M400 195 C368 172 332 156 292 138" />
+              <path className="branch-path b6" fill="none" stroke="#16a34a" strokeWidth="4" strokeLinecap="round" d="M400 175 C432 154 468 138 508 122" />
 
-            {/* leaf clusters */}
-            <g className="lc1"><circle cx="264" cy="396" r="22" fill="#bbf7d0" /><circle cx="280" cy="382" r="18" fill="#86efac" /><circle cx="252" cy="380" r="15" fill="#4ade80" /></g>
-            <g className="lc2"><circle cx="540" cy="322" r="22" fill="#bbf7d0" /><circle cx="525" cy="310" r="18" fill="#86efac" /><circle cx="552" cy="308" r="15" fill="#4ade80" /></g>
-            <g className="lc3"><circle cx="252" cy="246" r="24" fill="#bbf7d0" /><circle cx="270" cy="232" r="20" fill="#86efac" /><circle cx="244" cy="230" r="16" fill="#4ade80" /></g>
-            <g className="lc4"><circle cx="540" cy="192" r="24" fill="#bbf7d0" /><circle cx="526" cy="179" r="20" fill="#86efac" /><circle cx="554" cy="178" r="16" fill="#4ade80" /></g>
-            <g className="lc5"><circle cx="276" cy="130" r="26" fill="#bbf7d0" /><circle cx="294" cy="116" r="22" fill="#86efac" /><circle cx="266" cy="113" r="18" fill="#4ade80" /></g>
-            <g className="lc6"><circle cx="522" cy="116" r="26" fill="#bbf7d0" /><circle cx="508" cy="102" r="22" fill="#86efac" /><circle cx="536" cy="100" r="18" fill="#4ade80" /></g>
-            {/* crown */}
-            <g className="lc7">
-              <circle cx="400" cy="100" r="38" fill="#86efac" />
-              <circle cx="378" cy="80"  r="28" fill="#4ade80" />
-              <circle cx="422" cy="78"  r="28" fill="#4ade80" />
-              <circle cx="400" cy="66"  r="24" fill="#22c55e" />
-            </g>
+              {/* leaf clusters */}
+              <g className="lc1"><circle cx="264" cy="396" r="22" fill="#bbf7d0" /><circle cx="280" cy="382" r="18" fill="#86efac" /><circle cx="252" cy="380" r="15" fill="#4ade80" /></g>
+              <g className="lc2"><circle cx="540" cy="322" r="22" fill="#bbf7d0" /><circle cx="525" cy="310" r="18" fill="#86efac" /><circle cx="552" cy="308" r="15" fill="#4ade80" /></g>
+              <g className="lc3"><circle cx="252" cy="246" r="24" fill="#bbf7d0" /><circle cx="270" cy="232" r="20" fill="#86efac" /><circle cx="244" cy="230" r="16" fill="#4ade80" /></g>
+              <g className="lc4"><circle cx="540" cy="192" r="24" fill="#bbf7d0" /><circle cx="526" cy="179" r="20" fill="#86efac" /><circle cx="554" cy="178" r="16" fill="#4ade80" /></g>
+              <g className="lc5"><circle cx="276" cy="130" r="26" fill="#bbf7d0" /><circle cx="294" cy="116" r="22" fill="#86efac" /><circle cx="266" cy="113" r="18" fill="#4ade80" /></g>
+              <g className="lc6"><circle cx="522" cy="116" r="26" fill="#bbf7d0" /><circle cx="508" cy="102" r="22" fill="#86efac" /><circle cx="536" cy="100" r="18" fill="#4ade80" /></g>
+              {/* crown */}
+              <g className="lc7">
+                <circle cx="400" cy="100" r="38" fill="#86efac" />
+                <circle cx="378" cy="80" r="28" fill="#4ade80" />
+                <circle cx="422" cy="78" r="28" fill="#4ade80" />
+                <circle cx="400" cy="66" r="24" fill="#22c55e" />
+              </g>
 
-            {/* seed */}
-            <circle className="seed-circle" cx="400" cy="670" r="8" fill="#ca8a04" />
-            <circle cx="400" cy="670" r="14" fill="none" stroke="#ca8a04" strokeWidth="1.5" opacity=".4" />
-          </svg>
+              {/* seed */}
+              <circle className="seed-circle" cx="400" cy="670" r="8" fill="#ca8a04" />
+              <circle cx="400" cy="670" r="14" fill="none" stroke="#ca8a04" strokeWidth="1.5" opacity=".4" />
+            </svg>
 
-          {/* floating label cards */}
-          <div className="absolute inset-0 pointer-events-none">
-            {treeLabels.map((t, i) => (
-              <TreeLabel key={i} {...t} />
-            ))}
+            {/* floating label cards */}
+            <div className="absolute inset-0 pointer-events-none">
+              {treeLabels.map((t, i) => (
+                <TreeLabel key={i} {...t} />
+              ))}
+            </div>
           </div>
-        </div>
-        
+
         </div>
       </section>
-       <footer className="w-full border-t border-slate-200 bg-white py-8 text-center mt-auto">
+      <footer className="w-full border-t border-slate-200 bg-white py-8 text-center mt-auto">
         <p className="text-sm font-medium text-slate-500">
           © 2026 Ecofy. Made with 💚 for a cleaner Sri Lanka.
         </p>
       </footer>
 
-     
+
 
     </div>
 
-    
+
   );
 }
