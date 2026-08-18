@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { useUser , useClerk } from "@clerk/clerk-react";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 function Section({ title, subtitle, children }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+    <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
       <div className="mb-5">
-        <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
-        {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+        <h3 className="text-base font-bold text-gray-800">{title}</h3>
+        {subtitle && <p className="mt-0.5 text-xs text-gray-400">{subtitle}</p>}
       </div>
       {children}
     </div>
@@ -16,17 +16,17 @@ function Section({ title, subtitle, children }) {
 function Field({ label, value, onChange, type = "text", placeholder, disabled }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
+      <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-400">{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange && onChange(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
-        className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition ${
+        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition ${
           disabled
             ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
-            : "border-gray-300 focus:border-indigo-500 bg-white text-gray-800"
+            : "border-gray-300 focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20 bg-white text-gray-900"
         }`}
       />
     </div>
@@ -61,7 +61,6 @@ export default function ProfileSettings() {
         firstName: profile.firstName,
         lastName: profile.lastName,
       });
-      // TODO: persist phone, address, city to your own backend
       setSaveStatus({ type: "success", text: "Profile updated successfully." });
     } catch (err) {
       setSaveStatus({ type: "error", text: err.message || "Failed to save changes." });
@@ -83,19 +82,18 @@ export default function ProfileSettings() {
 
   if (!isLoaded) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-10 flex justify-center">
+      <div className="py-10 flex justify-center">
         <p className="text-gray-400 text-sm animate-pulse">Loading profile...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
+    <div className="space-y-6">
       {/* Page Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Profile & Settings</h1>
-        <p className="text-gray-500 mt-1 text-sm">
+      <div>
+        <h2 className="text-xl font-black text-gray-900">Profile & Settings</h2>
+        <p className="mt-1 text-sm text-gray-500">
           Manage your personal information and account security.
         </p>
       </div>
@@ -139,28 +137,30 @@ export default function ProfileSettings() {
             label="City"
             value={profile.city}
             onChange={(v) => handleProfileChange("city", v)}
-            placeholder="Colombo"
+            placeholder="Balangoda"
           />
         </div>
 
         {saveStatus.text && (
-          <p className={`text-sm mt-4 ${saveStatus.type === "success" ? "text-[#66c45e]" : "text-red-500"}`}>
+          <p className={`text-sm font-medium mt-4 ${saveStatus.type === "success" ? "text-[#06a63e]" : "text-red-600"}`}>
             {saveStatus.type === "success" ? "✓" : "✕"} {saveStatus.text}
           </p>
         )}
 
-        <div className="mt-5 flex gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
           <button
+            type="button"
             onClick={handleSave}
             disabled={saving}
-            className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition disabled:opacity-60"
+            className="rounded-xl bg-[#06a63e] px-6 py-3 text-sm font-bold text-white hover:bg-[#058b33] transition disabled:opacity-60"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
           <button
+            type="button"
             onClick={handleReset}
             disabled={saving}
-            className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition disabled:opacity-60"
+            className="rounded-xl border border-gray-300 px-5 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition disabled:opacity-60"
           >
             Cancel
           </button>
@@ -170,27 +170,29 @@ export default function ProfileSettings() {
       {/* Account & Security */}
       <Section title="Account & Security" subtitle="Manage your password and account access">
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-gray-50">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-gray-100 bg-gray-50">
             <div>
-              <p className="text-sm font-medium text-gray-700">Password</p>
+              <p className="text-sm font-bold text-gray-800">Password</p>
               <p className="text-xs text-gray-400 mt-0.5">Change your account password</p>
             </div>
             <button
+              type="button"
               onClick={() => openUserProfile()}
-              className="rounded-lg border border-indigo-300 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition"
+              className="rounded-xl border border-[#06a63e]/30 bg-[#06a63e]/5 px-4 py-2 text-sm font-bold text-[#03652a] hover:bg-[#06a63e]/10 transition"
             >
               Change Password
             </button>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-gray-50">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-gray-100 bg-gray-50">
             <div>
-              <p className="text-sm font-medium text-gray-700">Two-Factor Authentication</p>
+              <p className="text-sm font-bold text-gray-800">Two-Factor Authentication</p>
               <p className="text-xs text-gray-400 mt-0.5">Add an extra layer of security</p>
             </div>
             <button
+              type="button"
               onClick={() => openUserProfile()}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition"
+              className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 transition"
             >
               Manage
             </button>
@@ -200,26 +202,27 @@ export default function ProfileSettings() {
 
       {/* Danger Zone */}
       <Section title="Danger Zone" subtitle="Irreversible and destructive actions">
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <div className="flex items-start justify-between gap-4">
+        <div className="rounded-2xl border border-red-200 bg-red-50/60 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold text-red-700">Delete Account</p>
-              <p className="text-xs text-red-500 mt-0.5">
-                Permanently deletes your Ecofy account and all associated data. This cannot be undone.
+              <p className="text-sm font-bold text-red-700">Delete Account</p>
+              <p className="text-xs text-red-500 mt-0.5 max-w-md">
+                Permanently deletes your Ecofy account and all associated data. This action cannot be undone.
               </p>
             </div>
             {!showDeleteConfirm && (
               <button
+                type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="shrink-0 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition"
+                className="shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 transition"
               >
-                Delete
+                Delete Account
               </button>
             )}
           </div>
 
           {showDeleteConfirm && (
-            <div className="mt-4 p-4 rounded-lg bg-white border border-red-200">
+            <div className="mt-4 p-4 rounded-xl bg-white border border-red-200">
               <p className="text-sm text-gray-700 mb-3">
                 Type <span className="font-bold text-red-600">DELETE</span> to confirm.
               </p>
@@ -228,23 +231,23 @@ export default function ProfileSettings() {
                 value={deleteInput}
                 onChange={(e) => setDeleteInput(e.target.value)}
                 placeholder="Type DELETE"
-                className="w-full rounded-lg border border-red-300 px-3 py-2 text-sm outline-none focus:border-red-500 mb-3"
+                className="w-full rounded-xl border border-red-300 px-4 py-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 mb-3"
               />
               <div className="flex gap-2">
                 <button
+                  type="button"
                   disabled={deleteInput !== "DELETE"}
                   onClick={async () => {
-                    // TODO: call your backend delete API, then:
-                    // await user?.delete();
                     alert("Account deletion triggered.");
                   }}
-                  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition disabled:opacity-40"
+                  className="rounded-xl bg-red-600 px-5 py-2 text-sm font-bold text-white hover:bg-red-700 transition disabled:opacity-40"
                 >
                   Confirm Delete
                 </button>
                 <button
+                  type="button"
                   onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
+                  className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 transition"
                 >
                   Cancel
                 </button>
@@ -253,7 +256,7 @@ export default function ProfileSettings() {
           )}
         </div>
       </Section>
-
     </div>
   );
 }
+

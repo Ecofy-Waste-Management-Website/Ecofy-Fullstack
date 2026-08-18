@@ -8,89 +8,33 @@ export const Button = ({
   disabled = false,
   fullWidth = false,
   className = '',
+  type = 'button',
   ...props
 }) => {
-  const baseStyles = {
-    fontFamily: theme.typography.fontFamily.base,
-    borderRadius: theme.components.button.borderRadius,
-    transition: theme.components.button.transition,
-    border: 'none',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    fontSize: theme.components.button.size[size]?.fontSize || theme.typography.fontSize.base,
-    padding: theme.components.button.size[size]?.padding || theme.components.button.size.md.padding,
-    height: theme.components.button.size[size]?.height || theme.components.button.size.md.height,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing[2],
-    width: fullWidth ? '100%' : 'auto',
-    opacity: disabled ? 0.6 : 1,
+  const sizeClasses = {
+    sm: 'px-3 py-1.5 text-xs',
+    md: 'px-4 py-2 text-sm',
+    lg: 'px-6 py-3 text-base',
   };
 
-  let variantStyles = {};
-
-  switch (variant) {
-    case 'primary':
-      variantStyles = {
-        backgroundColor: theme.colors.primary,
-        color: '#FFFFFF',
-        fontWeight: theme.typography.fontWeight.semibold,
-      };
-      break;
-
-    case 'secondary':
-      variantStyles = {
-        backgroundColor: theme.colors.primaryLight,
-        color: '#FFFFFF',
-        fontWeight: theme.typography.fontWeight.semibold,
-      };
-      break;
-
-    case 'danger':
-      variantStyles = {
-        backgroundColor: theme.colors.error,
-        color: '#FFFFFF',
-        fontWeight: theme.typography.fontWeight.semibold,
-      };
-      break;
-
-    case 'outline':
-      variantStyles = {
-        backgroundColor: 'transparent',
-        color: theme.colors.primary,
-        border: `1.5px solid ${theme.colors.primary}`,
-        fontWeight: theme.typography.fontWeight.semibold,
-      };
-      break;
-
-    case 'ghost':
-      variantStyles = {
-        backgroundColor: 'transparent',
-        color: theme.colors.primary,
-        fontWeight: theme.typography.fontWeight.semibold,
-      };
-      break;
-
-    default:
-      variantStyles = {
-        backgroundColor: theme.colors.neutral[300],
-        color: theme.colors.neutral[900],
-        fontWeight: theme.typography.fontWeight.semibold,
-      };
-  }
-
-  const hoverStyles = !disabled ? {
-    '&:hover': {
-      opacity: 0.9,
-      transform: variant === 'outline' ? 'none' : 'translateY(-1px)',
-    },
-  } : {};
+  const variantClasses = {
+    primary: 'bg-[#06a63e] hover:bg-[#058b33] text-white shadow-sm',
+    secondary: 'bg-[#06a63e]/10 text-[#06a63e] hover:bg-[#06a63e]/20',
+    danger: 'bg-red-600 hover:bg-red-700 text-white shadow-sm',
+    outline: 'border border-[#06a63e] text-[#06a63e] hover:bg-[#06a63e]/5',
+    ghost: 'text-[#06a63e] hover:bg-gray-100',
+    default: 'bg-gray-100 hover:bg-gray-200 text-gray-800',
+  };
 
   return (
     <button
-      style={{ ...baseStyles, ...variantStyles }}
+      type={type}
       disabled={disabled}
-      className={className}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
+        sizeClasses[size] || sizeClasses.md
+      } ${variantClasses[variant] || variantClasses.primary} ${
+        fullWidth ? 'w-full' : ''
+      } ${className}`}
       {...props}
     >
       {children}

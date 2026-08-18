@@ -17,7 +17,6 @@ const serviceRequestSchema = new Schema(
     clerkId: { type: String, default: null, index: true },
     service_type: {
       type: String,
-      enum: ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"],
       required: true,
     },
     waste_category: {

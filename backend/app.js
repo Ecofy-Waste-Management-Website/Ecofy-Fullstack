@@ -1,11 +1,10 @@
-{/* forces google DNS for more stable network*/}
+// forces google DNS for more stable network - updated
 const dns = require('dns');
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
-{/*load up the env file*/}
+// load up the env file
 require('dotenv').config();
-console.log("env files loaded!")
-
+console.log("env files loaded!");
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -13,27 +12,27 @@ const cors = require('cors'); {/*to allow frontend  access*/}
 const http = require('http'); 
 const { WebSocketServer } = require('ws'); {/*get real time updates */}
 const { clerkMiddleware } = require('@clerk/express'); 
+const { systemLogger } = require('./Middleware/systemLogger');
 
-const userRouter = require("./Route/UserRoute")
-const staffRouter = require("./Route/staffRoute");
-const serviceHistoryRouter = require("./Route/ServiceHistoryRoute");
-const paymentHistoryRouter = require("./Route/PaymentHistoryRoute");
+const userRouter = require("./Route/UserRoute.js");
+const staffRouter = require("./Route/StaffRoute.js");
+const serviceHistoryRouter = require("./Route/ServiceHistoryRoute.js");
+const paymentHistoryRouter = require("./Route/PaymentHistoryRoute.js");
 const notificationRouter = require("./Route/NotificationRoute.js");
-const inquiryRouter = require("./Route/inquiryRoute");
-const serviceRequestRouter = require("./Route/ServiceRequestRoute");
-const adminRoutes = require("./Route/adminRoutes");
-const slaAnalyticsRouter = require("./Route/slaAnalyticsRoute");
-const analyticsRouter = require("./Route/analyticsRoute");
-const serviceMonitoringRouter = require("./Route/serviceMonitoringRoute"); 
-const authTestRouter = require("./Route/authTestRoute");
-const stripeRoute = require("./Route/stripe.route");
-const chatbotRouter = require("./Route/chatbotRoute");
-const blogRoute = require("./Route/ContentBlogRoute");
-const serviceManagementRouter = require('./Route/serviceManagementRoute');
+const inquiryRouter = require("./Route/InquiryRoute.js");
+const serviceRequestRouter = require("./Route/ServiceRequestRoute.js");
+const adminRoutes = require("./Route/AdminRoutes.js");
+const slaAnalyticsRouter = require("./Route/SlaAnalyticsRoute.js");
+const analyticsRouter = require("./Route/AnalyticsRoute.js");
+const serviceMonitoringRouter = require("./Route/ServiceMonitoringRoute.js");
+const authTestRouter = require("./Route/AuthTestRoute.js");
+const stripeRoute = require("./Route/StripeRoute.js");
+const chatbotRouter = require("./Route/ChatbotRoute.js");
+const blogRoute = require("./Route/ContentBlogRoute.js");
+const serviceManagementRouter = require("./Route/ServiceManagementRoute.js");
+
 const app = express();
-
-
-const server = http.createServer(app);   
+const server = http.createServer(app); 
 
 const wss = new WebSocketServer({ server });
 
@@ -55,11 +54,28 @@ wss.on("error", (err) => {
 app.set("wss", wss);
 
 //Middleware 
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('https://')) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
   credentials: true,
 }));
 app.use(express.json());
+app.use(systemLogger);
 
 // Register Clerk middleware only when keys are available.
 // This prevents global 500s on public routes when env vars are missing.
@@ -98,6 +114,11 @@ app.use("/api/stripe", stripeRoute);
 app.use("/chatbot", chatbotRouter);
 app.use("/blog", blogRoute);
 app.use('/services', serviceManagementRouter);
+
+// Quick test route to verify backend is alive
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ message: "Backend is successfully connected!" });
+});
 
 
 mongoose.connect(process.env.MONGO_URI, {

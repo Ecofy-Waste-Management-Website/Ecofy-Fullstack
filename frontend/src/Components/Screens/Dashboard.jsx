@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import { submitInquiry } from "../../services/api/adminService";
+import { submitInquiry, getMyInquiries } from "../../services/api/adminService";
 import { getUserBookings, getUserPayments } from "../../services/api/bookingService";
 import RequestPickupModal from "./RequestPickupModal";
 import PaymentModal from "./PaymentModal";
 import ProfileSettings from "./ProfileSettings";
 import NotificationBell from "../Main/Top-Header-Section/NotificationBell/NotificationBell";
+// NOTE: adjust these two import paths to wherever ServiceHistory.jsx and
+// PaymentHistory.jsx actually live in your project (e.g. "../../pages/ServiceHistory").
+import ServiceHistory from "./ServiceHistory";
+import PaymentHistory from "./PaymentHistory";
 
 // ===== LEAFLET IMPORTS =====
 import L from 'leaflet';
@@ -352,6 +356,12 @@ const NAV_ITEMS = [
   { id: "profile",          icon: "user",       label: "Profile" },
 ];
 
+// Format a date/time value for display in the inquiry history list.
+function formatInquiryDate(value) {
+  if (!value) return "-";
+  return new Date(value).toLocaleString();
+}
+
 // ===== Dashboard Component =====
 export default function Dashboard() {
   const { user } = useUser();
@@ -373,6 +383,10 @@ export default function Dashboard() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [cancellingBookingId, setCancellingBookingId] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+  // History modals (replace the old /service-history and /payment-history routes)
+  const [showServiceHistory, setShowServiceHistory] = useState(false);
+  const [showPaymentHistory, setShowPaymentHistory] = useState(false);
 
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
@@ -409,6 +423,9 @@ export default function Dashboard() {
   const closeBookingModal = () => setSelectedBooking(null);
   const navigate2Tab = (id) => { setActiveTab(id); setSidebarOpen(false); };
 
+  const openServiceHistory = () => { setShowHistoryModal(false); setShowServiceHistory(true); };
+  const openPaymentHistory = () => { setShowHistoryModal(false); setShowPaymentHistory(true); };
+
   const handleCancelBooking = async () => {
     if (!selectedBooking || cancellingBookingId === selectedBooking._id) return;
     const confirmed = window.confirm("Cancel this order?");
@@ -441,13 +458,13 @@ export default function Dashboard() {
   };
 
   const HelpCard = ({ title, description, actionLabel, onAction }) => (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm flex flex-col gap-3">
+    <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col justify-between gap-4">
       <div>
-        <h3 className="text-sm font-bold text-gray-800">{title}</h3>
+        <h3 className="text-base font-bold text-gray-800">{title}</h3>
         <p className="mt-1 text-sm text-gray-500">{description}</p>
       </div>
       {actionLabel && (
-        <button type="button" onClick={onAction} className="self-start rounded-xl bg-[#06a63e] px-4 py-2 text-sm font-semibold text-white hover:bg-[#058b33] transition">
+        <button type="button" onClick={onAction} className="self-start rounded-xl bg-[#06a63e] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#058b33] transition">
           {actionLabel}
         </button>
       )}
@@ -473,7 +490,14 @@ export default function Dashboard() {
               { label: "Location", value: selectedBooking.location || "Unavailable" },
               { label: "Scheduled Date", value: selectedBooking.scheduled_date ? new Date(selectedBooking.scheduled_date).toLocaleDateString() : "N/A" },
               { label: "Status", value: selectedBooking.status || "Pending" },
-              { label: "Assigned Staff", value: selectedBooking.assignedStaff || "Not yet assigned" },
+              { 
+                label: "Assigned Staff", 
+                value: !selectedBooking.assignedStaff 
+                  ? "Not yet assigned" 
+                  : String(selectedBooking.assignedStaff).startsWith("user_") 
+                    ? "Assigned Staff Member" 
+                    : selectedBooking.assignedStaff 
+              },
             ].map(({ label, value }) => (
               <div key={label} className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</p>
@@ -529,11 +553,11 @@ export default function Dashboard() {
           <h2 className="text-lg font-black text-gray-900">View History</h2>
           <p className="mt-1 text-sm text-gray-500">Which history would you like to see?</p>
           <div className="mt-5 flex flex-col gap-3">
-            <button type="button" onClick={() => { setShowHistoryModal(false); navigate("/service-history"); }}
+            <button type="button" onClick={openServiceHistory}
               className="w-full rounded-2xl bg-[#06a63e] px-5 py-3 text-sm font-bold text-white hover:bg-[#058b33] transition active:scale-95">
               Order History
             </button>
-            <button type="button" onClick={() => { setShowHistoryModal(false); navigate("/payment-history"); }}
+            <button type="button" onClick={openPaymentHistory}
               className="w-full rounded-2xl border border-[#06a63e] px-5 py-3 text-sm font-bold text-[#06a63e] hover:bg-[#06a63e]/5 transition active:scale-95">
               Payment History
             </button>
@@ -558,12 +582,12 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
         {[
-          { icon: "truck",      label: "Active Pickups", value: loadingBookings ? "—" : activeBookings.length,    border: "border-amber-200",  bg: "bg-amber-50",  color: "text-amber-600" },
-          { icon: "mapPin",     label: "Completed",      value: loadingBookings ? "—" : completedBookings.length, border: "border-green-200",  bg: "bg-green-50",  color: "text-green-600" },
-        ].map(({ icon, label, value, border, bg, color }) => (
-          <div key={label} className={`rounded-3xl border bg-white p-5 shadow-sm ${border}`}>
-            <div className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl ${bg}`}>
-              <Icon name={icon} className={`h-5 w-5 ${color}`} />
+          { icon: "truck",      label: "Active Pickups", value: loadingBookings ? "—" : activeBookings.length },
+          { icon: "mapPin",     label: "Completed",      value: loadingBookings ? "—" : completedBookings.length },
+        ].map(({ icon, label, value }) => (
+          <div key={label} className="rounded-3xl border border-[#06a63e]/15 bg-white p-5 shadow-sm">
+            <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#06a63e]/10">
+              <Icon name={icon} className="h-5 w-5 text-[#06a63e]" />
             </div>
             <p className="mt-3 text-xs font-bold uppercase tracking-widest text-gray-400">{label}</p>
             <p className="mt-1 text-2xl font-black text-gray-900">{value}</p>
@@ -574,7 +598,7 @@ export default function Dashboard() {
       <button
         type="button"
         onClick={() => setShowPickupModal(true)}
-        className="flex w-full sm:w-1/2 items-center justify-center gap-2 rounded-3xl border border-[#06a63e] bg-[#06a63e] px-6 py-4 text-base font-bold text-white shadow-sm transition-colors hover:bg-[#058b33]"
+        className="flex w-full sm:w-1/2 items-center justify-center gap-2 rounded-3xl border border-[#06a63e] bg-[#06a63e] px-6 py-4 text-base font-bold text-white shadow-sm transition-all hover:bg-[#058b33]"
       >
         <Icon name="truck" className="h-5 w-5" />
         Request a Pickup
@@ -628,31 +652,33 @@ export default function Dashboard() {
         <p className="mt-1 text-sm text-gray-500">Search your location or pin it on the map, then open the booking form.</p>
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="flex flex-col rounded-3xl bg-[#218845] p-6 text-white shadow-md">
-          <h3 className="text-lg font-black">Find Your Location</h3>
-          <p className="mt-1 text-sm text-white/75">Enter your address or street name.</p>
-          <div className="mt-5 rounded-2xl bg-white/15 p-5 border border-white/10 flex-1">
-            <label className="block text-xs font-bold uppercase tracking-widest text-white/80 mb-3">Search pickup location</label>
-            <input 
-              type="text" 
-              value={locationQuery} 
-              onChange={(e) => setLocationQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleLocationSearch()}
-              placeholder="Enter a location, street, or area"
-              className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-white/40 mb-3" 
-            />
-            <button 
-              type="button" 
-              onClick={handleLocationSearch}
-              className="w-full rounded-xl bg-gray-900 px-6 py-3 text-sm font-bold text-white hover:bg-black active:scale-95 transition"
-            >
-              Search Location
-            </button>
-            {searchStatus.text && (
-              <p className={`mt-3 text-sm ${searchStatus.type === "success" ? "text-green-200" : "text-red-200"}`}>
-                {searchStatus.text}
-              </p>
-            )}
+        <div className="flex flex-col rounded-3xl bg-gradient-to-br from-[#06a63e] to-[#047a2e] p-6 text-white shadow-md justify-between">
+          <div>
+            <h3 className="text-lg font-black">Find Your Location</h3>
+            <p className="mt-1 text-sm text-white/75">Enter your address or street name.</p>
+            <div className="mt-5 rounded-2xl bg-white/15 p-5 border border-white/10 flex-1">
+              <label className="block text-xs font-bold uppercase tracking-widest text-white/80 mb-3">Search pickup location</label>
+              <input 
+                type="text" 
+                value={locationQuery} 
+                onChange={(e) => setLocationQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLocationSearch()}
+                placeholder="Enter a location, street, or area"
+                className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-white/40 mb-3" 
+              />
+              <button 
+                type="button" 
+                onClick={handleLocationSearch}
+                className="w-full rounded-xl bg-gray-900 px-6 py-3 text-sm font-bold text-white hover:bg-black active:scale-95 transition"
+              >
+                Search Location
+              </button>
+              {searchStatus.text && (
+                <p className={`mt-3 text-sm ${searchStatus.type === "success" ? "text-green-200" : "text-red-200"}`}>
+                  {searchStatus.text}
+                </p>
+              )}
+            </div>
           </div>
           <button 
             type="button" 
@@ -681,7 +707,7 @@ export default function Dashboard() {
               </span>
             )}
           </div>
-          <div className="flex-1 min-h-[320px]">
+          <div className="flex-1 min-h-[320px] rounded-2xl overflow-hidden border border-gray-100">
             <LeafletMapPicker 
               value={selectedMapLocation}
               onSelect={({ address, coordinates }) => {
@@ -737,9 +763,14 @@ export default function Dashboard() {
           ))}
       </div>
       <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h3 className="text-base font-bold text-gray-800 mb-4">Driver Location</h3>
-        <div className="flex h-36 items-center justify-center rounded-2xl bg-gray-50">
-          <p className="text-sm text-gray-400">No active driver assigned.</p>
+        <h3 className="text-base font-bold text-gray-800 mb-4">Driver Location & Real-time Tracking</h3>
+        <div className="flex flex-col items-center justify-center p-8 text-center rounded-2xl bg-green-50/50 border border-green-100/60">
+          <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#06a63e]/15 mb-3">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#06a63e] opacity-20" />
+            <Icon name="truck" className="h-7 w-7 text-[#06a63e]" />
+          </div>
+          <p className="text-sm font-bold text-gray-800">No active pickup driver en route</p>
+          <p className="mt-1 text-xs text-gray-500 max-w-sm">When a pickup is assigned to field staff, live vehicle tracking and ETA updates will appear here automatically.</p>
         </div>
       </div>
     </div>
@@ -753,13 +784,13 @@ export default function Dashboard() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {[
-          { icon: "clock", label: "Order History", sub: "View all your past pickup and service requests.", action: () => navigate("/service-history"), link: "View orders →", bg: "bg-amber-50", color: "text-amber-600" },
-          { icon: "creditCard", label: "Payment History", sub: "Review your billing records and transaction details.", action: () => navigate("/payment-history"), link: "View payments →", bg: "bg-blue-50", color: "text-blue-600" },
-        ].map(({ icon, label, sub, action, link, bg, color }) => (
+          { icon: "clock", label: "Order History", sub: "View all your past pickup and service requests.", action: openServiceHistory, link: "View orders →" },
+          { icon: "creditCard", label: "Payment History", sub: "Review your billing records and transaction details.", action: openPaymentHistory, link: "View payments →" },
+        ].map(({ icon, label, sub, action, link }) => (
           <button key={label} type="button" onClick={action}
             className="rounded-3xl border border-gray-200 bg-white p-6 text-left shadow-sm hover:border-[#06a63e]/40 hover:bg-[#06a63e]/5 transition group">
-            <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl ${bg}`}>
-              <Icon name={icon} className={`h-6 w-6 ${color}`} />
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#06a63e]/10 text-[#06a63e]">
+              <Icon name={icon} className="h-6 w-6 text-[#06a63e]" />
             </div>
             <h3 className="mt-4 text-base font-black text-gray-800">{label}</h3>
             <p className="mt-1 text-sm text-gray-500">{sub}</p>
@@ -793,13 +824,12 @@ export default function Dashboard() {
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
-          { icon: "creditCard", label: "Total Paid",      value: `LKR ${totalPaid.toLocaleString()}`,                                                         border: "border-blue-200",   bg: "bg-blue-50",   color: "text-blue-600" },
-          { icon: "clock",      label: "Transactions",    value: payments.length,                                                                              border: "border-green-200",  bg: "bg-green-50",  color: "text-green-600" },
-          { icon: "sparkles",   label: "Avg per Booking", value: `LKR ${payments.length > 0 ? Math.round(totalPaid / payments.length).toLocaleString() : 0}`, border: "border-purple-200", bg: "bg-purple-50", color: "text-purple-600" },
-        ].map(({ icon, label, value, border, bg, color }) => (
-          <div key={label} className={`rounded-3xl border bg-white p-5 shadow-sm ${border}`}>
-            <div className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl ${bg}`}>
-              <Icon name={icon} className={`h-5 w-5 ${color}`} />
+          { icon: "creditCard", label: "Total Paid",   value: `LKR ${totalPaid.toLocaleString()}` },
+          { icon: "clock",      label: "Transactions", value: payments.length },
+        ].map(({ icon, label, value }) => (
+          <div key={label} className="rounded-3xl border border-[#06a63e]/15 bg-white p-5 shadow-sm">
+            <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#06a63e]/10">
+              <Icon name={icon} className="h-5 w-5 text-[#06a63e]" />
             </div>
             <p className="mt-3 text-xs font-bold uppercase tracking-widest text-gray-400">{label}</p>
             <p className="mt-1 text-2xl font-black text-gray-900">{value}</p>
@@ -809,7 +839,7 @@ export default function Dashboard() {
       <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-bold text-gray-800">Recent Transactions</h3>
-          <button type="button" onClick={() => navigate("/payment-history")} className="text-xs font-bold text-[#06a63e] hover:underline">View all →</button>
+          <button type="button" onClick={openPaymentHistory} className="text-xs font-bold text-[#06a63e] hover:underline">View all →</button>
         </div>
         {payments.length === 0 ? <p className="text-sm text-gray-400">No transactions yet.</p>
           : payments.slice(0, 6).map((p, i) => (
@@ -829,6 +859,30 @@ export default function Dashboard() {
     const [inquiry, setInquiry] = useState({ subject: "", message: "" });
     const [sending, setSending] = useState(false);
     const [status, setStatus] = useState({ type: "", text: "" });
+
+    // ── Inquiry history (previous inquiries + admin replies) ──
+    const [history, setHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(true);
+    const [historyError, setHistoryError] = useState("");
+
+    const loadHistory = useCallback(async () => {
+      try {
+        setLoadingHistory(true);
+        const data = await getMyInquiries({
+          clerkId: user?.id || "",
+          email: user?.primaryEmailAddress?.emailAddress || "",
+        });
+        setHistory(data);
+        setHistoryError("");
+      } catch (err) {
+        setHistoryError(err.message || "Failed to load your inquiry history.");
+      } finally {
+        setLoadingHistory(false);
+      }
+    }, [user]);
+
+    useEffect(() => { loadHistory(); }, [loadHistory]);
+
     const handleSubmit = async (e) => {
       e.preventDefault();
       if (!inquiry.message.trim()) { setStatus({ type: "error", text: "Please enter a message." }); return; }
@@ -837,9 +891,12 @@ export default function Dashboard() {
         await submitInquiry({ clerkId: user?.id || "", userName: `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || user?.username || "Ecofy User", userEmail: user?.primaryEmailAddress?.emailAddress || "", subject: inquiry.subject || "General Inquiry", message: inquiry.message });
         setInquiry({ subject: "", message: "" });
         setStatus({ type: "success", text: "Inquiry sent! Admin will respond soon." });
+        // Refresh history so the newly submitted inquiry shows up immediately.
+        loadHistory();
       } catch (err) { setStatus({ type: "error", text: err.message || "Failed to send." }); }
       finally { setSending(false); }
     };
+
     return (
       <div className="space-y-6">
         <div>
@@ -868,6 +925,69 @@ export default function Dashboard() {
             </button>
           </form>
         </div>
+
+        {/* ── Inquiry History ── */}
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h3 className="text-base font-bold text-gray-800">Your Inquiries</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Previous inquiries and admin replies, most recent first.</p>
+            </div>
+            <button
+              type="button"
+              onClick={loadHistory}
+              className="text-xs font-bold text-[#06a63e] hover:underline"
+            >
+              Refresh
+            </button>
+          </div>
+
+          {loadingHistory ? (
+            <div className="flex items-center gap-3 py-6">
+              <div className="h-4 w-4 rounded-full border-2 border-[#06a63e] border-t-transparent animate-spin" />
+              <p className="text-sm text-gray-400">Loading your inquiries…</p>
+            </div>
+          ) : historyError ? (
+            <p className="text-sm font-medium text-red-600">{historyError}</p>
+          ) : history.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-10 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-50">
+                <Icon name="chat" className="h-7 w-7 text-[#06a63e]" />
+              </div>
+              <p className="text-sm font-medium text-gray-500">You haven't sent any inquiries yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {history.map((item) => (
+                <div key={item._id} className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h4 className="m-0 text-sm font-black text-gray-800">{item.subject || "General Inquiry"}</h4>
+                    <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+                      item.status === "Replied" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                    }`}>
+                      {item.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] font-medium text-gray-400 italic">Submitted {formatInquiryDate(item.createdAt)}</p>
+
+                  <div className="mt-3 rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-700">
+                    {item.message}
+                  </div>
+
+                  {item.adminReply && (
+                    <div className="mt-3 rounded-xl border border-[#06a63e]/20 bg-[#06a63e]/5 p-4">
+                      <p className="m-0 text-[10px] font-black uppercase tracking-widest text-[#06a63e] mb-1.5">Admin Reply</p>
+                      <p className="m-0 text-sm text-[#03652a] font-medium leading-relaxed">{item.adminReply}</p>
+                      <p className="mt-2 text-[11px] font-medium text-gray-400">
+                        {item.repliedBy || "Admin"} · {formatInquiryDate(item.repliedAt)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   });
@@ -887,7 +1007,7 @@ export default function Dashboard() {
       <div className="grid gap-4 sm:grid-cols-3">
         {[
           { label: "Start a pickup request", sub: "Open the booking flow.", action: () => setShowPickupModal(true) },
-          { label: "View payments", sub: "Review billing activity.", action: () => navigate("/payment-history") },
+          { label: "View payments", sub: "Review billing activity.", action: openPaymentHistory },
           { label: "Notifications", sub: "Check recent alerts.", action: () => navigate("/notifications") },
         ].map(({ label, sub, action }) => (
           <button key={label} type="button" onClick={action}
@@ -917,26 +1037,8 @@ export default function Dashboard() {
   return (
     <>
       {/* Top-right actions */}
-      <div className="fixed top-8 right-4 z-50 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => navigate('/landing')}
-          className="inline-flex h-9 items-center gap-2 rounded-full border border-green-100 bg-white px-4 text-sm font-semibold text-green-700 shadow-sm transition-colors hover:bg-green-50"
-        >
-          <Icon name="home" className="h-4 w-4" />
-          <span className="hidden sm:inline">Landing Page</span>
-        </button>
+      <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
         <NotificationBell target="user" />
-      </div>
-
-      {/* Background decoration */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-20">
-        <svg className="absolute top-40 left-72 w-24 h-24 text-[#218845] animate-wobble" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        <svg className="absolute bottom-32 right-12 w-32 h-32 text-[#218845] animate-wobble-reverse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.5V11m0 0a5 5 0 0 1 5-5h2.5c0 4.5-2 6.5-4 8l-3.5 3m0-11a5 5 0 0 0-5-5H7c0 4.5 2 6.5 4 8l3.5 3" />
-        </svg>
       </div>
 
       <div className="relative z-10 flex">
@@ -955,9 +1057,7 @@ export default function Dashboard() {
         `}>
           {/* Logo — fills the same height as the navbar (88px) */}
           <div className="flex h-[88px] items-center gap-3 border-b border-gray-100 px-5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#06a63e]">
-              <Icon name="recycle" className="h-5 w-5 text-white" />
-            </div>
+            <img src="/ecofy-logo.png" alt="Ecofy Logo" className="h-9 w-9 object-cover rounded-xl shadow-sm" />
             <p className="text-base font-black text-gray-900">Ecofy</p>
           </div>
 
@@ -1012,6 +1112,19 @@ export default function Dashboard() {
       <BookingDetailsModal />
       <HistoryChooserModal />
 
+      {/* Order & payment history now open as modals instead of navigating away */}
+      <ServiceHistory
+        isOpen={showServiceHistory}
+        onClose={() => setShowServiceHistory(false)}
+        bookings={bookings}
+        payments={payments}
+      />
+      <PaymentHistory
+        isOpen={showPaymentHistory}
+        onClose={() => setShowPaymentHistory(false)}
+        payments={payments}
+      />
+
       <RequestPickupModal
         isOpen={showPickupModal}
         onClose={() => setShowPickupModal(false)}
@@ -1025,7 +1138,7 @@ export default function Dashboard() {
       />
       <PaymentModal
         isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
+        onClose={() => { setShowPaymentModal(false); fetchBookings(); fetchPayments(); }}
         onSuccess={() => { setShowPaymentModal(false); fetchBookings(); fetchPayments(); }}
         bookingDetails={lastBooking}
       />
