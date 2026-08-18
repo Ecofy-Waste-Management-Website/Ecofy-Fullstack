@@ -1,4 +1,5 @@
 const User = require('../Model/User.js');
+const SystemLog = require('../Model/SystemLog');
 const { clerkClient } = require('@clerk/clerk-sdk-node');
 
 const getClerkErrorMessage = (error) => {
@@ -32,6 +33,16 @@ const mapStaffForResponse = (staffUser) => ({
   createdAt: staffUser.createdAt,
   updatedAt: staffUser.updatedAt,
 });
+
+const getSystemLogs = async (_req, res) => {
+  try {
+    const logs = await SystemLog.find().sort({ createdAt: -1 }).lean();
+    return res.status(200).json({ message: 'System logs fetched successfully', logs });
+  } catch (error) {
+    console.error('Error fetching system logs:', error);
+    return res.status(500).json({ message: 'Failed to fetch system logs.' });
+  }
+};
 
 const createStaffAccount = async (req, res) => {
   let createdClerkUserId = null;
@@ -278,4 +289,5 @@ module.exports = {
   getAllStaffAccounts,
   updateStaffAccount,
   deleteStaffAccount,
+  getSystemLogs,
 };

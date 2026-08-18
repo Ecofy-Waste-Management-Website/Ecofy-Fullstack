@@ -4,6 +4,7 @@ const {
 	getAllStaffAccounts,
 	updateStaffAccount,
 	deleteStaffAccount,
+	getSystemLogs,
 } = require('../Controllers/adminController');
 const {
 	getAllInquiries,
@@ -16,6 +17,7 @@ router.post('/create-staff', createStaffAccount);
 router.get('/staff', getAllStaffAccounts);
 router.patch('/staff/:id', updateStaffAccount);
 router.delete('/staff/:id', deleteStaffAccount);
+router.get('/system-logs', getSystemLogs);
 router.get('/inquiries', getAllInquiries);
 router.patch('/inquiries/:id/reply', replyToInquiry);
 

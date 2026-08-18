@@ -20,7 +20,22 @@ const SERVICE_PRICES = {
 router.post("/create-payment-intent", async (req, res) => {
   const { service_type } = req.body;
 
-  const amount = SERVICE_PRICES[service_type];
+  let amount = SERVICE_PRICES[service_type];
+  if (!amount) {
+    try {
+      const mongoose = require("mongoose");
+      if (mongoose.models.Service) {
+        const dbService = await mongoose.models.Service.findOne({
+          name: new RegExp(`^${service_type.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+        });
+        if (dbService && dbService.price) {
+          amount = dbService.price * 100;
+        }
+      }
+    } catch (err) {
+      console.log("Error querying Service price for Stripe:", err);
+    }
+  }
   if (!amount) return res.status(400).json({ error: "Invalid service type" });
 
   try {

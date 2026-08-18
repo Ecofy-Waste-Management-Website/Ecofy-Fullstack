@@ -76,6 +76,29 @@ const getAllInquiries = async (_req, res) => {
   }
 };
 
+// GET /inquiries/mine?clerkId=xxx&email=xxx
+// Returns only the inquiries belonging to the logged-in user, most recent first,
+// so the user dashboard can show inquiry history + admin replies together.
+const getMyInquiries = async (req, res) => {
+  try {
+    const { clerkId, email } = req.query;
+
+    if (!clerkId && !email) {
+      return res.status(400).json({ message: "clerkId or email is required." });
+    }
+
+    const filter = clerkId
+      ? { clerkId }
+      : { userEmail: String(email).toLowerCase() };
+
+    const inquiries = await Inquiry.find(filter).sort({ createdAt: -1 }).lean();
+    return res.status(200).json({ inquiries });
+  } catch (error) {
+    console.error("Error fetching user inquiries:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 const replyToInquiry = async (req, res) => {
   try {
     const { id } = req.params;
@@ -139,5 +162,6 @@ const replyToInquiry = async (req, res) => {
 module.exports = {
   createInquiry,
   getAllInquiries,
+  getMyInquiries,
   replyToInquiry,
 };

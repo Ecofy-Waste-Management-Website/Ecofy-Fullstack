@@ -14,50 +14,50 @@ const SettingsPanel = ({
   changePassword,
   onClearMessage,
 }) => (
-  <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
-    <div className="rounded-3xl border border-[#06a63e]/15 bg-[#eaf9ee]/60 p-5 shadow-sm">
-      <div className="mb-5">
-        <h3 className="text-xl font-black text-[#03652a]">Settings</h3>
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#06a63e]/50">Update details</p>
+  <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6">
+    <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-6">
+        <h3 className="text-xl font-black text-gray-900">Settings</h3>
+        <p className="text-sm text-gray-500 mt-0.5">Manage your staff profile, password, and payout preferences.</p>
       </div>
 
       {mustChangePassword && (
-        <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
-          Your administrator created this account with a temporary password. Change it before using the staff dashboard.
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+          ⚠️ Your administrator created this account with a temporary password. Please change it before continuing.
         </div>
       )}
 
       {settingsMessage && (
-        <div className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-bold ${settingsMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
+        <div className={`mb-6 rounded-2xl border px-4 py-3 text-sm font-bold ${settingsMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
           {settingsMessage.text}
         </div>
       )}
 
-      <div className="mb-6 rounded-3xl border border-[#06a63e]/15 bg-white/75 p-4">
+      <div className="mb-6 rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
         <div className="mb-4">
-          <h4 className="text-sm font-black uppercase tracking-widest text-[#03652a]">Password</h4>
-          <p className="mt-1 text-xs font-semibold text-[#06a63e]/55">Set a private password for this staff account</p>
+          <h4 className="text-sm font-bold text-gray-800">Password</h4>
+          <p className="mt-0.5 text-xs text-gray-500">Set a private password for this staff account</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <label className="flex flex-col gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/60">New Password</span>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-widest text-gray-400">New Password</span>
             <input
               type="password"
               value={passwordForm.password}
               onChange={(e) => handlePasswordFormChange('password', e.target.value)}
-              className="rounded-2xl border border-[#06a63e]/15 bg-white/90 px-4 py-3 text-sm font-medium text-[#03652a] outline-none focus:border-[#06a63e]"
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
               placeholder="Minimum 8 characters"
               autoComplete="new-password"
             />
           </label>
-          <label className="flex flex-col gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/60">Confirm Password</span>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Confirm Password</span>
             <input
               type="password"
               value={passwordForm.confirmPassword}
               onChange={(e) => handlePasswordFormChange('confirmPassword', e.target.value)}
-              className="rounded-2xl border border-[#06a63e]/15 bg-white/90 px-4 py-3 text-sm font-medium text-[#03652a] outline-none focus:border-[#06a63e]"
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
               placeholder="Repeat new password"
               autoComplete="new-password"
             />
@@ -69,7 +69,7 @@ const SettingsPanel = ({
             type="button"
             onClick={changePassword}
             disabled={changingPassword}
-            className="rounded-2xl bg-[#06a63e] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-[#03652a] disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-xl bg-[#06a63e] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#058b33] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {changingPassword ? 'Updating...' : 'Change Password'}
           </button>
@@ -77,33 +77,33 @@ const SettingsPanel = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <label className="flex flex-col gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/60">First Name</span>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">First Name</span>
           <input
             value={settingsForm.firstName}
             onChange={(e) => handleSettingsChange('firstName', e.target.value)}
-            className="rounded-2xl border border-[#06a63e]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#03652a] outline-none focus:border-[#06a63e]"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
             placeholder="First name"
           />
         </label>
-        <label className="flex flex-col gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/60">Last Name</span>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Last Name</span>
           <input
             value={settingsForm.lastName}
             onChange={(e) => handleSettingsChange('lastName', e.target.value)}
-            className="rounded-2xl border border-[#06a63e]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#03652a] outline-none focus:border-[#06a63e]"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
             placeholder="Last name"
           />
         </label>
       </div>
 
       <div className="mt-4">
-        <label className="flex flex-col gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/60">Availability Status</span>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Availability Status</span>
           <select
             value={settingsForm.availabilityStatus}
             onChange={(e) => handleSettingsChange('availabilityStatus', e.target.value)}
-            className="rounded-2xl border border-[#06a63e]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#03652a] outline-none focus:border-[#06a63e]"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
           >
             <option value="Available">Available</option>
             <option value="Busy">Busy</option>
@@ -113,49 +113,49 @@ const SettingsPanel = ({
       </div>
 
       <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <label className="flex flex-col gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/60">Bank Name</span>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Bank Name</span>
           <input
             value={settingsForm.bankDetails.bankName}
             onChange={(e) => handleBankDetailChange('bankName', e.target.value)}
-            className="rounded-2xl border border-[#06a63e]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#03652a] outline-none focus:border-[#06a63e]"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
             placeholder="Bank name"
           />
         </label>
-        <label className="flex flex-col gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/60">Account Name</span>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Account Name</span>
           <input
             value={settingsForm.bankDetails.accountName}
             onChange={(e) => handleBankDetailChange('accountName', e.target.value)}
-            className="rounded-2xl border border-[#06a63e]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#03652a] outline-none focus:border-[#06a63e]"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
             placeholder="Account name"
           />
         </label>
-        <label className="flex flex-col gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/60">Account Number</span>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Account Number</span>
           <input
             value={settingsForm.bankDetails.accountNumber}
             onChange={(e) => handleBankDetailChange('accountNumber', e.target.value)}
-            className="rounded-2xl border border-[#06a63e]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#03652a] outline-none focus:border-[#06a63e]"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
             placeholder="Account number"
           />
         </label>
-        <label className="flex flex-col gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/60">Branch</span>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Branch</span>
           <input
             value={settingsForm.bankDetails.branch}
             onChange={(e) => handleBankDetailChange('branch', e.target.value)}
-            className="rounded-2xl border border-[#06a63e]/15 bg-white/80 px-4 py-3 text-sm font-medium text-[#03652a] outline-none focus:border-[#06a63e]"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
             placeholder="Branch"
           />
         </label>
       </div>
 
-      <div className="mt-5 flex justify-end gap-3">
+      <div className="mt-6 flex flex-wrap justify-end gap-3">
         <button
           type="button"
           onClick={onClearMessage}
-          className="rounded-2xl border border-[#06a63e]/20 bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-[#03652a] transition-all hover:bg-[#eaf9ee]"
+          className="rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition"
         >
           Clear Message
         </button>
@@ -163,41 +163,43 @@ const SettingsPanel = ({
           type="button"
           onClick={saveSettings}
           disabled={savingSettings}
-          className="rounded-2xl bg-[#06a63e] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-[#03652a] disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-[#06a63e] px-6 py-3 text-sm font-bold text-white hover:bg-[#058b33] transition disabled:cursor-not-allowed disabled:opacity-60"
         >
           {savingSettings ? 'Saving...' : 'Update Settings'}
         </button>
       </div>
     </div>
 
-    <div className="rounded-3xl border border-[#06a63e]/15 bg-[#eaf9ee]/35 p-5 shadow-sm">
-      <h3 className="text-xl font-black text-[#03652a]">Preview</h3>
-      <p className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-[#06a63e]/50"> </p>
+    <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h3 className="text-lg font-black text-gray-900">Profile Preview</h3>
+      <p className="mt-1 text-sm text-gray-500">Live preview of your staff details.</p>
 
-      <div className="mt-5 rounded-3xl border border-[#06a63e]/10 bg-white/75 p-5 shadow-inner">
+      <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50/70 p-5">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-full bg-[#06a63e] text-sm font-black text-white shadow-inner">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#06a63e] text-sm font-black text-white shadow-sm">
             {staffInitials}
           </div>
           <div>
-            <p className="text-sm font-black text-[#03652a]">{staffName}</p>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#06a63e]/40">{settingsForm.availabilityStatus}</p>
+            <p className="text-base font-bold text-gray-900">{staffName}</p>
+            <span className="inline-block rounded-full bg-[#06a63e]/10 px-2.5 py-0.5 text-xs font-bold text-[#06a63e]">
+              {settingsForm.availabilityStatus}
+            </span>
           </div>
         </div>
 
-        <div className="mt-5 space-y-3 text-sm text-[#03652a]">
-          <div className="rounded-2xl bg-[#eaf9ee]/55 px-4 py-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/50">Bank</p>
-            <p className="mt-1 font-bold">{settingsForm.bankDetails.bankName || 'No bank added'}</p>
+        <div className="mt-5 space-y-3 text-sm">
+          <div className="rounded-xl bg-white p-3.5 border border-gray-100">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Bank</p>
+            <p className="mt-1 font-semibold text-gray-800">{settingsForm.bankDetails.bankName || 'No bank added'}</p>
           </div>
-          <div className="rounded-2xl bg-[#eaf9ee]/55 px-4 py-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/50">Account</p>
-            <p className="mt-1 font-bold">{settingsForm.bankDetails.accountName || 'No account name added'}</p>
-            <p className="text-xs text-[#06a63e]/70">{settingsForm.bankDetails.accountNumber || 'No account number added'}</p>
+          <div className="rounded-xl bg-white p-3.5 border border-gray-100">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Account</p>
+            <p className="mt-1 font-semibold text-gray-800">{settingsForm.bankDetails.accountName || 'No account name added'}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{settingsForm.bankDetails.accountNumber || 'No account number added'}</p>
           </div>
-          <div className="rounded-2xl bg-[#eaf9ee]/55 px-4 py-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-[#06a63e]/50">Branch</p>
-            <p className="mt-1 font-bold">{settingsForm.bankDetails.branch || 'No branch added'}</p>
+          <div className="rounded-xl bg-white p-3.5 border border-gray-100">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Branch</p>
+            <p className="mt-1 font-semibold text-gray-800">{settingsForm.bankDetails.branch || 'No branch added'}</p>
           </div>
         </div>
       </div>

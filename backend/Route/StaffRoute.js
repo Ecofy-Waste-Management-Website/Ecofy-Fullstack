@@ -7,6 +7,7 @@ const {
   getCompletedTasks,
   updateTaskStatus,
 } = require("../Controllers/staffController");
+const { rejectBannedStaff } = require('../Middleware/staffAccountStatus');
 
 // ── Staff Routes (/api/staff/*) ──────────────────────
 
@@ -14,15 +15,15 @@ const {
 router.get("/profile/:clerkId", getStaffProfile);
 
 // Get today's assigned tasks
-router.get("/tasks/today/:clerkId", getAssignedTasks);
+router.get("/tasks/today/:clerkId", rejectBannedStaff, getAssignedTasks);
 
 // Get active tasks (Pending, Assigned, In Progress)
-router.get("/tasks/active/:clerkId", getActiveTasks);
+router.get("/tasks/active/:clerkId", rejectBannedStaff, getActiveTasks);
 
 // Get completed tasks
-router.get("/tasks/completed/:clerkId", getCompletedTasks);
+router.get("/tasks/completed/:clerkId", rejectBannedStaff, getCompletedTasks);
 
 // Update task status
-router.patch("/tasks/:taskId/status", updateTaskStatus);
+router.patch("/tasks/:taskId/status", rejectBannedStaff, updateTaskStatus);
 
 module.exports = router;

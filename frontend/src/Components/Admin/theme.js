@@ -136,11 +136,11 @@ export const theme = {
   borderRadius: {
     none: '0px',
     sm: '4px',
-    base: '6px',
-    md: '8px',
-    lg: '12px',
-    xl: '16px',
-    '2xl': '20px',
+    base: '8px',
+    md: '12px',
+    lg: '24px',
+    xl: '24px',
+    '2xl': '24px',
     full: '9999px',
   },
 
@@ -149,46 +149,46 @@ export const theme = {
     button: {
       size: {
         sm: {
-          padding: '6px 12px',
+          padding: '6px 14px',
           fontSize: '12px',
-          height: '28px',
+          height: '32px',
         },
         md: {
-          padding: '8px 16px',
+          padding: '10px 18px',
           fontSize: '14px',
-          height: '36px',
+          height: '40px',
         },
         lg: {
-          padding: '10px 20px',
+          padding: '12px 24px',
           fontSize: '16px',
-          height: '44px',
+          height: '48px',
         },
       },
-      borderRadius: '8px',
+      borderRadius: '12px',
       transition: 'all 0.2s ease-in-out',
     },
 
     input: {
-      borderRadius: '8px',
-      padding: '8px 12px',
+      borderRadius: '12px',
+      padding: '10px 14px',
       fontSize: '14px',
-      height: '36px',
+      height: '40px',
       border: '1px solid #E5E5EA',
       transition: 'all 0.2s ease-in-out',
     },
 
     card: {
-      borderRadius: '12px',
-      padding: '16px',
-      boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+      borderRadius: '24px',
+      padding: '24px',
+      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
       backgroundColor: '#FFFFFF',
     },
 
     badge: {
-      borderRadius: '6px',
-      padding: '4px 8px',
-      fontSize: '10px',
-      fontWeight: 500,
+      borderRadius: '9999px',
+      padding: '4px 12px',
+      fontSize: '12px',
+      fontWeight: 700,
     },
   },
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { createPickupRequest } from "../../services/api/bookingService";
+import { createPickupRequest, fetchActiveServices } from "../../services/api/bookingService";
 
-const SERVICE_TYPES = ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
+const DEFAULT_SERVICE_TYPES = ["Household", "Commercial", "Bulk", "Garden", "Drain Cleaning"];
 const WASTE_CATEGORIES = ["General", "Recyclable", "Hazardous", "Electronic", "Garden"];
 
 export default function RequestPickupModal({
@@ -13,6 +13,8 @@ export default function RequestPickupModal({
   initialCoordinates = null,
 }) {
   const { user } = useUser();
+  const [serviceOptions, setServiceOptions] = useState(DEFAULT_SERVICE_TYPES);
+  const [dynamicServices, setDynamicServices] = useState([]);
 
   const createEmptyForm = (location = "") => ({
     service_type: "",
@@ -35,10 +37,26 @@ export default function RequestPickupModal({
   const [status, setStatus] = useState({ type: "", text: "" });
 
   useEffect(() => {
+    let isMounted = true;
     if (isOpen) {
       setForm(createEmptyForm(initialLocation));
       setStatus({ type: "", text: "" });
+
+      fetchActiveServices()
+        .then((services) => {
+          if (!isMounted) return;
+          if (Array.isArray(services) && services.length > 0) {
+            setDynamicServices(services);
+            const fetchedNames = services.map((s) => s.name?.trim()).filter(Boolean);
+            const combined = Array.from(new Set([...fetchedNames, ...DEFAULT_SERVICE_TYPES]));
+            setServiceOptions(combined);
+          }
+        })
+        .catch((err) => console.error("Failed to load active services:", err));
     }
+    return () => {
+      isMounted = false;
+    };
   }, [isOpen, initialLocation, user]);
 
   const handleChange = (e) => {
@@ -71,6 +89,10 @@ export default function RequestPickupModal({
       setSubmitting(true);
       setStatus({ type: "", text: "" });
 
+      const selectedService = dynamicServices.find(
+        (s) => s.name?.trim().toLowerCase() === form.service_type?.trim().toLowerCase()
+      );
+
       const booking = await createPickupRequest({
         customer_name:
           `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
@@ -79,6 +101,7 @@ export default function RequestPickupModal({
         customer_email: user?.primaryEmailAddress?.emailAddress || "",
         clerkId: user?.id,
         pickupCoordinates: initialCoordinates,
+        servicePrice: selectedService?.price,
         ...form,
       });
 
@@ -119,10 +142,10 @@ export default function RequestPickupModal({
       onClick={onClose}
     >
       <div
-        className="relative flex w-full max-w-2xl flex-col max-h-[90vh] overflow-hidden rounded-4xl border border-gray-200 bg-[#f4f9f4] shadow-2xl"
+        className="relative flex w-full max-w-2xl flex-col max-h-[90vh] overflow-hidden rounded-3xl border border-gray-200 bg-[#f4f9f4] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-linear-to-r from-[#06a63e] to-[#047a2e] px-7 py-5 text-white">
+        <div className="bg-gradient-to-r from-[#06a63e] to-[#047a2e] px-7 py-5 text-white">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/70">Pickup Form</p>
@@ -159,7 +182,7 @@ export default function RequestPickupModal({
                   className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20"
                 >
                   <option value="">Select type</option>
-                  {SERVICE_TYPES.map((t) => (
+                  {serviceOptions.map((t) => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
