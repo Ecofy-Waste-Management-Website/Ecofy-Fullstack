@@ -3,6 +3,7 @@ import Navbar from '../Top-Header-Section/navbar/navbar';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Footer from '../Footer/footer';
+import { useAppUI } from '../../../context/AppUIContext';
 
 import householdImg from '../../../assets/Household waste.jpg';
 import commercialImg from '../../../assets/Commercial Waste.jpg';
@@ -22,7 +23,14 @@ const services = [
     description: 'Regular waste pickup for residential properties. Perfect for daily management.',
     features: ['Weekly pickup', 'Standard bins'],
     image: householdImg,
-    gradient: 'from-[#397234] to-[#244c21]'
+    gradient: 'from-[#397234] to-[#244c21]',
+    price: 'Rs. 1,500 / month',
+    details: [
+      { label: 'Pickup Frequency', value: 'Weekly (1x per week)' },
+      { label: 'Bin Size', value: 'Standard 120L bin included' },
+      { label: 'Coverage Area', value: 'Colombo & suburbs' },
+      { label: 'Contract', value: 'No long-term commitment, cancel anytime' },
+    ]
   },
   {
     id: 2,
@@ -31,7 +39,14 @@ const services = [
     description: 'For businesses and offices. Customizable schedules for your specific needs.',
     features: ['Custom schedule', 'Priority support'],
     image: commercialImg,
-    gradient: 'from-[#1e3a5f] to-[#244c21]'
+    gradient: 'from-[#1e3a5f] to-[#244c21]',
+    price: 'From Rs. 5,000 / month',
+    details: [
+      { label: 'Pickup Frequency', value: 'Daily, alternate-day, or custom' },
+      { label: 'Bin Size', value: '240L–1100L options available' },
+      { label: 'Support', value: '24/7 priority account manager' },
+      { label: 'Billing', value: 'Custom quote based on volume' },
+    ]
   },
   {
     id: 3,
@@ -40,7 +55,14 @@ const services = [
     description: 'Large items or high-volume waste like furniture and construction debris.',
     features: ['Heavy items', 'Same-day available'],
     image: bulkImg,
-    gradient: 'from-[#8B4513] to-[#244c21]'
+    gradient: 'from-[#8B4513] to-[#244c21]',
+    price: 'From Rs. 3,000 / pickup',
+    details: [
+      { label: 'Item Types', value: 'Furniture, appliances, construction debris' },
+      { label: 'Turnaround', value: 'Same-day available (subject to slots)' },
+      { label: 'Pricing', value: 'Based on volume & item type' },
+      { label: 'Booking', value: 'On-demand, no subscription needed' },
+    ]
   },
   {
     id: 4,
@@ -49,7 +71,14 @@ const services = [
     description: 'Professional drain cleaning and unblocking services for all properties.',
     features: ['24/7 emergency', 'Hydro jetting'],
     image: drainImg,
-    gradient: 'from-[#4a154b] to-[#244c21]'
+    gradient: 'from-[#4a154b] to-[#244c21]',
+    price: 'From Rs. 4,000 / visit',
+    details: [
+      { label: 'Service Type', value: 'Hydro jetting & manual unblocking' },
+      { label: 'Availability', value: '24/7 emergency callout' },
+      { label: 'Response Time', value: 'Within 2 hours (emergency)' },
+      { label: 'Warranty', value: '30-day service guarantee' },
+    ]
   }
 ];
 
@@ -88,7 +117,7 @@ function AnimatedCounter({ target, suffix = '', prefix = '' }) {
   return <span ref={counterRef}>{prefix}{count}{suffix}</span>;
 }
 
-function ServiceCard({ service, index }) {
+function ServiceCard({ service, index, onViewDetails }) {
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -126,9 +155,103 @@ function ServiceCard({ service, index }) {
               </div>
             ))}
           </div>
-          <button className="w-full py-4 bg-[#D6E9CA] text-[#244c21] rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-[#397234]/20 hover:bg-[#244c21] hover:text-white transition-all duration-300">
+          <button
+            onClick={() => onViewDetails(service)}
+            className="w-full py-4 bg-[#D6E9CA] text-[#244c21] rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-[#397234]/20 hover:bg-[#244c21] hover:text-white transition-all duration-300"
+          >
             View Details
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ServiceModal({ service, onClose, onBookNow }) {
+  const backdropRef = useRef(null);
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    gsap.fromTo(backdropRef.current, { opacity: 0 }, { opacity: 1, duration: 0.25 });
+    gsap.fromTo(modalRef.current,
+      { opacity: 0, y: 30, scale: 0.95 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "power2.out" }
+    );
+
+    // Lock body scroll while modal is open
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  const handleClose = () => {
+    gsap.to(modalRef.current, { opacity: 0, y: 20, scale: 0.95, duration: 0.2, ease: "power2.in" });
+    gsap.to(backdropRef.current, {
+      opacity: 0, duration: 0.2, delay: 0.05,
+      onComplete: onClose
+    });
+  };
+
+  const handleBookNow = () => {
+    if (onBookNow) onBookNow(service);
+  };
+
+  if (!service) return null;
+
+  return (
+    <div
+      ref={backdropRef}
+      onClick={handleClose}
+      className="fixed inset-0 z-50 bg-[#0a1a08]/70 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div
+        ref={modalRef}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-[2.5rem] shadow-2xl max-w-lg w-full overflow-hidden border border-[#397234]/10 max-h-[90vh] overflow-y-auto"
+      >
+        <div className={`h-44 bg-gradient-to-br ${service.gradient} relative`}>
+          <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
+          <button
+            onClick={handleClose}
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center text-lg font-bold transition-colors"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="p-8">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-2xl bg-[#D6E9CA] w-10 h-10 flex items-center justify-center rounded-full border border-[#397234]/20">{service.icon}</span>
+            <h3 className="font-black text-[#244c21] text-xl uppercase tracking-tight">{service.name}</h3>
+          </div>
+
+          <p className="text-[#397234] font-black text-lg mb-4">{service.price}</p>
+
+          <p className="text-[#244c21]/70 text-sm mb-6 font-bold leading-relaxed">{service.description}</p>
+
+          <div className="space-y-3 mb-8">
+            {service.details.map((d, i) => (
+              <div key={i} className="flex justify-between items-start gap-4 border-b border-[#397234]/10 pb-2 last:border-0">
+                <span className="text-[10px] font-black text-[#397234] uppercase tracking-widest shrink-0">{d.label}</span>
+                <span className="text-xs font-bold text-[#244c21]/80 text-right">{d.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={handleClose}
+              className="flex-1 py-4 bg-[#D6E9CA] text-[#244c21] rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-[#397234]/20 hover:bg-[#f0f0f0] transition-all duration-300"
+            >
+              Close
+            </button>
+            <button
+              onClick={handleBookNow}
+              className="flex-1 py-4 bg-[#244c21] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#397234] transition-all duration-300"
+            >
+              Book Now
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -139,6 +262,9 @@ function ServiceCard({ service, index }) {
     MAIN COMPONENT
 ───────────────────────────────────────── */
 export default function Services() {
+  const [selectedService, setSelectedService] = useState(null);
+  const { openBooking, openChatbot } = useAppUI();
+
   return (
     <div className="bg-[#244c21] min-h-screen selection:bg-[#397234] selection:text-white">
       <Navbar />
@@ -218,7 +344,7 @@ export default function Services() {
                 key={s.id}
                 className={`w-full ${i % 2 !== 0 ? 'sm:mt-12 lg:mt-24' : 'sm:mt-0'}`}
               >
-                <ServiceCard service={s} index={i} />
+                <ServiceCard service={s} index={i} onViewDetails={setSelectedService} />
               </div>
             ))}
           </div>
@@ -240,7 +366,10 @@ export default function Services() {
             <p className="text-green-100/60 leading-relaxed mb-8 font-bold text-sm">
               Need help? Our AI assistant is available 24/7 for instant scheduling, route queries, and waste categorization.
             </p>
-            <button className="bg-[#D6E9CA] text-[#244c21] px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-transform border border-[#397234]/20 shadow-xl">
+            <button
+              onClick={openChatbot}
+              className="bg-[#D6E9CA] text-[#244c21] px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-transform border border-[#397234]/20 shadow-xl"
+            >
               Launch Assistant
             </button>
           </div>
@@ -272,13 +401,24 @@ export default function Services() {
           <p className="text-[#397234]/60 text-base mb-10 font-bold">
             Join the smart waste revolution in Sri Lanka today.
           </p>
-          <button className="bg-[#244c21] text-white px-12 py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-[#397234] transition-all transform hover:-translate-y-1">
+          <button
+            onClick={() => openBooking()}
+            className="bg-[#244c21] text-white px-12 py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-[#397234] transition-all transform hover:-translate-y-1"
+          >
             Book Your First Collection
           </button>
         </div>
       </section>
 
       <Footer/>
+
+      {selectedService && (
+        <ServiceModal
+          service={selectedService}
+          onClose={() => setSelectedService(null)}
+          onBookNow={openBooking}
+        />
+      )}
     </div>
   );
 }

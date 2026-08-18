@@ -86,12 +86,18 @@ function ChatBubble({ role, text }) {
 
 /* ═══════════════════════════════════════════════════════
    MAIN CHATBOT WIDGET
+   `isOpen` / `setIsOpen` are optional — if not passed in,
+   the widget falls back to managing its own local state,
+   so it still works if rendered without a parent controlling it.
    ═══════════════════════════════════════════════════════ */
-export default function ChatbotWidget({ onOpenBooking }) {
+export default function ChatbotWidget({ onOpenBooking, isOpen, setIsOpen }) {
   const { user, isSignedIn } = useUser();
   const navigate = useNavigate();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = isOpen !== undefined ? isOpen : localOpen;
+  const setOpen = setIsOpen || setLocalOpen;
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -109,10 +115,10 @@ export default function ChatbotWidget({ onOpenBooking }) {
 
   /* ── Focus input when opened ── */
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    if (open && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 300);
     }
-  }, [isOpen]);
+  }, [open]);
 
   /* ── Handle action tags from bot response ── */
   const handleAction = useCallback(
@@ -248,10 +254,10 @@ export default function ChatbotWidget({ onOpenBooking }) {
       `}</style>
 
       {/* ── Floating chat button ── */}
-      {!isOpen && (
+      {!open && (
         <button
           id="ecobot-toggle"
-          onClick={() => setIsOpen(true)}
+          onClick={() => setOpen(true)}
           aria-label="Open EcoBot chat"
           style={{
             position: "fixed",
@@ -281,7 +287,7 @@ export default function ChatbotWidget({ onOpenBooking }) {
       )}
 
       {/* ── Chat panel ── */}
-      {isOpen && (
+      {open && (
         <div
           id="ecobot-panel"
           style={{
@@ -347,7 +353,7 @@ export default function ChatbotWidget({ onOpenBooking }) {
               </div>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => setOpen(false)}
               aria-label="Close chat"
               style={{
                 background: "rgba(255,255,255,0.15)",
