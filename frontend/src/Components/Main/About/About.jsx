@@ -226,7 +226,7 @@ export default function About() {
       {/* ══════════════════════════════
           HERO — matches Home hero style
       ══════════════════════════════ */}
-      <div className="bg-[#397234] text-white py-24 px-4">
+      <div className="bg-[#397234] text-white pt-32 pb-24 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl font-black mb-4 tracking-tighter">About Ecofy</h1>
           <p className="text-xl text-green-100 font-bold opacity-80">

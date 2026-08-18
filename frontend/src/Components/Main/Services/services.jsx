@@ -179,7 +179,7 @@ export default function Services() {
       <section className="bg-[#397234] text-white pt-32 pb-24 px-6 relative overflow-hidden">
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h1 className="text-5xl  font-black mb-4 tracking-tighter">
-            Our <span className="text-[#D6E9CA]">Services</span>
+            Our Services
           </h1>
           <p className="text-xl text-green-100 font-bold opacity-80 max-w-2xl mx-auto mb-12">
             Sri Lanka's first fully integrated smart waste collection platform, designed for reliability and transparency.
