@@ -32,15 +32,16 @@ const Footer = () => {
           </ul>
         </div>
 
-        {/* Company Column */}
+        {/* Quick Links Column */}
         <div>
-          <h4 className="text-sm font-bold text-black mb-4">Company</h4>
+          <h4 className="text-sm font-bold text-black mb-4">Quick Links</h4>
           <ul className="space-y-3">
             {[
-              { label: 'About Us', href: '/about' },
-              { label: 'Our Journey', href: '/about#journey' },
-              { label: 'Careers', href: '#' },
-              { label: 'Press Kit', href: '#' },
+              { label: 'Home', href: '/' },
+              { label: 'About', href: '/about' },
+              { label: 'Services', href: '/services' },
+              { label: 'Blogs', href: '/blogs' },
+              { label: 'Contact Us', href: '/contact' },
             ].map((item) => (
               <li key={item.label}>
                 <a href={item.href} className="text-sm text-gray-600 hover:text-black transition-colors">
@@ -74,10 +75,9 @@ const Footer = () => {
 
       </div>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-gray-100 py-5 flex flex-col md:flex-row justify-between items-center gap-3 text-sm text-gray-500 text-center">
+      {/* Bottom Bar (Centered Copyright & Links) */}
+      <div className="border-t border-gray-100 py-5 flex flex-col justify-center items-center gap-2 text-sm text-gray-500 text-center">
         <p>© 2026 Ecofy Waste Management. All rights reserved.</p>
-        <a href="#" className="hover:text-black transition-colors">Privacy Policy</a>
       </div>
 
     </footer>
