@@ -19,7 +19,7 @@ export const fetchPublishedBlogPosts = async () => {
 export const fetchBlogPostById = async (id) => {
   try {
     const response = await fetch(`${API_BASE_URL}/blog/${encodeURIComponent(id)}`);
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || `Failed to fetch blog post (${response.status})`);
@@ -27,12 +27,12 @@ export const fetchBlogPostById = async (id) => {
 
     const data = await response.json();
     console.log('Blog post response:', data);
-    
+
     // Backend returns post object directly
     if (data._id) {
       return data;
     }
-    
+
     // Fallback for wrapped responses
     return data.post || (Array.isArray(data.posts) ? data.posts[0] : data);
   } catch (error) {

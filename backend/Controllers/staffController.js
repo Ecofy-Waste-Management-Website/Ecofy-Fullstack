@@ -8,8 +8,8 @@ const getStaffProfile = async (req, res) => {
   try {
     const { clerkId } = req.params;
     const staff =
-      (await User.findOne({ clerkId, role: "Staff" })) ||
-      (await LegacyUser.findOne({ clerkId, role: "Staff" }));
+      (await User.findOne({ clerkId, role: "Staff" }).lean()) ||
+      (await LegacyUser.findOne({ clerkId, role: "Staff" }).lean());
 
     if (!staff) {
       return res.status(404).json({ message: "Staff member not found" });
@@ -31,10 +31,16 @@ const getAssignedTasks = async (req, res) => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
+    // Allow tasks where assignedStaff is either the clerkId or the staff display name
+    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' }).lean()) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }).lean());
+    const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
+
+    const matchAssigned = staffName ? { $in: [clerkId, staffName] } : clerkId;
+
     const tasks = await ServiceRequest.find({
-      assignedStaff: clerkId,
+      assignedStaff: matchAssigned,
       scheduled_date: { $gte: today, $lt: tomorrow },
-    }).sort({ scheduled_date: 1 });
+    }).sort({ scheduled_date: 1 }).lean();
 
     res.status(200).json({
       message: "Tasks fetched successfully",
@@ -51,10 +57,14 @@ const getAssignedTasks = async (req, res) => {
 const getActiveTasks = async (req, res) => {
   try {
     const { clerkId } = req.params;
+    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' }).lean()) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }).lean());
+    const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
+    const matchAssigned = staffName ? { $in: [clerkId, staffName] } : clerkId;
+
     const tasks = await ServiceRequest.find({
-      assignedStaff: clerkId,
+      assignedStaff: matchAssigned,
       status: { $in: ["Pending", "Assigned", "In Progress", "En Route"] },
-    }).sort({ scheduled_date: 1 });
+    }).sort({ scheduled_date: 1 }).lean();
 
     res.status(200).json({
       message: "Active tasks fetched",
@@ -71,10 +81,14 @@ const getActiveTasks = async (req, res) => {
 const getCompletedTasks = async (req, res) => {
   try {
     const { clerkId } = req.params;
+    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' }).lean()) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }).lean());
+    const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
+    const matchAssigned = staffName ? { $in: [clerkId, staffName] } : clerkId;
+
     const tasks = await ServiceRequest.find({
-      assignedStaff: clerkId,
+      assignedStaff: matchAssigned,
       status: "Completed",
-    }).sort({ scheduled_date: -1 });
+    }).sort({ scheduled_date: -1 }).lean();
 
     res.status(200).json({
       message: "Completed tasks fetched",
@@ -111,14 +125,33 @@ const updateTaskStatus = async (req, res) => {
     }
 
     // ── Find task and verify ownership ───────────────
-    const task = await ServiceRequest.findOne({
-      _id: taskId,
-      assignedStaff: clerkId,
-    });
+    // Allow ownership if assignedStaff stored as clerkId or as the staff's display name
+    const staffRecord = (await User.findOne({ clerkId, role: 'Staff' })) || (await LegacyUser.findOne({ clerkId, role: 'Staff' }));
+    const staffName = staffRecord ? `${staffRecord.firstName || ''} ${staffRecord.lastName || ''}`.trim() : null;
+
+    const task = await ServiceRequest.findById(taskId);
 
     if (!task) {
-      return res.status(404).json({
-        message: "Task not found or not assigned to you",
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    const isAssignedToCurrentStaff =
+      task.assignedStaff === clerkId ||
+      (staffName && task.assignedStaff === staffName);
+
+    if (task.assignedStaff && !isAssignedToCurrentStaff) {
+      return res.status(403).json({
+        message: "Task is assigned to another staff member",
+      });
+    }
+
+    // Auto-claim unassigned orders when a staff member accepts/updates them.
+    // This keeps manual assignment optional while preserving ownership checks.
+    if (!task.assignedStaff && status !== "Pending") {
+      task.assignedStaff = clerkId;
+      task.timeline.push({
+        event: `Task claimed by ${staffName || clerkId}`,
+        time: new Date(),
       });
     }
 

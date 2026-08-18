@@ -8,7 +8,7 @@ const HeroPanel = () => {
       <div className="absolute inset-0 w-full h-full pointer-events-none -z-10 bg-[#040D07]">
         {/* Soft radial glow at top */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#184523] via-[#040D07] to-transparent blur-3xl opacity-80"></div>
-        
+
         {/* Floating blurred green shapes */}
         <div className="absolute -top-32 -left-20 w-[500px] h-[500px] bg-[#66c45e]/10 rounded-full blur-[120px] animate-pulse"></div>
         <div className="absolute bottom-10 -right-20 w-[600px] h-[600px] bg-[#244c21]/30 rounded-full blur-[150px] animate-[pulse_6s_cubic-bezier(0.4,0,0.6,1)_infinite]"></div>
@@ -16,10 +16,10 @@ const HeroPanel = () => {
 
       {/* Main Content Container */}
       <div className="max-w-7xl mx-auto w-full px-6 lg:px-12 py-20 flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-8 z-10">
-        
+
         {/* Left Side: Typography & CTAs */}
         <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left w-full">
-          
+
           {/* Premium Badge */}
           <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-md mb-8 shadow-2xl hover:bg-white/[0.06] transition-colors duration-300 cursor-default group">
             <span className="w-2 h-2 rounded-full bg-[#66c45e] shadow-[0_0_10px_#66c45e] animate-pulse"></span>
@@ -43,14 +43,14 @@ const HeroPanel = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center gap-5 w-full sm:w-auto">
-            <a 
-              href="/dashboard" 
+            <a
+              href="/dashboard"
               className="w-full sm:w-auto bg-gradient-to-r from-[#4ca545] to-[#66c45e] hover:from-[#58b750] hover:to-[#78d66e] text-[#041208] px-8 py-4 rounded-full font-extrabold text-lg flex items-center justify-center gap-3 transition-all duration-300 shadow-[0_10px_30px_rgba(102,196,94,0.2)] hover:shadow-[0_15px_40px_rgba(102,196,94,0.4)] hover:-translate-y-1 active:scale-95"
             >
               Open Dashboard <ArrowRight className="w-5 h-5" />
             </a>
-            <a 
-              href="/blogs" 
+            <a
+              href="/blogs"
               className="w-full sm:w-auto text-white hover:text-[#66c45e] flex items-center justify-center gap-3 font-bold text-lg px-8 py-4 border border-white/10 rounded-full transition-all duration-300 bg-white/5 hover:bg-white/10 backdrop-blur-md shadow-xl hover:-translate-y-1 active:scale-95"
             >
               <PlayCircle className="w-5 h-5" /> Read Blogs
@@ -61,13 +61,13 @@ const HeroPanel = () => {
         {/* Right Side: HTML/CSS Product Mockup (Hidden on mobile for better focus) */}
         <div className="flex-1 w-full max-w-lg lg:max-w-none relative z-10 hidden md:block mt-10 lg:mt-0">
           <div className="relative w-full aspect-square flex items-center justify-center">
-            
+
             {/* Core Glow behind UI */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-gradient-to-tr from-[#184523] to-[#66c45e] rounded-full blur-[100px] opacity-20 -z-10 animate-pulse"></div>
 
             {/* Central Dashboard Card */}
             <div className="absolute z-20 w-[90%] max-w-md bg-[#0a1710]/90 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-7 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-700 hover:-translate-y-3 group cursor-default">
-              
+
               {/* Card Header */}
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
@@ -84,7 +84,7 @@ const HeroPanel = () => {
                   Live
                 </div>
               </div>
-              
+
               {/* Bar Chart Mockup */}
               <div className="w-full h-36 flex items-end justify-between gap-2 mb-8">
                 {[45, 75, 55, 95, 65, 85, 100].map((height, i) => (
@@ -110,7 +110,7 @@ const HeroPanel = () => {
             </div>
 
             {/* Floating Mini Card 1: Active Pickup */}
-            <div 
+            <div
               className="absolute -left-8 top-16 z-30 bg-[#0a1710]/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-[0_15px_30px_rgba(0,0,0,0.4)] transition-all duration-500 hover:scale-105 hover:-translate-y-2"
               style={{ animation: 'float 6s ease-in-out infinite' }}
             >
@@ -126,7 +126,7 @@ const HeroPanel = () => {
             </div>
 
             {/* Floating Mini Card 2: Impact Score */}
-            <div 
+            <div
               className="absolute -right-6 bottom-20 z-30 bg-[#0a1710]/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-[0_15px_30px_rgba(0,0,0,0.4)] transition-all duration-500 hover:scale-105 hover:-translate-y-2"
               style={{ animation: 'float 7s ease-in-out infinite reverse' }}
             >

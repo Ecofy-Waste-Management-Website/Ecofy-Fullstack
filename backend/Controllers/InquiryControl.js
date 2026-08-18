@@ -20,8 +20,9 @@ const createInquiry = async (req, res) => {
       message,
     });
 
+    // Admin notification
     await Notification.create({
-      clerkId: "",                          
+      clerkId: "",
       title: "New Inquiry Received",
       message: `${userName} submitted an inquiry: "${subject || "General Inquiry"}"`,
       type: "Info",
@@ -29,7 +30,17 @@ const createInquiry = async (req, res) => {
       isRead: false,
     });
 
-    const staffUsers = await User.find({ role: "Staff" }).select("clerkId");
+    // Staff broadcast notification — fixed: use `inquiry` not `newInquiry`
+    await Notification.create({
+      clerkId: "",
+      target: "staff",
+      title: "New Inquiry Received",
+      message: `${inquiry.userName} submitted an inquiry: "${inquiry.subject || "General Inquiry"}"`,
+      isRead: false,
+    });
+
+    // ⚡ Bolt Optimization: Use .lean() for read-only query to bypass document hydration
+    const staffUsers = await User.find({ role: "Staff" }).select("clerkId").lean();
     const staffNotifications = staffUsers
       .filter((s) => s.clerkId)
       .map((s) => ({
@@ -57,7 +68,7 @@ const createInquiry = async (req, res) => {
 
 const getAllInquiries = async (_req, res) => {
   try {
-    const inquiries = await Inquiry.find().sort({ createdAt: -1 });
+    const inquiries = await Inquiry.find().sort({ createdAt: -1 }).lean();
     return res.status(200).json({ inquiries });
   } catch (error) {
     console.error("Error fetching inquiries:", error);
@@ -93,7 +104,9 @@ const replyToInquiry = async (req, res) => {
     let notificationClerkId = updatedInquiry.clerkId || "";
 
     if (!notificationClerkId && updatedInquiry.userEmail) {
-      const matchedUser = await User.findOne({ email: updatedInquiry.userEmail.toLowerCase() });
+      const matchedUser = await User.findOne({
+        email: updatedInquiry.userEmail.toLowerCase(),
+      });
       notificationClerkId = matchedUser?.clerkId || "";
     }
 

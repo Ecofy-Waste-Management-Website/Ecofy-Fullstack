@@ -142,7 +142,7 @@ function ServiceHistory() {
   }, [selectedItem, selectedRaw]);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #F5FBF6 0%, #EDF7EE 100%)', padding: '32px 20px 48px', fontFamily: "'Red Hat Display', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #F5FBF6 0%, #EDF7EE 100%)', padding: '120px 20px 48px', fontFamily: "'Red Hat Display', sans-serif" }}>
       <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
         <div style={{ marginBottom: '24px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '16px', alignItems: 'end' }}>
           <div>

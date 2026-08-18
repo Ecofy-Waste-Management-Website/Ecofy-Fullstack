@@ -4,9 +4,11 @@ const ServiceHistory = require("../Model/ServiceHistoryModel");
 const getServiceHistory = async (req, res) => {
   try {
     const { clerkId } = req.params;
+    // ⚡ Bolt Optimization: Use .lean() for read-only query to bypass document hydration
     const records = await ServiceHistory.find({ clerkId})
       .sort({ scheduledDate: -1 })
-      .select("-__v");
+      .select("-__v")
+      .lean();
 
     res.status(200).json({
       message: "Service history fetched successfully",

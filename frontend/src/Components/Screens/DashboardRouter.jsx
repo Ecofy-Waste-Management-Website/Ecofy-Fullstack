@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from "@clerk/clerk-react";
 import Dashboard from './Dashboard';
-import Navbar from '../Main/Top-Header-Section/navbar/navbar';
-import Footer from '../Main/Footer/footer';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -13,7 +11,6 @@ export default function DashboardRouter() {
 
   useEffect(() => {
     if (!isLoaded || !user) return;
-
     const fetchUserRole = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/users/${user.id}`);
@@ -23,13 +20,12 @@ export default function DashboardRouter() {
         } else {
           setRole('Customer');
         }
-      } catch (err) {
+      } catch {
         setRole('Customer');
       } finally {
         setLoading(false);
       }
     };
-
     fetchUserRole();
   }, [user, isLoaded]);
 
@@ -46,12 +42,7 @@ export default function DashboardRouter() {
 
   return (
     <div className="min-h-screen bg-green-50">
-      <Navbar />
-      {/* pt-28 = 24px (navbar top-6) + 64px (navbar h-16) + 16px breathing room */}
-      <div className="pt-28">
-        <Dashboard />
-      </div>
-      <Footer />
+      <Dashboard />
     </div>
   );
 }

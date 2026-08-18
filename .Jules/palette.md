@@ -1,3 +1,3 @@
-## 2024-05-16 - Contact Form Accessibility and Feedback
-**Learning:** Standard React components often lack basic semantic HTML properties. Adding `htmlFor` on labels and `id` on inputs, along with wrapping them in a `<form>`, enables screen reader associations and 'Enter' to submit. Providing visual feedback (`isSubmitting`) prevents multi-click submissions and improves user experience.
-**Action:** Always ensure that form inputs have correctly associated labels and that long-running tasks have an explicit loading state to provide visual feedback.
+## 2026-07-06 - [Mobile Navigation Accessibility]
+**Learning:** Icon-only navigation toggles in mobile views are often overlooked for screen reader accessibility and keyboard focus states, even when the rest of the application is well-structured.
+**Action:** Always verify that responsive UI elements (like hamburger menus) have explicit `aria-label` attributes and clear `focus-visible` states, as they are a primary interaction point for mobile keyboard/screen reader users.

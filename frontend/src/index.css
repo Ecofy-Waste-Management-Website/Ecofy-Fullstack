@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 * {
@@ -7,8 +8,10 @@
 body {
   background-color: #000000; /* Pure black, just like EatNaked */
   color: #ffffff; /* Default text to white */
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', sans-serif;
 }
+
+/* ── Animations ───────────────────────────────── */
 
 @keyframes wobble-float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -39,7 +42,8 @@ body {
   transform-origin: center center;
 }
 
-/* Smooth custom scrollbar */
+/* ── Custom Scrollbar ───────────────────────────────── */
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -56,6 +60,8 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #0f3d1a;
 }
+
+/* ── Eco Loader Animations ───────────────────────────────── */
 
 @keyframes eco-loader-float {
   0%, 100% { transform: translateY(0) rotate(-18deg); }
