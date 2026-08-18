@@ -9,12 +9,21 @@ import householdImg from '../../../assets/Household waste.jpg';
 import commercialImg from '../../../assets/Commercial Waste.jpg';
 import bulkImg from '../../../assets/Bulk Collection.jpg';
 import drainImg from '../../../assets/Drain Cleaning.jpg';
+import gardenImg from '../../../assets/Garden Waste.jpg';
 
 gsap.registerPlugin(ScrollTrigger);
 
 /* ─────────────────────────────────────────
-    DATA
+    DATA & LAYOUT CONFIG
 ───────────────────────────────────────── */
+const SERVICE_GRID_POSITIONS = [
+  'lg:col-span-2',                // Row 1, Item 1 (Cols 1-2)
+  'lg:col-span-2',                // Row 1, Item 2 (Cols 3-4)
+  'lg:col-span-2',                // Row 1, Item 3 (Cols 5-6)
+  'lg:col-span-2 lg:col-start-2', // Row 2, Item 1 (Cols 2-3 - Centered)
+  'lg:col-span-2 lg:col-start-4'  // Row 2, Item 2 (Cols 4-5 - Centered)
+];
+
 const services = [
   {
     id: 1,
@@ -24,7 +33,7 @@ const services = [
     features: ['Weekly pickup', 'Standard bins'],
     image: householdImg,
     gradient: 'from-[#397234] to-[#244c21]',
-    price: 'Rs. 1,500 / month',
+    price: 'Rs. 1,500 / pickup',
     details: [
       { label: 'Pickup Frequency', value: 'Weekly (1x per week)' },
       { label: 'Bin Size', value: 'Standard 120L bin included' },
@@ -40,7 +49,7 @@ const services = [
     features: ['Custom schedule', 'Priority support'],
     image: commercialImg,
     gradient: 'from-[#1e3a5f] to-[#244c21]',
-    price: 'From Rs. 5,000 / month',
+    price: 'From Rs. 3,500 / pickup',
     details: [
       { label: 'Pickup Frequency', value: 'Daily, alternate-day, or custom' },
       { label: 'Bin Size', value: '240L–1100L options available' },
@@ -56,7 +65,7 @@ const services = [
     features: ['Heavy items', 'Same-day available'],
     image: bulkImg,
     gradient: 'from-[#8B4513] to-[#244c21]',
-    price: 'From Rs. 3,000 / pickup',
+    price: 'From Rs. 2,500 / pickup',
     details: [
       { label: 'Item Types', value: 'Furniture, appliances, construction debris' },
       { label: 'Turnaround', value: 'Same-day available (subject to slots)' },
@@ -72,12 +81,28 @@ const services = [
     features: ['24/7 emergency', 'Hydro jetting'],
     image: drainImg,
     gradient: 'from-[#4a154b] to-[#244c21]',
-    price: 'From Rs. 4,000 / visit',
+    price: 'From Rs. 2,000 / visit',
     details: [
       { label: 'Service Type', value: 'Hydro jetting & manual unblocking' },
       { label: 'Availability', value: '24/7 emergency callout' },
       { label: 'Response Time', value: 'Within 2 hours (emergency)' },
       { label: 'Warranty', value: '30-day service guarantee' },
+    ]
+  },
+  {
+    id: 5,
+    name: 'Garden Waste Collection',
+    icon: '🌿',
+    description: 'Collection of leaves, branches, grass clippings, and other green waste from your garden.',
+    features: ['Bi-weekly pickup', 'Eco-friendly disposal'],
+    image: gardenImg,
+    gradient: 'from-[#5a7d2c] to-[#244c21]',
+    price: 'Rs. 1,800 / pickup',
+    details: [
+      { label: 'Pickup Frequency', value: 'Bi-weekly (every 2 weeks)' },
+      { label: 'Accepted Items', value: 'Leaves, branches, grass, hedge trimmings' },
+      { label: 'Disposal Method', value: 'Composted or mulched, zero landfill' },
+      { label: 'Booking', value: 'Subscription or one-time pickup available' },
     ]
   }
 ];
@@ -138,17 +163,17 @@ function ServiceCard({ service, index, onViewDetails }) {
 
   return (
     <div ref={cardRef} className="relative w-full group">
-      <div className="bg-white/70 backdrop-blur-md rounded-[2.5rem] shadow-xl overflow-hidden border border-[#397234]/10 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+      <div className="bg-white/70 backdrop-blur-md rounded-[2.5rem] shadow-xl overflow-hidden border border-[#397234]/10 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 h-full flex flex-col">
         <div className={`h-40 bg-gradient-to-br ${service.gradient} relative overflow-hidden opacity-90 group-hover:opacity-100 transition-opacity`}>
            <img src={service.image} alt={service.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
         </div>
-        <div className="p-8">
+        <div className="p-8 flex flex-col flex-1">
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-2xl bg-[#D6E9CA] w-10 h-10 flex items-center justify-center rounded-full border border-[#397234]/20">{service.icon}</span>
+            <span className="text-2xl bg-[#D6E9CA] w-10 h-10 flex items-center justify-center rounded-full border border-[#397234]/20 shrink-0">{service.icon}</span>
             <h3 className="font-black text-[#244c21] text-lg uppercase tracking-tight">{service.name}</h3>
           </div>
           <p className="text-[#244c21]/70 text-sm mb-6 font-bold leading-relaxed line-clamp-2">{service.description}</p>
-          <div className="space-y-2 mb-8">
+          <div className="space-y-2 mb-8 flex-1">
             {service.features.map((f, i) => (
               <div key={i} className="flex items-center text-[10px] font-black text-[#397234] uppercase tracking-widest">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#397234] mr-2 shadow-sm" /> {f}
@@ -305,7 +330,7 @@ export default function Services() {
       {/* SECTION 1: HERO */}
       <section className="bg-[#397234] text-white pt-32 pb-24 px-6 relative overflow-hidden">
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h1 className="text-5xl  font-black mb-4 tracking-tighter">
+          <h1 className="text-5xl font-black mb-4 tracking-tighter">
             Our Services
           </h1>
           <p className="text-xl text-green-100 font-bold opacity-80 max-w-2xl mx-auto mb-12">
@@ -331,6 +356,7 @@ export default function Services() {
         <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#244c21] rounded-full blur-[100px] opacity-40" />
       </section>
 
+      {/* SECTION 2: SERVICE CARDS */}
       <section className="bg-[#D6E9CA] py-24 px-6 relative">
         <div className="max-w-7xl mx-auto">
           <div className="mb-20 text-center">
@@ -338,11 +364,11 @@ export default function Services() {
             <h2 className="text-4xl md:text-5xl font-black text-[#244c21] tracking-tighter uppercase">Tailored for you</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-10">
             {services.map((s, i) => (
               <div
                 key={s.id}
-                className={`w-full ${i % 2 !== 0 ? 'sm:mt-12 lg:mt-24' : 'sm:mt-0'}`}
+                className={`w-full ${SERVICE_GRID_POSITIONS[i] || ''}`}
               >
                 <ServiceCard service={s} index={i} onViewDetails={setSelectedService} />
               </div>
