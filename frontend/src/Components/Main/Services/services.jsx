@@ -105,7 +105,7 @@ function ServiceCard({ service, index }) {
     <div ref={cardRef} className="relative w-full group">
       <div className="bg-white/70 backdrop-blur-md rounded-[2.5rem] shadow-xl overflow-hidden border border-[#397234]/10 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
         <div className={`h-40 bg-gradient-to-br ${service.gradient} relative overflow-hidden opacity-90 group-hover:opacity-100 transition-opacity`}>
-           <img src={service.image} alt={service.name} className="w-full h-full object-contain p-6 transform group-hover:scale-110 transition-transform duration-700" />
+          <img src={service.image} alt={service.name} className="w-full h-full object-contain p-6 transform group-hover:scale-110 transition-transform duration-700" />
         </div>
         <div className="p-8">
           <div className="flex items-center gap-3 mb-4">
@@ -271,7 +271,7 @@ export default function Services() {
           </button>
         </div>
       </section>
-       <footer className="w-full border-t border-slate-200 bg-white py-8 text-center mt-auto">
+      <footer className="w-full border-t border-slate-200 bg-white py-8 text-center mt-auto">
         <p className="text-sm font-medium text-slate-500">
           © 2026 Ecofy. Made with 💚 for a cleaner Sri Lanka.
         </p>
