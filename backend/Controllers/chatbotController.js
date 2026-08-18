@@ -39,7 +39,11 @@ Pending → Assigned → In Progress → En Route → Completed (or Delayed)
 ## What You Can Do
 1. **Answer questions** about Ecofy services, pricing, and how things work.
 2. **Guide users through booking** — recommend the right service type based on their description. When a user wants to book, respond naturally AND include the JSON action tag.
-3. **Triage complaints** — if a user reports a problem (late pickup, missing collection, damaged property, etc.), empathise first, then offer to file a formal inquiry. Include the inquiry action tag.
+3. **Triage complaints** — if a user reports a problem (late pickup, missing collection, damaged property, etc.):
+   - On the FIRST message where they mention a problem, do NOT include the inquiry action tag yet. Empathise, and ask them to describe what happened (which pickup/order, what went wrong, when it occurred). Wait for their reply.
+   - Only AFTER the user has given real details in a follow-up message should you include the CREATE_INQUIRY action tag — and the "subject" and "message" fields must be written from what the user actually told you, never generic placeholder text.
+   - If the user's follow-up is still too vague to write a real subject/message, ask one more clarifying question instead of firing the action tag.
+   - Once you do include the action tag, briefly confirm in your reply that you're filing it now (e.g. "Thanks, I've logged this for the team.").
 4. **Track status** — if a user asks about their pickup status, direct them to the tracking feature.
 5. **General waste management tips** — recycling guidance, waste reduction, environmental awareness.
 
@@ -57,9 +61,9 @@ To navigate the user to a page:
 \`\`\`
 Valid targets: /service-history, /payment-history, /notifications, /contact, /about, /blogs
 
-To auto-create a complaint inquiry:
+To auto-create a complaint inquiry (ONLY after the user has provided real details — see Triage complaints above):
 \`\`\`action
-{"action": "CREATE_INQUIRY", "subject": "Brief subject", "message": "Detailed description of the issue"}
+{"action": "CREATE_INQUIRY", "subject": "Brief subject based on what the user said", "message": "Detailed description of the issue, based on what the user said"}
 \`\`\`
 
 ## Rules
@@ -67,10 +71,11 @@ To auto-create a complaint inquiry:
 - NEVER share pricing that differs from the table above.
 - If a question is completely unrelated to waste management or Ecofy, politely redirect.
 - Do NOT include action tags unless the user has clearly expressed intent to perform that action.
+- For CREATE_INQUIRY specifically: do NOT include the action tag until the user has described what actually happened. Asking for details and filing the inquiry must never happen in the same message.
 - Respond in the same language the user writes in (English or Sinhala or Tamil).
 `;
 
-const buildFallbackReply = (message) => {
+const buildFallbackReply = (message, conversationHistory = []) => {
   const normalized = String(message || "").toLowerCase();
 
   if (normalized.includes("price") || normalized.includes("pricing") || normalized.includes("service fees")) {
@@ -81,21 +86,44 @@ const buildFallbackReply = (message) => {
     };
   }
 
-  if (
-    normalized.includes("report") ||
-    normalized.includes("problem") ||
-    normalized.includes("issue") ||
-    normalized.includes("complaint") ||
-    normalized.includes("late pickup") ||
-    normalized.includes("damaged")
-  ) {
+  const complaintKeywords = [
+    "report",
+    "problem",
+    "issue",
+    "complaint",
+    "late pickup",
+    "damaged",
+  ];
+  const mentionsComplaint = complaintKeywords.some((kw) => normalized.includes(kw));
+
+  // Was a complaint already raised earlier in this conversation? If so, this
+  // message is likely the user's follow-up with the actual details.
+  const complaintAlreadyAsked = (conversationHistory || []).some(
+    (turn) =>
+      turn &&
+      turn.role === "model" &&
+      typeof turn.text === "string" &&
+      /share a few details|tell me more about the problem|describe what happened/i.test(turn.text)
+  );
+
+  if (mentionsComplaint && !complaintAlreadyAsked) {
+    // First mention of a problem — ask for details, do NOT file yet.
     return {
       reply:
-        "I’m sorry about that. Please share a few details about the pickup issue, and I’ll help you raise it with the team.",
+        "I’m sorry about that. Please share a few details about the pickup issue — which pickup, what went wrong, and when — and I’ll raise it with the team.",
+      action: null,
+    };
+  }
+
+  if (complaintAlreadyAsked) {
+    // Follow-up message — the user should now have provided the actual details.
+    return {
+      reply:
+        "Thanks for the details — I've logged this with our team, they'll follow up shortly.",
       action: {
         action: "CREATE_INQUIRY",
         subject: "Pickup issue reported via chatbot",
-        message: "The user reported a pickup problem and needs follow-up from the Ecofy team.",
+        message: message,
       },
     };
   }
@@ -264,7 +292,8 @@ const chatMessage = async (req, res) => {
         }
         return res.status(200).json({ reply: retryReply, action: retryAction });
       } catch {
-        const fallback = buildFallbackReply(req.body?.message || "");
+        const { message: fallbackMessage, conversationHistory: fallbackHistory = [] } = req.body || {};
+        const fallback = buildFallbackReply(fallbackMessage || "", fallbackHistory);
         return res.status(200).json({
           reply: fallback.reply,
           action: fallback.action,
@@ -272,7 +301,8 @@ const chatMessage = async (req, res) => {
       }
     }
 
-    const fallback = buildFallbackReply(req.body?.message || "");
+    const { message: fallbackMessage, conversationHistory: fallbackHistory = [] } = req.body || {};
+    const fallback = buildFallbackReply(fallbackMessage || "", fallbackHistory);
 
     return res.status(200).json({
       reply: fallback.reply,
@@ -305,4 +335,3 @@ const getSessionById = async (req, res) => {
 };
 
 module.exports = { chatMessage, getSessions, getSessionById };
-
