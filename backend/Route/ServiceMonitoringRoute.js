@@ -31,9 +31,9 @@ async function buildStaffDirectory() {
 
 function resolveAssignedStaff(directory, value) {
   if (!value) return null;
-  if (directory.has(value)) {
+  if (directory && typeof directory.has === "function" && directory.has(value)) {
     const found = directory.get(value);
-    if (found.label && !found.label.startsWith("user_")) {
+    if (found && found.label && !found.label.startsWith("user_")) {
       return found;
     }
   }
@@ -57,10 +57,13 @@ function broadcast(req, payload) {
 
 // ── Map DB document → frontend shape ─────────────────────────────────────────
 // Keeps the frontend free from knowing internal field names.
-function toFrontend(doc, staffDirectory = new Map()) {
+function toFrontend(doc, staffDirectory) {
   if (!doc) return {};
+  const validDirectory = (staffDirectory && typeof staffDirectory.has === "function") 
+    ? staffDirectory 
+    : new Map();
   const assignedStaff = doc.assignedStaff || null;
-  const resolvedStaff = resolveAssignedStaff(staffDirectory, assignedStaff);
+  const resolvedStaff = resolveAssignedStaff(validDirectory, assignedStaff);
   const docIdStr = doc._id ? doc._id.toString() : String(Math.random());
 
   return {
@@ -110,8 +113,9 @@ router.get("/", async (req, res) => {
       ];
     }
 
+    const staffDirectory = await buildStaffDirectory();
     const docs = await ServiceRequest.find(filter).sort({ createdAt: -1 });
-    res.json({ success: true, data: docs.map(toFrontend) });
+    res.json({ success: true, data: docs.map(doc => toFrontend(doc, staffDirectory)) });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -146,7 +150,8 @@ router.get("/:id", async (req, res) => {
   try {
     const doc = await ServiceRequest.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: "Not found" });
-    res.json({ success: true, data: toFrontend(doc) });
+    const staffDirectory = await buildStaffDirectory();
+    res.json({ success: true, data: toFrontend(doc, staffDirectory) });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -175,7 +180,8 @@ router.patch("/:id/status", async (req, res) => {
       await doc.save();
     }
 
-    const payload = toFrontend(doc);
+    const staffDirectory = await buildStaffDirectory();
+    const payload = toFrontend(doc, staffDirectory);
     broadcast(req, { type: "REQUEST_UPDATED", data: payload });
     res.json({ success: true, data: payload });
   } catch (err) {
@@ -214,7 +220,8 @@ router.patch("/:id/assign", async (req, res) => {
       await doc.save();
     }
 
-    const payload = toFrontend(doc);
+    const staffDirectory = await buildStaffDirectory();
+    const payload = toFrontend(doc, staffDirectory);
     broadcast(req, { type: "REQUEST_UPDATED", data: payload });
     res.json({ success: true, data: payload });
   } catch (err) {
@@ -251,7 +258,8 @@ router.patch("/:id/cancel", rejectBannedStaff, async (req, res) => {
       });
     }
 
-    const payload = toFrontend(doc);
+    const staffDirectory = await buildStaffDirectory();
+    const payload = toFrontend(doc, staffDirectory);
     broadcast(req, { type: "REQUEST_UPDATED", data: payload });
     res.json({ success: true, data: payload });
   } catch (err) {
