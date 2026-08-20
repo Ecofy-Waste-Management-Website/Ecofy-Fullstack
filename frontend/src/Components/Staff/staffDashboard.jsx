@@ -191,9 +191,9 @@ function PendingOrdersMapCanvas({ orders, onOrderSelect }) {
         const label = MAP_LABELS[index % MAP_LABELS.length];
         const position = isCoordinateTarget(target)
           ? (() => {
-              const [lat, lng] = target.split(',').map(Number);
-              return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
-            })()
+            const [lat, lng] = target.split(',').map(Number);
+            return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+          })()
           : await geocodePendingOrderTarget(target);
 
         resolvedPins.push({
@@ -727,6 +727,8 @@ export default function StaffDashboard() {
   const [expandedInquiryId, setExpandedInquiryId] = useState(null);
   const [replyTexts, setReplyTexts] = useState({});
   const [sendingReply, setSendingReply] = useState(null);
+  const [inquiryForm, setInquiryForm] = useState({ subject: '', message: '' });
+  const [sendingInquiry, setSendingInquiry] = useState(false);
   const [settingsForm, setSettingsForm] = useState({
     firstName: '',
     lastName: '',
@@ -747,7 +749,44 @@ export default function StaffDashboard() {
   const [isAccountBanned, setIsAccountBanned] = useState(null);
 
   const staffName = displayName;
+  const staffEmail = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || '';
   const staffInitials = staffName.split(" ").map(n => n[0] || "").join("").toUpperCase();
+
+  const handleInquiryFormChange = (field, value) => {
+    setInquiryForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSendInquiry = async (e) => {
+    e.preventDefault();
+    if (!inquiryForm.message.trim() || sendingInquiry) return;
+    setSendingInquiry(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/inquiries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userName: staffName,
+          userEmail: staffEmail,
+          clerkId: user?.id || '',
+          subject: inquiryForm.subject.trim() || 'General Inquiry',
+          message: inquiryForm.message.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setInquiries((prev) => [data.inquiry, ...prev]);
+        setInquiryForm({ subject: '', message: '' });
+        showNotification('Inquiry sent successfully!');
+      } else {
+        showNotification(data.message || 'Failed to send inquiry.', 'error');
+      }
+    } catch (err) {
+      console.error('Failed to send inquiry:', err);
+      showNotification('Failed to send inquiry. Please try again.', 'error');
+    } finally {
+      setSendingInquiry(false);
+    }
+  };
   const openPendingOrderDetails = (order) => {
     setSelectedPendingOrder(order);
   };
@@ -789,24 +828,24 @@ export default function StaffDashboard() {
               branch: profile.bankDetails?.branch || '',
             },
           });
-        const activeRes = await fetch(`${API_BASE_URL}/staff/tasks/active/${user.id}`);
-        const completedRes = await fetch(`${API_BASE_URL}/staff/tasks/completed/${user.id}`);
-        const pendingRes = await fetch(`${API_BASE_URL}/bookings`);
+          const activeRes = await fetch(`${API_BASE_URL}/staff/tasks/active/${user.id}`);
+          const completedRes = await fetch(`${API_BASE_URL}/staff/tasks/completed/${user.id}`);
+          const pendingRes = await fetch(`${API_BASE_URL}/bookings`);
 
-        if (activeRes.ok) {
-          const activeData = await activeRes.json();
-          setActiveTasks(activeData.data || []);
-        }
-        if (completedRes.ok) {
-          const completedData = await completedRes.json();
-          setCompletedTasks(completedData.data || []);
-        }
-        if (pendingRes.ok) {
-          const pendingData = await pendingRes.json();
-          setPendingOrders((Array.isArray(pendingData) ? pendingData : [])
-            .filter((order) => order.status === 'Pending')
-            .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)));
-        }
+          if (activeRes.ok) {
+            const activeData = await activeRes.json();
+            setActiveTasks(activeData.data || []);
+          }
+          if (completedRes.ok) {
+            const completedData = await completedRes.json();
+            setCompletedTasks(completedData.data || []);
+          }
+          if (pendingRes.ok) {
+            const pendingData = await pendingRes.json();
+            setPendingOrders((Array.isArray(pendingData) ? pendingData : [])
+              .filter((order) => order.status === 'Pending')
+              .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)));
+          }
         } else {
           setIsAccountBanned(false);
         }
@@ -861,7 +900,7 @@ export default function StaffDashboard() {
           fetchPendingOrders();
         }
       };
-      ws.onerror = () => {};
+      ws.onerror = () => { };
     } catch {
       /* WebSocket optional failover */
     }
@@ -1056,7 +1095,7 @@ export default function StaffDashboard() {
       if (res.ok) {
         if (newStatus === 'Completed') {
           const task = activeTasks.find(t => t._id === taskId);
-          
+
           await fetch(`${API_BASE_URL}/notifications`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1317,63 +1356,62 @@ export default function StaffDashboard() {
       </div>
 
       {!isCompleted && (
-      <div className="grid grid-cols-1 gap-3 mb-6 md:grid-cols-3">
-        <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Order Price</p>
-          <p className="mt-1 text-sm font-black text-gray-900">{formatCurrency(getEstimatedAmount(task))}</p>
-        </div>
-
-        <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Customer Phone</p>
-          <p className="mt-1 text-sm font-bold text-gray-800 truncate">{task.customer_phone || 'Phone unavailable'}</p>
-          {task.customer_phone ? (
-            <a
-              href={`tel:${task.customer_phone}`}
-              className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#06a63e] px-3 py-2 text-xs font-bold text-white transition-all hover:bg-[#058b33]"
-            >
-              Call User
-            </a>
-          ) : (
-            <button
-              type="button"
-              disabled
-              className="mt-2 inline-flex items-center justify-center rounded-xl bg-gray-100 px-3 py-2 text-xs font-bold text-gray-400 cursor-not-allowed"
-            >
-              Call User
-            </button>
-          )}
-        </div>
-
-        <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pickup PIN</p>
-          <div className="mt-2 flex gap-2">
-            <input
-              type="text"
-              inputMode="numeric"
-              value={pickupPinValues[task._id] || ''}
-              onChange={(event) => handlePickupPinChange(task._id, event.target.value)}
-              placeholder={task.pickupPin ? 'Enter generated PIN' : 'No PIN available'}
-              className={`min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm font-bold outline-none transition-all ${
-                verifiedPickupPins[task._id]
-                  ? 'border-green-400 bg-green-50 text-green-800'
-                  : 'border-gray-300 bg-white text-gray-900 focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20'
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => verifyPickupPin(task)}
-              className="rounded-xl bg-[#06a63e] px-3 py-2 text-xs font-bold text-white transition-all hover:bg-[#058b33]"
-            >
-              Verify
-            </button>
+        <div className="grid grid-cols-1 gap-3 mb-6 md:grid-cols-3">
+          <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Order Price</p>
+            <p className="mt-1 text-sm font-black text-gray-900">{formatCurrency(getEstimatedAmount(task))}</p>
           </div>
-          {task.pickupPin && (
-            <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-              {verifiedPickupPins[task._id] ? 'PIN verified' : 'Enter the order PIN before completing'}
-            </p>
-          )}
+
+          <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Customer Phone</p>
+            <p className="mt-1 text-sm font-bold text-gray-800 truncate">{task.customer_phone || 'Phone unavailable'}</p>
+            {task.customer_phone ? (
+              <a
+                href={`tel:${task.customer_phone}`}
+                className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#06a63e] px-3 py-2 text-xs font-bold text-white transition-all hover:bg-[#058b33]"
+              >
+                Call User
+              </a>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="mt-2 inline-flex items-center justify-center rounded-xl bg-gray-100 px-3 py-2 text-xs font-bold text-gray-400 cursor-not-allowed"
+              >
+                Call User
+              </button>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pickup PIN</p>
+            <div className="mt-2 flex gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={pickupPinValues[task._id] || ''}
+                onChange={(event) => handlePickupPinChange(task._id, event.target.value)}
+                placeholder={task.pickupPin ? 'Enter generated PIN' : 'No PIN available'}
+                className={`min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm font-bold outline-none transition-all ${verifiedPickupPins[task._id]
+                    ? 'border-green-400 bg-green-50 text-green-800'
+                    : 'border-gray-300 bg-white text-gray-900 focus:border-[#06a63e] focus:ring-2 focus:ring-[#06a63e]/20'
+                  }`}
+              />
+              <button
+                type="button"
+                onClick={() => verifyPickupPin(task)}
+                className="rounded-xl bg-[#06a63e] px-3 py-2 text-xs font-bold text-white transition-all hover:bg-[#058b33]"
+              >
+                Verify
+              </button>
+            </div>
+            {task.pickupPin && (
+              <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                {verifiedPickupPins[task._id] ? 'PIN verified' : 'Enter the order PIN before completing'}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
       )}
 
       {!isCompleted && task.notes && (
@@ -1388,11 +1426,10 @@ export default function StaffDashboard() {
           <button
             onClick={() => updateTaskStatus(task._id, 'En Route')}
             disabled={updatingTask === task._id || task.status === 'En Route'}
-            className={`flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-              task.status === 'En Route'
+            className={`flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${task.status === 'En Route'
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 : 'bg-[#06a63e] text-white hover:bg-[#058b33] shadow-sm'
-            }`}
+              }`}
           >
             {updatingTask === task._id && task.status !== 'En Route' ? '...' : <><Icons.ActiveTasks /> On the Way</>}
           </button>
@@ -1554,35 +1591,35 @@ export default function StaffDashboard() {
             <PendingOrdersMapCanvas orders={pendingOrders} onOrderSelect={openPendingOrderDetails} />
 
             <div className="relative -mt-4 mx-4 mb-4 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pin directory</p>
-                    <p className="mt-0.5 text-sm font-bold text-gray-800">Quick access to each pickup target</p>
-                  </div>
-                  <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-xs font-bold text-[#06a63e]">
-                    {pendingOrderPins.length}
-                  </span>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pin directory</p>
+                  <p className="mt-0.5 text-sm font-bold text-gray-800">Quick access to each pickup target</p>
                 </div>
-                <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-                  {pendingOrderPins.slice(0, 4).map(({ order, label, target }) => (
-                    <button
-                      key={order._id}
-                      type="button"
-                      onClick={() => openPendingOrderDetails(order)}
-                      className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-left transition hover:bg-white"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pin {label}</p>
-                          <p className="truncate text-xs font-semibold text-gray-800">{order.location || target}</p>
-                        </div>
-                        <span className="shrink-0 rounded-xl bg-[#06a63e] px-3 py-1 text-xs font-bold text-white">
-                          Details
-                        </span>
+                <span className="rounded-full bg-[#06a63e]/10 px-3 py-1 text-xs font-bold text-[#06a63e]">
+                  {pendingOrderPins.length}
+                </span>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                {pendingOrderPins.slice(0, 4).map(({ order, label, target }) => (
+                  <button
+                    key={order._id}
+                    type="button"
+                    onClick={() => openPendingOrderDetails(order)}
+                    className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-left transition hover:bg-white"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pin {label}</p>
+                        <p className="truncate text-xs font-semibold text-gray-800">{order.location || target}</p>
                       </div>
-                    </button>
-                  ))}
-                </div>
+                      <span className="shrink-0 rounded-xl bg-[#06a63e] px-3 py-1 text-xs font-bold text-white">
+                        Details
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -1711,11 +1748,10 @@ export default function StaffDashboard() {
             return (
               <div
                 key={inq._id}
-                className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-                  isExpanded
+                className={`rounded-2xl border transition-all duration-200 overflow-hidden ${isExpanded
                     ? 'border-[#06a63e]/30 bg-white shadow-md'
                     : 'border-[#06a63e]/15 bg-white/60 hover:bg-white/80 hover:border-[#06a63e]/25'
-                }`}
+                  }`}
               >
                 {/* Collapsed header — always visible */}
                 <button
@@ -1726,9 +1762,8 @@ export default function StaffDashboard() {
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Status dot */}
                     <span
-                      className={`shrink-0 h-2.5 w-2.5 rounded-full ${
-                        isReplied ? 'bg-[#06a63e]' : 'bg-amber-400'
-                      }`}
+                      className={`shrink-0 h-2.5 w-2.5 rounded-full ${isReplied ? 'bg-[#06a63e]' : 'bg-amber-400'
+                        }`}
                     />
                     <div className="min-w-0">
                       <p className="text-sm font-black text-[#03652a] truncate">
@@ -1742,11 +1777,10 @@ export default function StaffDashboard() {
 
                   <div className="flex items-center gap-2 shrink-0">
                     <span
-                      className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest ${
-                        isReplied
+                      className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest ${isReplied
                           ? 'bg-green-100 text-[#06a63e]'
                           : 'bg-amber-100 text-amber-700'
-                      }`}
+                        }`}
                     >
                       {inq.status}
                     </span>
@@ -1909,18 +1943,16 @@ export default function StaffDashboard() {
                     setActiveTab(item.key);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
-                    isActive
+                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${isActive
                       ? "bg-[#06a63e] text-white"
                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div className="h-[18px] w-[18px] shrink-0 flex items-center justify-center">{item.icon}</div>
                   <span className="truncate">{item.label}</span>
                   {item.count > 0 && (
-                    <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-black ${
-                      isActive ? "bg-white/20 text-white" : "bg-amber-100 text-amber-700"
-                    }`}>
+                    <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-black ${isActive ? "bg-white/20 text-white" : "bg-amber-100 text-amber-700"
+                      }`}>
                       {item.count}
                     </span>
                   )}
@@ -1967,9 +1999,8 @@ export default function StaffDashboard() {
 
           <main className="p-6 pt-24 lg:p-8 lg:pt-24 space-y-6">
             {notification && (
-              <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-xl text-white font-black text-sm animate-in fade-in slide-in-from-top-4 duration-300 uppercase tracking-widest ${
-                notification.type === 'error' ? 'bg-red-500' : 'bg-[#06a63e]'
-              }`}>
+              <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-xl text-white font-black text-sm animate-in fade-in slide-in-from-top-4 duration-300 uppercase tracking-widest ${notification.type === 'error' ? 'bg-red-500' : 'bg-[#06a63e]'
+                }`}>
                 {notification.message}
               </div>
             )}
@@ -2017,7 +2048,7 @@ export default function StaffDashboard() {
                       changingPassword={changingPassword}
                       handleSettingsChange={handleSettingsChange}
                       handleBankDetailChange={handleBankDetailChange}
-                      handlePasswordFormChange={(field, value) => setPasswordForm(prev => ({...prev, [field]: value}))}
+                      handlePasswordFormChange={(field, value) => setPasswordForm(prev => ({ ...prev, [field]: value }))}
                       changePassword={changePassword}
                       saveSettings={saveSettings}
                       onClearMessage={() => setSettingsMessage(null)}

@@ -57,9 +57,9 @@ function LeafletMapPicker({ value, onSelect }) {
 
       const data = await response.json();
       const address = data?.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-      
+
       setMapMessage(`📍 ${address}`);
-      
+
       onSelect({
         address: address,
         coordinates: { latitude: lat, longitude: lng },
@@ -81,7 +81,7 @@ function LeafletMapPicker({ value, onSelect }) {
 
     try {
       let data = null;
-      
+
       // Strategy 1: Search with the exact address in Balangoda area
       let url = new URL('https://nominatim.openstreetmap.org/search');
       url.searchParams.set('format', 'jsonv2');
@@ -96,48 +96,48 @@ function LeafletMapPicker({ value, onSelect }) {
 
       if (!response.ok) throw new Error('Geocoding failed');
       data = await response.json();
-      
+
       // Strategy 2: If no results, try with just Balangoda
       if (!data || data.length === 0) {
         url = new URL('https://nominatim.openstreetmap.org/search');
         url.searchParams.set('format', 'jsonv2');
         url.searchParams.set('limit', '1');
         url.searchParams.set('q', `${address}, Balangoda, Sri Lanka`);
-        
+
         response = await fetch(url.toString(), {
           headers: { Accept: 'application/json' },
         });
-        
+
         if (!response.ok) throw new Error('Geocoding failed');
         data = await response.json();
       }
-      
+
       // Strategy 3: If still no results, try without any context
       if (!data || data.length === 0) {
         url = new URL('https://nominatim.openstreetmap.org/search');
         url.searchParams.set('format', 'jsonv2');
         url.searchParams.set('limit', '1');
         url.searchParams.set('q', address);
-        
+
         response = await fetch(url.toString(), {
           headers: { Accept: 'application/json' },
         });
-        
+
         if (!response.ok) throw new Error('Geocoding failed');
         data = await response.json();
       }
-      
+
       if (data && data[0]) {
         const lat = parseFloat(data[0].lat);
         const lng = parseFloat(data[0].lon);
-        
+
         if (!isNaN(lat) && !isNaN(lng)) {
           mapRef.current.setView([lat, lng], 16);
           markerRef.current?.setLatLng([lat, lng]);
-          
+
           const fullAddress = data[0].display_name || address;
           setMapMessage(`📍 ${fullAddress}`);
-          
+
           onSelect({
             address: fullAddress,
             coordinates: { latitude: lat, longitude: lng },
@@ -145,7 +145,7 @@ function LeafletMapPicker({ value, onSelect }) {
           return;
         }
       }
-      
+
       // If we get here, no results found
       setMapMessage('⚠️ Location not found. Try a more specific address or click on the map.');
     } catch (error) {
@@ -235,7 +235,7 @@ function LeafletMapPicker({ value, onSelect }) {
   useEffect(() => {
     if (!mapRef.current || !value) return;
     if (prevValueRef.current === value) return;
-    
+
     prevValueRef.current = value;
     setTimeout(() => geocodeAddress(value), 300);
   }, [value]);
@@ -269,8 +269,8 @@ function LeafletMapPicker({ value, onSelect }) {
   return (
     <div className="flex h-full flex-col gap-3">
       {/* Map container */}
-      <div 
-        ref={mapContainerRef} 
+      <div
+        ref={mapContainerRef}
         className="w-full rounded-2xl border border-gray-200 bg-gray-50 min-h-[280px] h-[280px] relative"
       >
         {!mapLoaded && (
@@ -347,13 +347,13 @@ const Icon = ({ name, className = "h-5 w-5" }) => {
 };
 
 const NAV_ITEMS = [
-  { id: "home",             icon: "home",       label: "Home" },
-  { id: "schedule",         icon: "truck",      label: "Schedule Pickup" },
-  { id: "track-status",     icon: "mapPin",     label: "Track Status" },
-  { id: "history",          icon: "clock",      label: "History" },
-  { id: "payments",         icon: "creditCard", label: "Payments" },
-  { id: "inquiry",          icon: "chat",       label: "Inquiry" },
-  { id: "profile",          icon: "user",       label: "Profile" },
+  { id: "home", icon: "home", label: "Home" },
+  { id: "schedule", icon: "truck", label: "Schedule Pickup" },
+  { id: "track-status", icon: "mapPin", label: "Track Status" },
+  { id: "history", icon: "clock", label: "History" },
+  { id: "payments", icon: "creditCard", label: "Payments" },
+  { id: "inquiry", icon: "chat", label: "Inquiry" },
+  { id: "profile", icon: "user", label: "Profile" },
 ];
 
 // Format a date/time value for display in the inquiry history list.
@@ -490,13 +490,13 @@ export default function Dashboard() {
               { label: "Location", value: selectedBooking.location || "Unavailable" },
               { label: "Scheduled Date", value: selectedBooking.scheduled_date ? new Date(selectedBooking.scheduled_date).toLocaleDateString() : "N/A" },
               { label: "Status", value: selectedBooking.status || "Pending" },
-              { 
-                label: "Assigned Staff", 
-                value: !selectedBooking.assignedStaff 
-                  ? "Not yet assigned" 
-                  : String(selectedBooking.assignedStaff).startsWith("user_") 
-                    ? "Assigned Staff Member" 
-                    : selectedBooking.assignedStaff 
+              {
+                label: "Assigned Staff",
+                value: !selectedBooking.assignedStaff
+                  ? "Not yet assigned"
+                  : String(selectedBooking.assignedStaff).startsWith("user_")
+                    ? "Assigned Staff Member"
+                    : selectedBooking.assignedStaff
               },
             ].map(({ label, value }) => (
               <div key={label} className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
@@ -582,8 +582,8 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
         {[
-          { icon: "truck",      label: "Active Pickups", value: loadingBookings ? "—" : activeBookings.length },
-          { icon: "mapPin",     label: "Completed",      value: loadingBookings ? "—" : completedBookings.length },
+          { icon: "truck", label: "Active Pickups", value: loadingBookings ? "—" : activeBookings.length },
+          { icon: "mapPin", label: "Completed", value: loadingBookings ? "—" : completedBookings.length },
         ].map(({ icon, label, value }) => (
           <div key={label} className="rounded-3xl border border-[#06a63e]/15 bg-white p-5 shadow-sm">
             <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#06a63e]/10">
@@ -658,16 +658,16 @@ export default function Dashboard() {
             <p className="mt-1 text-sm text-white/75">Enter your address or street name.</p>
             <div className="mt-5 rounded-2xl bg-white/15 p-5 border border-white/10 flex-1">
               <label className="block text-xs font-bold uppercase tracking-widest text-white/80 mb-3">Search pickup location</label>
-              <input 
-                type="text" 
-                value={locationQuery} 
+              <input
+                type="text"
+                value={locationQuery}
                 onChange={(e) => setLocationQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleLocationSearch()}
                 placeholder="Enter a location, street, or area"
-                className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-white/40 mb-3" 
+                className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-white/40 mb-3"
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={handleLocationSearch}
                 className="w-full rounded-xl bg-gray-900 px-6 py-3 text-sm font-bold text-white hover:bg-black active:scale-95 transition"
               >
@@ -680,8 +680,8 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => {
               if (pickupLocation) {
                 setShowPickupModal(true);
@@ -708,7 +708,7 @@ export default function Dashboard() {
             )}
           </div>
           <div className="flex-1 min-h-[320px] rounded-2xl overflow-hidden border border-gray-100">
-            <LeafletMapPicker 
+            <LeafletMapPicker
               value={selectedMapLocation}
               onSelect={({ address, coordinates }) => {
                 setLocationQuery(address);
@@ -716,7 +716,7 @@ export default function Dashboard() {
                 setSelectedMapLocation(address);
                 setPickupCoordinates(coordinates);
                 setSearchStatus({ type: "success", text: "📍 Location selected from map." });
-              }} 
+              }}
             />
           </div>
           {pickupLocation && (
@@ -751,16 +751,16 @@ export default function Dashboard() {
         </div>
         {loadingBookings ? <p className="text-sm text-gray-400">Loading…</p>
           : activeBookings.length === 0 ? <p className="text-sm text-gray-400 py-4 text-center">No active pickups to display.</p>
-          : activeBookings.map((b) => (
-            <button key={b._id} type="button" onClick={() => setSelectedBooking(b)}
-              className="flex w-full items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 mb-2 text-left hover:border-[#06a63e]/30 hover:bg-[#06a63e]/5 transition">
-              <div>
-                <p className="text-sm font-semibold text-gray-700">{b.service_type} — {b.waste_category}</p>
-                <p className="text-xs text-gray-400">{b.location} · {new Date(b.scheduled_date).toLocaleDateString()}</p>
-              </div>
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[b.status] || "bg-gray-100 text-gray-600"}`}>{b.status}</span>
-            </button>
-          ))}
+            : activeBookings.map((b) => (
+              <button key={b._id} type="button" onClick={() => setSelectedBooking(b)}
+                className="flex w-full items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 mb-2 text-left hover:border-[#06a63e]/30 hover:bg-[#06a63e]/5 transition">
+                <div>
+                  <p className="text-sm font-semibold text-gray-700">{b.service_type} — {b.waste_category}</p>
+                  <p className="text-xs text-gray-400">{b.location} · {new Date(b.scheduled_date).toLocaleDateString()}</p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[b.status] || "bg-gray-100 text-gray-600"}`}>{b.status}</span>
+              </button>
+            ))}
       </div>
       <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
         <h3 className="text-base font-bold text-gray-800 mb-4">Driver Location & Real-time Tracking</h3>
@@ -802,16 +802,16 @@ export default function Dashboard() {
         <h3 className="text-base font-bold text-gray-800 mb-4">Recent Bookings</h3>
         {loadingBookings ? <p className="text-sm text-gray-400">Loading…</p>
           : bookings.length === 0 ? <p className="text-sm text-gray-400">No bookings yet.</p>
-          : bookings.slice(0, 6).map((b) => (
-            <button key={b._id} type="button" onClick={() => setSelectedBooking(b)}
-              className="flex w-full items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 mb-2 text-left hover:border-[#06a63e]/30 hover:bg-[#06a63e]/5 transition">
-              <div>
-                <p className="text-sm font-semibold text-gray-700">{b.service_type} — {b.waste_category}</p>
-                <p className="text-xs text-gray-400">{new Date(b.scheduled_date).toLocaleDateString()}</p>
-              </div>
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[b.status] || "bg-gray-100 text-gray-600"}`}>{b.status}</span>
-            </button>
-          ))}
+            : bookings.slice(0, 6).map((b) => (
+              <button key={b._id} type="button" onClick={() => setSelectedBooking(b)}
+                className="flex w-full items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 mb-2 text-left hover:border-[#06a63e]/30 hover:bg-[#06a63e]/5 transition">
+                <div>
+                  <p className="text-sm font-semibold text-gray-700">{b.service_type} — {b.waste_category}</p>
+                  <p className="text-xs text-gray-400">{new Date(b.scheduled_date).toLocaleDateString()}</p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[b.status] || "bg-gray-100 text-gray-600"}`}>{b.status}</span>
+              </button>
+            ))}
       </div>
     </div>
   );
@@ -824,8 +824,8 @@ export default function Dashboard() {
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
-          { icon: "creditCard", label: "Total Paid",   value: `LKR ${totalPaid.toLocaleString()}` },
-          { icon: "clock",      label: "Transactions", value: payments.length },
+          { icon: "creditCard", label: "Total Paid", value: `LKR ${totalPaid.toLocaleString()}` },
+          { icon: "clock", label: "Transactions", value: payments.length },
         ].map(({ icon, label, value }) => (
           <div key={label} className="rounded-3xl border border-[#06a63e]/15 bg-white p-5 shadow-sm">
             <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#06a63e]/10">
@@ -962,9 +962,8 @@ export default function Dashboard() {
                 <div key={item._id} className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
                   <div className="flex flex-wrap items-center gap-3">
                     <h4 className="m-0 text-sm font-black text-gray-800">{item.subject || "General Inquiry"}</h4>
-                    <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                      item.status === "Replied" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                    }`}>
+                    <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${item.status === "Replied" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                      }`}>
                       {item.status}
                     </span>
                   </div>
@@ -1022,15 +1021,15 @@ export default function Dashboard() {
 
   const renderPanel = () => {
     switch (activeTab) {
-      case "home":             return <HomePanel />;
-      case "schedule":         return renderSchedulePanel();
-      case "track-status":     return <TrackStatusPanel />;
-      case "history":          return <HistoryPanel />;
-      case "payments":         return <PaymentsPanel />;
-      case "inquiry":          return <InquiryPanel />;
-      case "profile":          return <ProfileSettings />;
+      case "home": return <HomePanel />;
+      case "schedule": return renderSchedulePanel();
+      case "track-status": return <TrackStatusPanel />;
+      case "history": return <HistoryPanel />;
+      case "payments": return <PaymentsPanel />;
+      case "inquiry": return <InquiryPanel />;
+      case "profile": return <ProfileSettings />;
       case "special-services": return <ServicesPanel />;
-      default:                 return <HomePanel />;
+      default: return <HomePanel />;
     }
   };
 
@@ -1067,9 +1066,8 @@ export default function Dashboard() {
               const isActive = activeTab === item.id;
               return (
                 <button key={item.id} type="button" onClick={() => navigate2Tab(item.id)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
-                    isActive ? "bg-[#06a63e] text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  }`}>
+                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${isActive ? "bg-[#06a63e] text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    }`}>
                   <Icon name={item.icon} className="h-[18px] w-[18px] shrink-0" />
                   <span>{item.label}</span>
                   {item.id === "track-status" && activeBookings.length > 0 && (
